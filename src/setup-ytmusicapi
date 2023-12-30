@@ -1,0 +1,90 @@
+#!/usr/bin/php
+<?php
+namespace Ytmusicapi;
+
+include "polyfills.php";
+include "helpers.php";
+include "constants.php";
+include "auth/oauth.php";
+include "auth/browser.php";
+include "auth/headers.php";
+
+// php vendor/bin/setup-ytmusicapi oauth --file oauth.json
+// php vendor/bin/setup-ytmusicapi browser --file browser.json
+
+/**
+ * Requests browser headers from the user via command line and returns a string that can be passed to YTMusic()
+ *
+ * @param string $filepath Optional filepath to store headers to.
+ * @param string $headers_raw Optional request headers copied from browser. Otherwise requested from terminal
+ * @return string configuration headers string
+ */
+function setup($filepath = null, $headers_raw = null) {
+	return setup_browser($filepath, $headers_raw);
+}
+
+/**
+ * Starts oauth flow from the terminal and returns a string that can be passed to YTMusic()
+ *
+ * @param string $filepath Optional filepath to store headers to.
+ * @param Session (Unused in PHP) $session Session to use for authentication
+ * @param array (Not implemented) $proxies Proxies to use for authentication
+ * @param bool (Not implemented) $open_browser – If True, open the default browser with the setup link
+ */
+function setup_oauth($filepath = null, $session = null, $proxies = null, $open_browser = false) {
+	$oauth = new YTMusicOAuth();
+	try {
+		return $oauth->setup($filepath);
+	} catch (\Exception $ex) {
+		if ($ex->getCode() === 428) {
+			die("Unable to complete OAuth setup. Did you remember to authorize on Google?\n");
+		}
+		die("Error: " . $ex->getMessage() . " " . $ex->getCode() . "\n");
+	}
+}
+
+function show_help() {
+	echo "Usage: php bin/vendor/setup.php <setup_type> [--file <filename>]\n\n";
+	echo "setup_type: oauth, browser\n\n";
+	exit;
+}
+
+function parse_args() {
+	global $argv;
+
+	if (count($argv) <= 1) {
+		show_help();
+	}
+
+	$setup_type = strtolower($argv[1]);
+	if ($setup_type !== "oauth" && $setup_type !== "browser") {
+		show_help();
+	}
+
+	if (!isset($argv[2]) || strtolower($argv[2]) !== "--file") {
+		$filename = $setup_type . ".json";
+	} else {
+		$filename = isset($argv[3]) ? $argv[3] : $setup_type . ".json";
+	}
+
+	return (object)[
+		"setup_type" => $setup_type,
+		"file" => $filename
+	];
+}
+
+
+function main() {
+	$args = parse_args();
+
+	$filename = $args->file;
+
+	echo "Creating {$filename} with your authentication credentials...\n";
+	if ($args->setup_type === "oauth") {
+		setup_oauth($filename, false);
+	} else {
+		setup($filename);
+	}
+	echo "Created $filename.\n";
+}
+main();
