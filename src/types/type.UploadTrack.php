@@ -4,10 +4,10 @@ namespace Ytmusicapi;
 
 class UploadTrack
 {
-	/**
-	 * @var string
-	 */
-	public $entityId;
+    /**
+     * @var string
+     */
+    public $entityId;
 
     /**
      * @var string

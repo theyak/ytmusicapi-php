@@ -1,5 +1,7 @@
 <?php
+
 // 388
+
 namespace Ytmusicapi;
 
 use ytmusicapi\Playlist;
@@ -318,7 +320,7 @@ trait Playlists
 
         if ($addToTop === false) {
             $actions[] = ['action' => 'ACTION_SET_ADD_TO_TOP', 'addToTop' => 'false'];
-        } else if ($addToTop === true) {
+        } elseif ($addToTop === true) {
             $actions[] = ['action' => 'ACTION_SET_ADD_TO_TOP', 'addToTop' => 'true'];
         }
 

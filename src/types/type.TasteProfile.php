@@ -4,18 +4,18 @@ namespace Ytmusicapi;
 
 class TasteProfile
 {
-	/**
-	 * @var string
-	 */
-	public $selectionValue;
+    /**
+     * @var string
+     */
+    public $selectionValue;
 
-	/**
-	 * @var string
-	 */
-	public $impressionValue;
+    /**
+     * @var string
+     */
+    public $impressionValue;
 
-	/**
-	 * @var Thumbnail[]
-	 */
-	public $thumbnails;
+    /**
+     * @var Thumbnail[]
+     */
+    public $thumbnails;
 }

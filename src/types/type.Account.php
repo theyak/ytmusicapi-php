@@ -14,8 +14,8 @@ class Account
      */
     public $channelId;
 
-	/**
-	 * @var Thumbnail[]
-	 */
-	public $thumbnails;
+    /**
+     * @var Thumbnail[]
+     */
+    public $thumbnails;
 }

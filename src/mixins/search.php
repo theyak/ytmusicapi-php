@@ -1,5 +1,7 @@
 <?php
+
 //  91, 105, 117..118, 144, 148, 60
+
 namespace Ytmusicapi;
 
 trait Search

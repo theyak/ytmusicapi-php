@@ -12,7 +12,8 @@ trait Browse
      * Known differences from Python version:
      *   - Function not available in Python version
      */
-    public function get_account() {
+    public function get_account()
+    {
         $this->_check_auth();
 
         $endpoint = "account/account_menu";
@@ -304,7 +305,11 @@ trait Browse
         $endpoint = "browse";
         $body = ["browseId" => $channelId, "params" => $params];
         $response = $this->_send_request($endpoint, $body);
-        $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, GRID_ITEMS));
+        $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, GRID_ITEMS), true);
+        if (!$results) {
+            return [];
+        }
+
         $user_playlists = parse_content_list($results, "Ytmusicapi\\parse_playlist");
         return $user_playlists;
     }

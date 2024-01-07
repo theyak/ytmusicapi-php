@@ -283,7 +283,7 @@ test("Big create, add to, and delete test of library", function () {
     sleep(2);
 
     // Playlist no longer exists. Should throw an exception.
-    expect(fn() => $yt->get_playlist($playlistId))->toThrow(Exception::class);
+    expect(fn () => $yt->get_playlist($playlistId))->toThrow(Exception::class);
 });
 
 test("create_playlist() - Using video ids", function () {
