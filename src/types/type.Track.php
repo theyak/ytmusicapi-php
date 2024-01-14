@@ -51,6 +51,11 @@ class Track
     public $isExplicit;
 
     /**
+     * @var int
+     */
+    public $track_number;
+
+    /**
      * @var string
      */
     public $duration;

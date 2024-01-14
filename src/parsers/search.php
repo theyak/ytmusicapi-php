@@ -59,7 +59,7 @@ function parse_top_result($data, $search_result_types)
     }
 
     if ($result_type === 'album') {
-        $search_result['browseId'] = nav($data, NAVIGATION_BROWSE_ID, true);
+        $search_result['browseId'] = nav($data, join(TITLE, NAVIGATION_BROWSE_ID), true);
     }
 
     $search_result['thumbnails'] = nav($data, THUMBNAILS, true);

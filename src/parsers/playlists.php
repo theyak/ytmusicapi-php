@@ -10,7 +10,7 @@ namespace Ytmusicapi;
  * @param mixed $menu_entries
  * @return PlaylistTrack[]
  */
-function parse_playlist_items($results, $menu_entries = null)
+function parse_playlist_items($results, $menu_entries = null, $is_album = false)
 {
     $tracks = [];
 
@@ -108,6 +108,11 @@ function parse_playlist_items($results, $menu_entries = null)
         $track->duration_seconds = "";
         $track->setVideoId = '';
         $track->feedbackTokens = [];
+
+        if ($is_album) {
+            $track_idx_found = nav($data, ["index", "runs", 0, "text"], true);
+            $track->track_number = $track_idx_found ? (int)$track_idx_found : null;
+        }
 
         if ($duration) {
             $track->duration = $duration;

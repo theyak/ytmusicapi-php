@@ -89,6 +89,8 @@ trait Browse
      *
      * Known differences from Python version:
      *   - Check another location for suffleId and radioId
+     *   - Checks musicVisualHeaderRenderer for artist name
+     *   - Checks if artist has a subscription button
      *
      * @param string $channelId channel id of the artist
      * @return Artist
@@ -105,7 +107,11 @@ trait Browse
 
         $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST));
 
-        $header = $response->header->musicImmersiveHeaderRenderer;
+        $header = nav($response, "header.musicImmersiveHeaderRenderer", true);
+        if (!$header) {
+            $header = nav($response, "header.musicVisualHeaderRenderer", true);
+        }
+
         $artist = (object)[
             "description" => null,
             "views" => null,
@@ -118,8 +124,13 @@ trait Browse
             $artist->views = isset($descriptionShelf->subheader) ? $descriptionShelf->subheader->runs[0]->text : null;
         }
 
-        $subscription_button = $header->subscriptionButton->subscribeButtonRenderer;
-        $artist->channelId = $subscription_button->channelId;
+        if (isset($header->subscriptionButton)) {
+            $subscription_button = $header->subscriptionButton->subscribeButtonRenderer;
+            $artist->channelId = $subscription_button->channelId;
+            $artist->subscribers = nav($subscription_button, join("subscriberCountText.runs.0.text"), true);
+            $artist->subscribed = (bool)$subscription_button->subscribed;
+        }
+
         $artist->shuffleId = nav($header, join("playButton.buttonRenderer", NAVIGATION_WATCH_PLAYLIST_ID), true);
         $artist->radioId = nav($header, join("startRadioButton.buttonRenderer", NAVIGATION_WATCH_PLAYLIST_ID), true);
         if (!$artist->shuffleId) {
@@ -129,8 +140,6 @@ trait Browse
             $artist->radioId = nav($header, join("startRadioButton.buttonRenderer", NAVIGATION_WATCH_PLAYLIST_ID2), true);
         }
 
-        $artist->subscribers = nav($subscription_button, join("subscriberCountText.runs.0.text"), true);
-        $artist->subscribed = (bool)$subscription_button->subscribed;
         $artist->thumbnails = nav($header, THUMBNAILS, true);
 
         // API sometimes does not return songs
@@ -155,15 +164,14 @@ trait Browse
     /**
      * Get the full list of an artist's albums or singles
      *
-     * Known differences from Python version:
-     *   - Does continuations
      *
      * @param string $channelId channel Id of the artist
      * @param array $params params obtained by `get_artist`
+     * @param int $limit Number of albums to return
      * @return AlbumInfo[] List of albums in the format of `get_library_albums`,
      *  except artists key is missing.
      */
-    public function get_artist_albums($channelId, $params)
+    public function get_artist_albums($channelId, $params, $limit = 100)
     {
         if (!str_starts_with($channelId, "MPAD")) {
             $channelId = "MPAD" . $channelId;
@@ -191,7 +199,9 @@ trait Browse
                 return parse_albums($contents);
             };
 
-            $continuations = get_continuations($renderer, "gridContinuation", null, $request_func, $parse_func);
+            $remaining_limit = $limit ? $limit - count($albums) : null;
+
+            $continuations = get_continuations($renderer, "gridContinuation", $remaining_limit, $request_func, $parse_func);
             $albums = array_merge($albums, $continuations);
         }
 
@@ -213,7 +223,7 @@ trait Browse
 
         $album = parse_album_header($response);
         $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, MUSIC_SHELF));
-        $album->tracks = parse_playlist_items($results->contents);
+        $album->tracks = parse_playlist_items($results->contents, null, true);
         $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST, 1, CAROUSEL), true);
         if ($results) {
             $album->other_versions = parse_content_list($results->contents, "Ytmusicapi\\parse_album"); // Probably need a function to parse album
