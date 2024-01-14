@@ -158,6 +158,21 @@ test('get_artist() and get_artist_albums()', function () {
     }
 });
 
+test("get_artist() - Artist with no songs and no subscribe", function () {
+    $yt = new YTMusic();
+    $artist = $yt->get_artist("UCK3inMNRNAVUleEbpDU1k2g");
+
+    expect($artist->name)->toBe("SEB");
+    expect($artist->thumbnails)->toBeArray();
+    expect($artist->shuffleId)->toBeEmpty();
+    expect($artist->radioId)->toBeEmpty();
+    expect($artist->videos)->toHaveProperty("browseId");
+    expect(count($artist->videos->results))->toBeGreaterThan(1);
+    expect($artist->playlists)->toHaveProperty("browseId");
+    expect($artist->playlists)->toHaveProperty("params");
+    expect(count($artist->playlists->results))->toBeGreaterThan(1);
+});
+
 test("get_artist() with the MPLA prefix", function () {
     $yt = new YTMusic();
     $artist = $yt->get_artist("MPLA" . $this->artistId);
