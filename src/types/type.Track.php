@@ -51,11 +51,6 @@ class Track
     public $isExplicit;
 
     /**
-     * @var int
-     */
-    public $track_number;
-
-    /**
      * @var string
      */
     public $duration;
@@ -86,6 +81,21 @@ class Track
         }
         return $track;
     }
+}
+
+class AlbumTrack extends Track
+{
+    /**
+     * @var int
+     * Only available for albums
+     */
+    public $track_number;
+
+    /**
+     * @var string
+     * Play count is only available for albums
+     */
+    public $playCount = "";
 }
 
 #[\AllowDynamicProperties]

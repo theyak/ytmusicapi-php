@@ -5,10 +5,11 @@ namespace Ytmusicapi;
 /**
  * Known differences from Python verions:
  *   - Looks in additional place for video type
+ *   - Returns play count for album playlists
  *
  * @param mixed $results
  * @param mixed $menu_entries
- * @return PlaylistTrack[]
+ * @return Track[]|AlbumTrack[]
  */
 function parse_playlist_items($results, $menu_entries = null, $is_album = false)
 {
@@ -93,7 +94,7 @@ function parse_playlist_items($results, $menu_entries = null, $is_album = false)
             $videoType = nav($data, join(PLAY_BUTTON, "playNavigationEndpoint", NAVIGATION_VIDEO_TYPE), true);
         }
 
-        $track = new Track();
+        $track = $is_album ? new AlbumTrack() : new Track();
         $track->videoId = $videoId;
         $track->title = $title;
         $track->artists = $artists;
@@ -112,6 +113,7 @@ function parse_playlist_items($results, $menu_entries = null, $is_album = false)
         if ($is_album) {
             $track_idx_found = nav($data, ["index", "runs", 0, "text"], true);
             $track->track_number = $track_idx_found ? (int)$track_idx_found : null;
+            $track->playCount = get_item_text($data, 2);
         }
 
         if ($duration) {
