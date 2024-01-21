@@ -404,6 +404,7 @@ trait Browse
         $track = new SongInfo();
         $track->music = $song->playabilityStatus->status === "OK";
         $track->toast = $toast ?? "";
+        $track->canEmbed = $song->playabilityStatus->playableInEmbed ?? false;
         $track->playbackMode = $song->playabilityStatus->miniplayer->miniplayerRenderer->playbackMode ?? "";
         $track->videoId = $song->videoDetails->videoId ?? $videoId;
         $track->title = $song->videoDetails->title ?? "";

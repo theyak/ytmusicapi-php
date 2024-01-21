@@ -69,6 +69,12 @@ class SongInfo
     public $playbackMode;
 
     /**
+     * @var bool
+     * Flag indicating if this video can be embeded in third party website
+     */
+    public $canEmbed;
+
+    /**
      * @var string
      */
     public $toast;
