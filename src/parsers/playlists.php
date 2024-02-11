@@ -65,7 +65,10 @@ function parse_playlist_items($results, $menu_entries = null, $is_album = false)
         }
 
         $artists = parse_song_artists($data, 1);
+
         $album = parse_song_album($data, 2);
+
+        $views = get_item_text($data, 2);
 
         $duration = null;
         if (isset($data->fixedColumns)) {
@@ -109,6 +112,7 @@ function parse_playlist_items($results, $menu_entries = null, $is_album = false)
         $track->duration_seconds = "";
         $track->setVideoId = '';
         $track->feedbackTokens = [];
+        $track->views = $views;
 
         if ($is_album) {
             $track_idx_found = nav($data, ["index", "runs", 0, "text"], true);

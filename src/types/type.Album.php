@@ -7,6 +7,11 @@ class Album extends Record
     /**
      * @var string
      */
+    public $id;
+
+    /**
+     * @var string
+     */
     public $title;
 
     /**

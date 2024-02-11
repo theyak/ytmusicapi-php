@@ -5,7 +5,16 @@ namespace Ytmusicapi;
 function get_search_result_types()
 {
     // TODO: Language conversion
-    return ['artist', 'playlist', 'song', 'video', 'station', 'profile', 'podcast', 'episode'];
+    return [
+        'artist',
+        'playlist',
+        'song',
+        'video',
+        'station',
+        'profile',
+        'podcast',
+        'episode'
+    ];
 }
 
 /**

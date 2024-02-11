@@ -54,8 +54,13 @@ trait Watch
             }
         }
 
-        $body["playlistId"] = validate_playlist_id($playlistId);
-        $is_playlist = substr($body["playlistId"], 0, 2) === "PL" || substr($body["playlistId"], 0, 3) === "OLA";
+        $is_playlist = false;
+        if ($playlistId) {
+            $playlistId = validate_playlist_id($playlistId);
+            $is_playlist = substr($body["playlistId"], 0, 2) === "PL" || substr($body["playlistId"], 0, 3) === "OLA";
+            $body["playlistId"] = $playlistId;
+        }
+
         if ($shuffle && $playlistId) {
             $body["params"] = "wAEB8gECKAE%3D";
         }
@@ -82,6 +87,7 @@ trait Watch
             }
         }
 
+        // Note: Using different function than Python version due to naming collision
         $tracks = watch_playlist_parser($results->contents);
 
         if (isset($results->continuations)) {

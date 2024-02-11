@@ -70,6 +70,11 @@ class Track
      */
     public $feedbackTokens;
 
+    /**
+     * @var int
+     */
+    public $views;
+
     public static function from($object)
     {
         $properties = get_class_vars(static::class);

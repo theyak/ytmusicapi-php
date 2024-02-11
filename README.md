@@ -12,7 +12,8 @@ the same should make it easy to reference their
 ## Requirements
 This package was developed and tested in PHP 8.2 and the testing library
 requires 8.1+ so I have not tested in anything lower than PHP 8.2.
-That being said, I have tried to keep the code compatible with PHP 7.0+.
+That being said, I have tried to keep the code compatible with PHP 7.0+,
+though this has not been tested. I'm pretty sure it will work with PHP 7.4.
 
 This package uses the [requests](https://requests.ryanmccue.info/)
 package for communication with YouTube Music.
@@ -212,7 +213,6 @@ editor's Intellisense may be able to provide reference documentation.
 * [get_library_albums($limit = 25, $order = null)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_library_albums)
 * [get_library_artists($limit = 25, $order = null)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_library_artists)
 * [get_library_subscriptions($limit = 25, $order = null)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_library_subscriptions)
-* [get_liked_songs($limit = 100)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_liked_songs)
 * [get_history()](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_history)
 * [add_history_item($song)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.add_history_item)
 * [remove_history_itmes($feedbackTokens)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.remove_history_items)
@@ -225,6 +225,7 @@ editor's Intellisense may be able to provide reference documentation.
 #### Playlists
 * [get_playlist($playlistId, $limit = 100, $related = false, $suggestions_limit = 0, $get_continuations = true)](https://ytmusicapi.readthedocs.io/en/stable/reference.html#ytmusicapi.YTMusic.get_playlist)
 * get_playlist_continuation($playlistId, $token)
+* [get_liked_songs($limit = 100)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_liked_songs)
 * [create_playlist($title, $description, $privacy_status = "PRIVATE", $video_ids = null, $source_playlist = null)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.create_playlist)
 * [edit_playlist($playlistId, $title = null, $description = null, $privacyStatus = null, $moveItem = null, $addPlaylistId = null, $addToTop = null)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.edit_playlist)
 * [delete_playlist($playlistId)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.delete_playlist)

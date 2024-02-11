@@ -288,15 +288,21 @@ function parse_search_suggestions($results, $detailed_runs)
     foreach ($raw_suggestions as $raw_suggestion) {
         if (isset($raw_suggestion->historySuggestionRenderer)) {
             $suggestion_content = $raw_suggestion->historySuggestionRenderer;
+            $from_history = true;
         } else {
             $suggestion_content = $raw_suggestion->searchSuggestionRenderer;
+            $from_history = false;
         }
 
         $text = $suggestion_content->navigationEndpoint->searchEndpoint->query;
         $runs = $suggestion_content->suggestion->runs;
 
         if ($detailed_runs) {
-            $suggestions[] = (object)['text' => $text, 'runs' => $runs];
+            $suggestions[] = (object)[
+                "text" => $text,
+                "runs" => $runs,
+                "fromHistroy" => $from_history,
+            ];
         } else {
             $suggestions[] = $text;
         }

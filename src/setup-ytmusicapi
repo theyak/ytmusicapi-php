@@ -2,12 +2,16 @@
 <?php
 namespace Ytmusicapi;
 
+include __DIR__ . "/../vendor/autoload.php";
 include "polyfills.php";
 include "helpers.php";
 include "constants.php";
-include "auth/oauth.php";
+include "auth/models.php";
+include "auth/exceptions.php";
+include "auth/credentials.php";
+include "auth/token.php";
+include "auth/types.php";
 include "auth/browser.php";
-include "auth/headers.php";
 
 // php vendor/bin/setup-ytmusicapi oauth --file oauth.json
 // php vendor/bin/setup-ytmusicapi browser --file browser.json
@@ -27,20 +31,28 @@ function setup($filepath = null, $headers_raw = null) {
  * Starts oauth flow from the terminal and returns a string that can be passed to YTMusic()
  *
  * @param string $filepath Optional filepath to store headers to.
- * @param Session (Unused in PHP) $session Session to use for authentication
- * @param array (Not implemented) $proxies Proxies to use for authentication
+ * @param Session $session Session to use for authentication
+ * @param array $proxies Proxies to use for authentication
  * @param bool (Not implemented) $open_browser – If True, open the default browser with the setup link
+ * @param string $client_id Optional. Used to specify the client_id oauth should use for authentication
+ *   flow. If provided, client_secret MUST also be passed or both will be ignored.
+ * @param string $client_secret Optional. Same as client_id but for the oauth client secret.
  */
-function setup_oauth($filepath = null, $session = null, $proxies = null, $open_browser = false) {
-	$oauth = new YTMusicOAuth();
-	try {
-		return $oauth->setup($filepath);
-	} catch (\Exception $ex) {
-		if ($ex->getCode() === 428) {
-			die("Unable to complete OAuth setup. Did you remember to authorize on Google?\n");
-		}
-		die("Error: " . $ex->getMessage() . " " . $ex->getCode() . "\n");
+function setup_oauth(
+	$filepath = null,
+	$session = null,
+	$proxies = null,
+	$open_browser = false,
+	$client_id = null,
+	$client_secret = null
+) {
+	if ($client_id && $client_secret) {
+		$oauth_credentials = new OAuthCredentials($client_id, $client_secret, $session, $proxies);
+	} else {
+		$oauth_credentials = new OAuthCredentials(null, null, $session, $proxies);
 	}
+
+	RefreshingToken::prompt_for_token($oauth_credentials, $open_browser, $filepath);
 }
 
 function show_help() {

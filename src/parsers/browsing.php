@@ -46,7 +46,10 @@ function parse_mixed_content($rows)
                         $content = parse_playlist($data);
                     }
                 } else {
-                    $data = nav($result, MRLIR);
+                    $data = nav($result, MRLIR, true);
+                    if (!$data) {
+                        continue;
+                    }
                     $content = parse_song_flat($data);
                 }
 

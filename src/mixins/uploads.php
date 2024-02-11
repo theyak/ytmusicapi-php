@@ -158,8 +158,8 @@ trait Uploads
     {
         $this->_check_auth();
 
-        if (!$this->is_browser_auth) {
-            throw new \Exception("Please provide authentication before using this function");
+        if (!$this->auth_type === AuthType::BROWSER) {
+            throw new \Exception("Please provide browser authentication before using this function");
         }
 
         if (!file_exists($filepath)) {

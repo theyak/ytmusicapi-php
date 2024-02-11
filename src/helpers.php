@@ -2,6 +2,8 @@
 
 namespace Ytmusicapi;
 
+use WpOrg\Requests\Utility\CaseInsensitiveDictionary as CaseInsensitiveDict;
+
 // This gets used before tests begin, so we can't test them directly
 // @codeCoverageIgnoreStart
 function include_all($dir)
@@ -15,6 +17,9 @@ function include_all($dir)
 }
 // @codeCoverageIgnoreEnd
 
+/**
+ * @return object
+ */
 function initialize_context()
 {
     return (object)[
@@ -114,15 +119,29 @@ function convert_cookies_to_string($cookies)
  * Converts a string of cookies to key => value pairs.
  *
  * @param string $cookiesStr The cookie string
- * @return array
+ * @return CaseInsensitiveDict
  */
 function convert_string_to_cookies($cookiesStr)
 {
+    if ($cookiesStr instanceof CaseInsensitiveDict) {
+        return $cookiesStr;
+    }
+
+    if (is_array($cookiesStr)) {
+        return new CaseInsensitiveDict($cookiesStr);
+    }
+
+    if (is_object($cookiesStr)) {
+        return new CaseInsensitiveDict((array)$cookiesStr);
+    }
+
     $cookiesStr = trim($cookiesStr);
 
     if (!$cookiesStr || strpos($cookiesStr, "=") === false) {
-        return [];
+        return new CaseInsensitiveDict([]);
     }
+
+    $cookies = new CaseInsensitiveDict([]);
 
     if (str_starts_with(strtolower($cookiesStr), "cookie: ")) {
         $cookiesStr = substr($cookiesStr, 8);
@@ -132,7 +151,6 @@ function convert_string_to_cookies($cookiesStr)
 
     $split = explode("; ", $cookiesStr);
 
-    $cookies = [];
     foreach ($split as $value) {
         [$key, $val] = explode("=", $value);
         $cookies[trim($key)] = trim($val);
@@ -144,4 +162,23 @@ function convert_string_to_cookies($cookiesStr)
 function json_dump($object)
 {
     file_put_contents("dump.json", json_encode($object, JSON_PRETTY_PRINT));
+}
+
+function sapisid_from_cookie($raw_cookie)
+{
+    $cookies = convert_string_to_cookies($raw_cookie);
+    return $cookies["__Secure-3PAPISID"];
+}
+
+/**
+ * @param string $sapisid
+ * @param string $origin
+ * @return string
+ */
+function get_authorization(string $sapisid, string $origin = "https://music.youtube.com"): string
+{
+    $timestamp = time();
+    $sha1 = sha1("{$timestamp} {$sapisid} {$origin}");
+    $authorization = "SAPISIDHASH {$timestamp}_{$sha1}";
+    return $authorization;
 }

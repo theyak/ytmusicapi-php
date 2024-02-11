@@ -220,9 +220,10 @@ test("get_album() and get_album_browse_id()", function () {
 
     $seconds = 0;
     foreach ($result->tracks as $track) {
-        expect($track::class)->toBe("Ytmusicapi\\Track");
+        expect($track::class)->toBe("Ytmusicapi\\AlbumTrack");
         expect($track->title)->not->toBeEmpty();
         expect($track->videoId)->not->toBeEmpty();
+        expect($track->views)->not->toBeEmpty();
         $seconds += (int)$track->duration_seconds;
     }
 

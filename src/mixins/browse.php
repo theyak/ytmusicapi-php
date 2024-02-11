@@ -164,8 +164,7 @@ trait Browse
     /**
      * Get the full list of an artist's albums or singles
      *
-     *
-     * @param string $channelId channel Id of the artist
+     * @param string $channelId browseId of the artist as returned by `get_artist`
      * @param array $params params obtained by `get_artist`
      * @param int $limit Number of albums to return
      * @return AlbumInfo[] List of albums in the format of `get_library_albums`,
@@ -244,7 +243,7 @@ trait Browse
      * $audoPlaylistId will show in the `list` parameter.
      *
      * @param string $audioPlaylistId id of the audio playlist  (starting with `OLAK5uy_`)
-     * @return string browseId (starting with `MPREb_`)
+     * @return string|null browseId (starting with `MPREb_`)
      */
     public function get_album_browse_id($audioPlaylistId)
     {
@@ -328,7 +327,7 @@ trait Browse
      * Returns metadata and streaming information about a song or video.
      *
      * @param string $videoId Video ID
-     * @param int $signatureTimestamp Provide the current YouTube signatureTimestamp.
+     * @param int|null $signatureTimestamp Provide the current YouTube signatureTimestamp.
      *   If not provided a default value will be used, which might result in invalid
      *   streaming URLs.
      * @return Song
@@ -339,7 +338,7 @@ trait Browse
             $epoch = new \DateTime("1969-12-31");
             $today = new \DateTime();
             $difference = $today->getTimestamp() - $epoch->getTimestamp();
-            $days = floor($difference / (1000 * 60 * 60 * 24));
+            $days = floor($difference / (60 * 60 * 24)); // ??
             $signatureTimestamp = $days - 1;
         }
 

@@ -210,17 +210,6 @@ trait Library
     }
 
     /**
-     * Gets playlist items for the 'Liked Songs' playlist
-     *
-     * @param int $limit How many items to return. Default: 100
-     * @return Playlist List of playlistItem dictionaries. Same format as `get_playlist`
-     */
-    public function get_liked_songs($limit = 100)
-    {
-        return $this->get_playlist('LM', $limit);
-    }
-
-    /**
      * Gets your play history in reverse chronological order
      *
      * @return HistoryTrack[]

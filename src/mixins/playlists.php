@@ -207,6 +207,17 @@ trait Playlists
     }
 
     /**
+     * Gets playlist items for the 'Liked Songs' playlist
+     *
+     * @param int $limit How many items to return. Default: 100
+     * @return Playlist List of playlistItem dictionaries. Same format as `get_playlist`
+     */
+    public function get_liked_songs($limit = 100)
+    {
+        return $this->get_playlist('LM', $limit);
+    }
+
+    /**
      * Creates a new empty playlist and returns its id.
      *
      * Known differences from Python version:

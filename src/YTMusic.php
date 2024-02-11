@@ -19,25 +19,41 @@ include_all("parsers");
 include_all("auth");
 include_all("types");
 
+use WpOrg\Requests\Utility\CaseInsensitiveDictionary as CaseInsensitiveDict;
+
+/**
+ * Allows automated interactions with YouTube Music by emulating the YouTube web client's requests.
+ * Permits both authenticated and non-authenticated requests.
+ * Authentication header data must be provided on initialization.
+ */
 class YTMusic
 {
     use Browse;
+    use Search;
+    use Watch;
     use Explore;
     use Library;
     use Playlists;
-    use Search;
     use Uploads;
-    use Watch;
+
+    public $_base_headers;
+    public $_headers;
+    public $_token;
+    public $_session;
+    public $_input_dict;
+    public $auth_type;
+    public $oauth_credentials;
+    public $proxies;
+    public $params;
+    public $origin;
 
     public $cookies = [];
-    public $user;
+    // public $user;
     public $language = "en";
     public $auth;
-    public $input;
-    public $proxies;
-    public $is_oauth_auth;
-    public $is_browser_auth;
-    public $session;
+    // public $input;
+    // public $is_oauth_auth;
+    // public $is_browser_auth;
     public $headers;
     public $context;
     public $sapisid;
@@ -46,8 +62,9 @@ class YTMusic
     /**
      * Create a new instance to interact with YouTube Music.
      *
-     * @param string $auth Optional. Provide a string or path to file. Authentication credentials
-     *   are needed to manage your library. See setup() for how to fill in the correct credentials.
+     * @param string $auth Optional. Provide a string, path to file, cookie string, or oauth token dict.
+     *   Authentication credentials are needed to manage your library.
+     *   See `setup()` for how to fill in the correct credentials.
      *   Default: A default header is used without authentication.
      * @param string $user  Optional. Specify a user ID string to use in requests. This is needed
      *   if you want to send requests on behalf of a brand account. Otherwise the default account
@@ -68,79 +85,202 @@ class YTMusic
      * @param string $location (Not implemented yet) Optional. Can be used to change the location of the user. No location
      *   will be set by default. This means it is determined by the server. Available languages can
      *   be checked in the FAQ.
+     * @param string $oauth_credentials Optional. Used to specify a different oauth client to be
+     *   used for authentication flow.
+     *
+     * Known differences from Python version:
+     *   - The `language` and `location` parameters are not implemented yet.
+     *   - Can pass in a cookie string directly as the `auth` parameter.
      */
-    public function __construct($auth = null, $user = null, $requests_session = true, $proxies = [], $language = "en", $location = "")
-    {
+    public function __construct(
+        $auth = null,
+        $user = null,
+        $requests_session = true,
+        $proxies = [],
+        $language = "en",
+        $location = "",
+        $oauth_credentials = null
+    ) {
+        $this->_base_headers = null; // for authless initializing requests during OAuth flow
+        $this->_headers = null; // cache formed headers including auth
 
-        $this->auth = $auth;
-        $this->input = null;
+        $this->auth = $auth; // raw auth
+        $this->_input_dict = new CaseInsensitiveDict([]); // parsed auth arg value in dictionary format
+
+        $this->auth_type = AuthType::UNAUTHORIZED;
         $this->proxies = $proxies;
-        $this->is_oauth_auth = false;
-        $this->session = null;
-        $this->cookies = ["SOCS" => "CAI"];
-        $this->user = $user;
-        $this->language = $language;
-        $this->lang = [];
 
-        if ($auth) {
-            $this->input = load_headers_file($auth);
-            $this->input["filepath"] = $this->auth; // Needed to re-write file for oauth re-verifications
-            $this->is_oauth_auth = is_oauth($this->input);
+        if ($requests_session && $requests_session instanceof \WpOrg\Requests\Session) {
+            $this->_session = $requests_session;
+        } else {
+            $this->_session = new \WpOrg\Requests\Session();
+            $this->_session->options["timeout"] = 30;
+            // I don't know why we don't do proxies here or just leave it out
+            // and require a session to be passed in.
         }
 
-        // Use requests library, if available
-        if (class_exists("\WpOrg\Requests\Requests")) {
-            if ($requests_session && $requests_session instanceof \WpOrg\Requests\Session) {
-                $this->session = $requests_session;
+        // see google cookie docs: https://policies.google.com/technologies/cookies
+        //value from https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/extractor/youtube.py#L502
+        $this->cookies = ["SOCS" => "CAI"];
+        if ($this->auth) {
+            $this->oauth_credentials = $oauth_credentials ?: new OAuthCredentials();
+            $auth_filepath = null;
+            if (is_string($this->auth)) {
+                $auth_str = $this->auth;
+                if (is_file($auth_str)) {
+                    $auth_filepath = $auth_str;
+                    $input_json = json_decode(file_get_contents($auth_str));
+                } else {
+                    $input_json = json_decode($auth_str);
+                }
+
+                $this->_input_dict = new CaseInsensitiveDict((array)$input_json);
             } else {
-                $this->session = new \WpOrg\Requests\Session();
-                $this->session->options["timeout"] = 30;
+                $this->_input_dict = new CaseInsensitiveDict($this->auth);
+            }
+
+            if (OAuthToken::is_oauth($this->_input_dict)) {
+                $this->_token = new RefreshingToken();
+                $this->_token->setCredentials($this->oauth_credentials);
+                foreach ($this->_input_dict->getAll() as $key => $value) {
+                    $this->_token->$key = $value;
+                }
+                $this->_token->set_local_cache($auth_filepath, false);
+                $this->_token->refresh_token();
+                $this->auth_type = $oauth_credentials ? AuthType::OAUTH_CUSTOM_CLIENT : AuthType::OAUTH_DEFAULT;
             }
         }
 
-        $this->headers = prepare_headers($this->session, $proxies, $this->input);
+        // Prepare context
         $this->context = initialize_context();
 
-        // Is this needed? Everything seems to work without it
-        // unless we are using mocks, in which case, nothing works.
-        // It makes an additional call to YouTube, so I'll leave it
-        // commented out for now.
-        // if (empty($this->headers["x-goog-visitor-id"])) {
-        //     $id = get_visitor_id([$this, "_send_get_request"]);
-        //     $this->headers["x-goog-visitor-id"] = $id;
-        // }
+        // TODO: Location
+        // TODO: Language
 
-        // TODO: Language - this is done differently than python verion
-        // and for the most part isn't implemented yet.
-        if (is_file(__DIR__ . "/locales/{$this->language}.php")) {
-            $this->lang = require "locales/{$this->language}.php";
-        } else {
-            $this->language = "en";
-            $this->lang = [];
-        }
-        $this->context->client->hl = $this->language;
+        $this->context->client->hl = "en";
+        $this->language = "en";
 
-        // TODO: Localization
-        $this->context->client->locale = "us";
-
+        // For brand accounts
         if ($user) {
-            if (preg_match("/^\d+$/", $user)) {
-                $this->headers["x-goog-authuser"] = $user;
-            } else {
-                $this->context->user->onBehalfOfUser = $user;
+            $this->context->user->onBehalfOfUser = $user;
+        }
+
+        $auth_headers = $this->_input_dict["authorization"];
+
+        if ($auth_headers) {
+            if (str_contains($auth_headers, "SAPISIDHASH")) {
+                $this->auth_type = AuthType::BROWSER;
+            } elseif (str_starts_with($auth_headers, "Bearer")) {
+                $this->auth_type = AuthType::OAUTH_CUSTOM_FULL;
+            }
+        } elseif (is_string($auth)) {
+            // Check for cookie string passed in diretly
+            if (strpos($auth, "__Secure-3PAPISID")) {
+                $this->auth_type = AuthType::BROWSER;
+                $this->_input_dict["cookie"] = $auth;
+                $this->_input_dict["x-goog-authuser"] = $user;
+                $this->_input_dict["origin"] = YTM_DOMAIN;
+                $this->_input_dict["user-agent"] = USER_AGENT;
+                $this->_input_dict["accept"] = "*/*";
+                $this->_input_dict["accept-encoding"] = "gzip, deflate";
+                $this->_input_dict["content-type"] = "application/json";
+                $this->_input_dict["content-encodng"] = "gzip";
+                unset($this->context->user->onBehalfOfUser);
             }
         }
 
-        $this->is_browser_auth = false;
-        if (!empty($this->headers["cookie"])) {
-            $this->cookies = convert_string_to_cookies($this->headers["cookie"]);
-            if (empty($this->cookies["__Secure-3PAPISID"])) {
+        $this->params = YTM_PARAMS;
+
+        if ($this->auth_type === AuthType::BROWSER) {
+            $this->base_headers();
+            $this->params .= YTM_PARAMS_KEY;
+            $cookie = $this->_base_headers["cookie"] ?: "";
+
+            $this->sapisid = sapisid_from_cookie($cookie);
+            $this->origin = $this->_base_headers["origin"] ?? $this->_base_headers["x-origin"];
+
+            if (!$this->sapisid) {
                 throw new \Exception("Your cookie is missing the required value __Secure-3PAPISID");
-            } else {
-                $this->sapisid = $this->cookies["__Secure-3PAPISID"];
-                $this->is_browser_auth = true;
             }
         }
+    }
+
+    public function base_headers()
+    {
+        if (!$this->_base_headers) {
+            if (in_array($this->auth_type, [AuthType::BROWSER, AuthType::OAUTH_CUSTOM_FULL])) {
+                $this->_base_headers = $this->_input_dict;
+            } else {
+                $this->_base_headers = [
+                    "user-agent" => USER_AGENT,
+                    "accept" => "*/*",
+                    "accept-encoding" => "gzip, deflate",
+                    "content-type" => "application/json",
+                    "content-encoding" => "gzip",
+                    "origin" => YTM_DOMAIN,
+                ];
+            }
+        }
+
+        return $this->_base_headers;
+    }
+
+    public function header()
+    {
+        // set on first use
+        if (!$this->_headers) {
+            $this->_headers = $this->base_headers();
+        }
+
+        // keys updated each use, custom oauth implementations left untouched
+        if ($this->auth_type === AuthType::BROWSER) {
+            $this->_headers["authorization"] = get_authorization($this->sapisid, $this->origin);
+        } elseif (in_array($this->auth_type, AuthType::oauth_types())) {
+            $this->_headers["authorization"] = $this->_token->as_auth();
+            $this->_headers["X-Goog-Request-Time"] = strval(time());
+        }
+
+        if ($this->_headers instanceof CaseInsensitiveDict) {
+            return $this->_headers->getAll();
+        }
+
+        return $this->_headers;
+    }
+
+    /**
+     * Sends a POST request to YouTube Music.
+     *
+     * @param string $endpoint The main YouTube Music endpoint to use
+     * @param array $additional Additional query parameters to send with the request
+     * @return object Result from YouTube Music.
+     */
+    public function _send_request($endpoint, $body, $additionalParams = "")
+    {
+        $body = (object)$body;
+        $body->context = $this->context;
+
+        $options = [];
+        if ($this->proxies) {
+            $options["proxy"] = $this->proxies;
+        }
+
+        $response = $this->_session->post(
+            YTM_BASE_API . $endpoint . $this->params . $additionalParams,
+            $this->header(),
+            json_encode($body),
+            $options
+        );
+
+        $response_text = json_decode($response->body);
+
+        if ($response->status_code >= 400) {
+            $reason = $response_text->error->message ?? "Unknown error";
+            $message = "Server returned HTTP " . $response->status_code . ": " . $reason . ".\n";
+            $error = $response_text->error->message;
+            throw new \Exception($message . $error);
+        }
+
+        return $response_text;
     }
 
     /**
@@ -165,69 +305,19 @@ class YTMusic
             $options["proxy"] = $this->proxies;
         }
 
-        $headers = $this->headers;
-        $headers["cookie"] = convert_cookies_to_string($this->cookies);
+        $headers = $this->_headers ?: $this->base_headers();
 
-        $response = $this->session->get($url, $headers, $options);
+        $response = $this->_session->get($url, $headers, $options);
         return $response->body;
     }
 
     /**
-     * Sends a POST request to YouTube Music.
-     *
-     * @param string $endpoint The main YouTube Music endpoint to use
-     * @param array $additional Additional query parameters to send with the request
-     * @return object Result from YouTube Music.
+     * Checks if self has authentication
      */
-    public function _send_request($endpoint, $body, $additionalParams = "")
-    {
-        if ($this->is_oauth_auth) {
-            $this->headers = prepare_headers(null, null, $this->input);
-        }
-
-        $params = YTM_PARAMS;
-        if ($this->is_browser_auth) {
-            $origin = $this->headers["origin"] ?? $this->headers["x-origin"];
-            $this->headers["authorization"] = get_authorization($this->sapisid, $origin);
-            $params .= YTM_PARAMS_KEY;
-        }
-
-        $body = (object)$body;
-        $body->context = $this->context;
-        $rawData = json_encode($body);
-
-        $options = [];
-        if ($this->proxies) {
-            $options["proxy"] = $this->proxies;
-        }
-
-        if ($additionalParams && !str_starts_with($additionalParams, "&")) {
-            $additionalParams = "&" . $additionalParams;
-        }
-
-        $url = YTM_BASE_API . $endpoint . $params . $additionalParams;
-
-        $response = $this->session->post($url, $this->headers, $rawData, $options);
-
-        if ($response->status_code >= 400) {
-            $body = json_decode($response->body);
-            $reason = $body->error->message ?? "Unknown error";
-            $message = "Server returned HTTP " . $response->status_code . ": " . $reason;
-            throw new \Exception($message, $response->status_code);
-        }
-
-        return json_decode($response->body);
-    }
-
     private function _check_auth()
     {
         if (!$this->auth) {
             throw new \Exception("Please provide authentication before using this function");
         }
-    }
-
-    private function _($key)
-    {
-        return $this->lang[$key] ?? $key;
     }
 }

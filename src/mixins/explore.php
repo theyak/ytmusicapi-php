@@ -67,7 +67,7 @@ trait Explore
      * Global charts have no Trending section, US charts have an extra Genres section with some Genre charts.
      *
      * @param string $country ISO 3166-1 Alpha-2 country code. Default: ZZ = Global
-     * @return array Dictionary containing chart songs (only if authenticated), chart videos, chart artists and
+     * @return array Dictionary containing chart songs (only if authenticated with premium account), chart videos, chart artists and
      */
     public function get_charts($country = "ZZ")
     {
@@ -97,9 +97,14 @@ trait Explore
 
         $charts_categories = ['videos', 'artists'];
 
-        $has_songs = !!($this->auth);
         $has_genres = $country === 'US';
         $has_trending = $country !== 'ZZ';
+
+        // use result length to determine if songs category is present
+        // could also be done via an is_premium attribute on YTMusic instance
+        $has_songs = !!($this->auth);
+        $has_songs = (count($results) - 1) > (count($charts_categories) + (int)$has_genres + (int)$has_trending);
+
         if ($has_songs) {
             array_unshift($charts_categories, 'songs');
         }
