@@ -98,21 +98,16 @@ trait Explore
         $charts_categories = ['videos', 'artists'];
 
         $has_genres = $country === 'US';
-        $has_trending = $country !== 'ZZ';
 
-        // use result length to determine if songs category is present
-        // could also be done via an is_premium attribute on YTMusic instance
-        $has_songs = !!($this->auth);
-        $has_songs = (count($results) - 1) > (count($charts_categories) + (int)$has_genres + (int)$has_trending);
-
+        // Either songs or videos will be in position 1.
+        // It seems like premium accounts have songs, free accounts don't.
+        $has_songs = !!nav($results[1], join(CAROUSEL_CONTENTS, '0', MRLIR), true);
         if ($has_songs) {
             array_unshift($charts_categories, 'songs');
         }
+
         if ($has_genres) {
             $charts_categories[] = 'genres';
-        }
-        if ($has_trending) {
-            $charts_categories[] = 'trending';
         }
 
         $parse_chart = function ($i, $parse_func, $key) use ($results, $has_songs) {
@@ -123,10 +118,10 @@ trait Explore
             );
         };
 
-        $charts = [];
         foreach ($charts_categories as $i => $c) {
             $charts[$c] = [
-                'playlist' => nav($results[1 + $i], join(CAROUSEL, CAROUSEL_TITLE, NAVIGATION_BROWSE_ID), true)
+                'playlist' => nav($results[1 + $i], join(CAROUSEL, CAROUSEL_TITLE, NAVIGATION_BROWSE_ID), true),
+                'title' => nav($results[1 + $i], join(CAROUSEL, CAROUSEL_TITLE, "text"), true),
             ];
         }
 
@@ -139,10 +134,6 @@ trait Explore
 
         if ($has_genres) {
             $charts['genres'] = $parse_chart(3, 'Ytmusicapi\\parse_playlist', MTRIR);
-        }
-
-        if ($has_trending) {
-            $charts['trending'] = ['items' => $parse_chart(3 + $has_genres, 'Ytmusicapi\\parse_chart_trending', MRLIR)];
         }
 
         return $charts;

@@ -147,7 +147,7 @@ test('get_artist() and get_artist_albums()', function () {
     // Test get_artist_albums()
     $channelId = $artist->albums->browseId;
     $params = $artist->albums->params;
-    $albums = $yt->get_artist_albums($channelId, $params);
+    $albums = $yt->get_artist_albums($channelId, $params, null);
     expect(count($albums))->toBeGreaterThan(100);
     foreach ($albums as $album) {
         expect($album->browseId)->toStartWith("MPREb_");
@@ -197,12 +197,13 @@ test('get_artist_albums() - singles', function () {
     }
 });
 
-test('get_artist_albums() - without the MPAD prefix', function () {
+test('get_artist_albums() - Without prefix', function () {
     $yt = new YTMusic("oauth.json");
     $artist = $yt->get_artist($this->artistId);
     $channelId = substr($artist->albums->browseId, 4);
     $params = $artist->albums->params;
-    $albums = $yt->get_artist_albums($channelId, $params);
+    echo $channelId . "\n";
+    $albums = $yt->get_artist_albums($channelId, $params, null);
     expect(count($albums))->toBeGreaterThan(100);
 });
 

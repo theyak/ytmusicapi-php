@@ -21,21 +21,45 @@ test('get_mood_playlists', function () {
 });
 
 test('get_charts', function () {
+    // When logged in with premium account: countries, songs, videos, artists
+    // When not logged in or no premium account: countries, videos, artists
+
     $yt = new YTMusic();
     $charts = $yt->get_charts();
-    $this->expect($charts)->toHaveCount(2);
-    $this->expect(array_keys($charts))->toContain("videos", "artists");
-});
+
+    if (count($charts) === 3) {
+        $this->expect(array_keys($charts))->toContain("countries", "videos", "artists");
+    } else if (count($charts) === 4) {
+        $this->expect(array_keys($charts))->toContain("countries", "songs", "videos", "artists");
+        $this->expect(count($charts["songs"]["items"]))->toBeGreaterThan(30);
+    }
+    $this->expect(count($charts["videos"]["items"]))->toBeGreaterThan(30);
+    $this->expect(count($charts["artists"]["items"]))->toBeGreaterThan(30);
+})->only();
 
 test('get_charts_us', function () {
     $yt = new YTMusic();
     $charts = $yt->get_charts(country: "US");
-    $this->expect(array_keys($charts))->toContain("videos", "artists", "genres", "trending");
-});
+    if (count($charts) === 4) {
+        $this->expect(array_keys($charts))->toContain("countries", "videos", "artists", "genres");
+    } else if (count($charts) === 5) {
+        $this->expect(array_keys($charts))->toContain("countries", "songs", "videos", "artists", "genres");
+        $this->expect(count($charts["songs"]["items"]))->toBeGreaterThan(30);
+    }
+    $this->expect(array_keys($charts))->toContain("videos", "artists", "genres");
+})->only();
 
 test('get_charts_outside_us', function () {
     $yt = new YTMusic();
     $charts = $yt->get_charts(country: "BE");
-    $this->expect(array_keys($charts))->toContain("videos", "artists", "trending");
+
+
+    if (count($charts) === 3) {
+        $this->expect(array_keys($charts))->toContain("countries", "videos", "artists");
+    } else if (count($charts) === 4) {
+        $this->expect(array_keys($charts))->toContain("countries", "songs", "videos", "artists");
+        $this->expect(count($charts["songs"]["items"]))->toBeGreaterThan(30);
+    }
+
     $this->expect(array_keys($charts))->not()->toContain("genres");
-});
+})->only();

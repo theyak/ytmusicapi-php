@@ -18,4 +18,10 @@ class Account
      * @var Thumbnail[]
      */
     public $thumbnails;
+
+    /**
+     * Flag indicating whether the account is a premium user.
+     * @var bool
+     */
+    public $is_premium;
 }

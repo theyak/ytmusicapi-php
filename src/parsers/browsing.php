@@ -139,7 +139,7 @@ function parse_song($result)
 }
 
 /**
- * Get information about a song from the get_home() or parse_chart_song() routines
+ * Get information about a song from the parse_chart_song() routine
  *
  * @param object $data
  * @return object

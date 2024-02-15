@@ -18,6 +18,7 @@ trait Browse
 
         $endpoint = "account/account_menu";
         $response = $this->_send_request($endpoint, []);
+
         $renderer = nav($response, "actions.0.openPopupAction.popup.multiPageMenuRenderer.header.activeAccountHeaderRenderer", true);
         $sections = nav($response, "actions.0.openPopupAction.popup.multiPageMenuRenderer.sections", true);
 
@@ -28,11 +29,13 @@ trait Browse
         $account_name = nav($renderer, "accountName.runs.0.text", true);
         $thumbnails = nav($renderer, "accountPhoto.thumbnails", true);
         $channelId = nav($sections, "0.multiPageMenuSectionRenderer.items.0.compactLinkRenderer.navigationEndpoint.browseEndpoint.browseId", true);
+        $premium = nav($sections, "0.multiPageMenuSectionRenderer.items.1.compactLinkRenderer.icon.iconType", true) === "MONETIZATION_ON";
 
         $account = new Account();
         $account->name = $account_name;
         $account->channelId = $channelId;
         $account->thumbnails = $thumbnails;
+        $account->is_premium = $premium;
 
         return $account;
     }
@@ -166,11 +169,12 @@ trait Browse
      *
      * @param string $channelId browseId of the artist as returned by `get_artist`
      * @param array $params params obtained by `get_artist`
-     * @param int $limit Number of albums to return
+     * @param int $limit Number of albums to return. NULL retrieves them all. Default: 100
+     * @param string $order Order of albums to return. Allowed values: 'Recency', 'Popularity', 'Alphabetical order'. Default: Default order.
      * @return AlbumInfo[] List of albums in the format of `get_library_albums`,
      *  except artists key is missing.
      */
-    public function get_artist_albums($channelId, $params, $limit = 100)
+    public function get_artist_albums($channelId, $params, $limit = 100, $order = "")
     {
         if (!str_starts_with($channelId, "MPAD")) {
             $channelId = "MPAD" . $channelId;
@@ -179,29 +183,70 @@ trait Browse
         $endpoint = "browse";
         $response = $this->_send_request($endpoint, $body);
 
-        $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM));
+        $request_func = function ($additionalParams) use ($endpoint, $body) {
+            return $this->_send_request($endpoint, $body, $additionalParams);
+        };
 
-        // Get data for continations
-        $continuation = nav($results, "gridRenderer.continuations.0.nextContinuationData.continuation", true);
-        $renderer = nav($results, "gridRenderer");
+        $parse_func = function ($contents) {
+            return parse_albums($contents);
+        };
 
-        $results = nav($results, GRID_ITEMS, true) ?: nav($results, CAROUSEL_CONTENTS, true);
-        $albums = parse_albums($results);
+        if ($order) {
+            $sort_options = nav(
+                $response,
+                join(
+                    SINGLE_COLUMN_TAB, SECTION, HEADER_SIDE,
+                    "endItems.0.musicSortFilterButtonRenderer",
+                    "menu.musicMultiSelectMenuRenderer.options"
+                ),
+            );
 
-        // Album continuations only work for authenticated users.
-        if ($continuation && $this->auth) {
-            $request_func = function ($additionalParams) use ($endpoint) {
-                return $this->_send_request($endpoint, [], $additionalParams);
-            };
+            // Find the first nav result that matches the order
+            $continution = null;
+            foreach ($sort_options as $option) {
+                $nav_result = nav($option, join(
+                    MULTI_SELECT,
+                    "selectedCommand",
+                    "commandExecutorCommand",
+                    "commands",
+                    -1,
+                    "browseSectionListReloadEndpoint"
+                ));
+                if (strtolower($nav_result) === strtolower($order)) {
+                    $continution = $nav_result;
+                    break;
+                }
+            }
 
-            $parse_func = function ($contents) {
-                return parse_albums($contents);
-            };
+            // if a valid order was provided, request continuation and replace original response
+            if ($continution) {
+                $additionalParams = get_reloadable_continuation_params(
+                    ["continations" => $continution->continuation],
+                );
+                $response = $request_func($additionalParams);
+                $results = nav($response, join(SECTION_LIST_CONTINUATION, CONTENT));
+            } else {
+                throw new \Exception("Invalid order parameter {$order}.");
+            }
+        } else {
+            // just use the results from the first request
+            $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM));
+        }
 
+        $contents = nav($results, GRID_ITEMS, true);
+        if (!$contents) {
+            $contents = nav($results, CAROUSEL_CONTENTS);
+        }
+
+        $albums = parse_albums($contents);
+
+        $results = nav($results, GRID, true);
+        if (isset($results->continuations)) {
             $remaining_limit = $limit ? $limit - count($albums) : null;
-
-            $continuations = get_continuations($renderer, "gridContinuation", $remaining_limit, $request_func, $parse_func);
-            $albums = array_merge($albums, $continuations);
+            $albums = array_merge(
+                $albums,
+                get_continuations($results, "gridContinuation", $remaining_limit, $request_func, $parse_func)
+            );
         }
 
         return $albums;
@@ -216,6 +261,11 @@ trait Browse
      */
     public function get_album($browseId)
     {
+        if (!$browseId || !str_starts_with($browseId, "MPRE")) {
+            throw new \Exception("Invalid album browseId provided, must start with MPRE.");
+        }
+
+
         $body = ["browseId" => $browseId];
         $endpoint = "browse";
         $response = $this->_send_request($endpoint, $body);
@@ -284,8 +334,6 @@ trait Browse
         $endpoint = "browse";
         $body = ["browseId" => $channelId];
         $response = $this->_send_request($endpoint, $body);
-
-        json_dump($response);
 
         $user = [
             "name" => nav($response, join("header.musicVisualHeaderRenderer", TITLE_TEXT)),
