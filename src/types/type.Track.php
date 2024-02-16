@@ -94,7 +94,7 @@ class AlbumTrack extends Track
      * @var int
      * Only available for albums
      */
-    public $track_number;
+    public $trackNumber;
 
     /**
      * @var string

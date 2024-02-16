@@ -76,7 +76,14 @@ trait Watch
         $lyrics_browse_id = get_tab_browse_id($watchNextRenderer, 1);
         $related_browse_id = get_tab_browse_id($watchNextRenderer, 2);
 
-        $results = nav($watchNextRenderer, join(TAB_CONTENT, "musicQueueRenderer.content.playlistPanelRenderer"));
+        $results = nav($watchNextRenderer, join(TAB_CONTENT, "musicQueueRenderer.content.playlistPanelRenderer"), true);
+        if (!$results) {
+            $msg = "No content returned by the server.";
+            if ($playlistId) {
+                $msg .= "\nEnsure you have access to $playlistId - a private playlist may cause this.";
+            }
+            throw new \Exception($msg);
+        }
 
         $playlist = "";
         foreach ($results->contents as $item) {

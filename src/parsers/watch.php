@@ -55,8 +55,6 @@ function parse_watch_track($data)
         }
     }
 
-    $song_info = parse_song_runs($data->longBylineText->runs);
-
     $track = [
         'videoId' => $data->videoId,
         'title' => nav($data, TITLE_TEXT),
@@ -68,7 +66,12 @@ function parse_watch_track($data)
         'isExplicit' => nav($data, BADGE_LABEL, true) !== null,
         'videoType' => nav($data, join('navigationEndpoint', NAVIGATION_VIDEO_TYPE), true)
     ];
-    $track = array_merge($track, (array)$song_info);
+
+    $longBylineText = nav($data, "longBylineText");
+    if ($longBylineText) {
+        $song_info = parse_song_runs($longBylineText->runs);
+        $track = array_merge($track, $song_info);
+    }
 
     return (object)$track;
 }

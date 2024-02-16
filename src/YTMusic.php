@@ -235,7 +235,7 @@ class YTMusic
         // keys updated each use, custom oauth implementations left untouched
         if ($this->auth_type === AuthType::BROWSER) {
             $this->_headers["authorization"] = get_authorization($this->sapisid, $this->origin);
-        } elseif (in_array($this->auth_type, AuthType::oauth_types())) {
+        } elseif (in_array($this->auth_type, AuthType::oauth_types()) && $this->auth_type !== AuthType::OAUTH_CUSTOM_FULL) {
             $this->_headers["authorization"] = $this->_token->as_auth();
             $this->_headers["X-Goog-Request-Time"] = strval(time());
         }

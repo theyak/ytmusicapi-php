@@ -217,6 +217,17 @@ trait Playlists
         return $this->get_playlist('LM', $limit);
     }
 
+   /**
+     * Gets playlist items of saved podcast episodes
+     *
+     * @param int $limit How many items to return. Default: 100
+     * @return Playlist List of playlistItem dictionaries. Same format as `get_playlist`
+     */
+    public function get_saved_episodes($limit = 100)
+    {
+        return $this->get_playlist('SE', $limit);
+    }
+
     /**
      * Creates a new empty playlist and returns its id.
      *

@@ -15,6 +15,7 @@ function parse_album_header($response)
     $album->title = nav($header, TITLE_TEXT);
     $album->type = nav($header, SUBTITLE);
     $album->thumbnails = nav($header, THUMBNAIL_CROPPED);
+    $album->isExplicit = !!nav($header, SUBTITLE_BADGE_LABEL, true);
 
     if (isset($header->description)) {
         $album->description = $header->description->runs[0]->text;

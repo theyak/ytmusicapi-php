@@ -66,7 +66,7 @@ function parse_playlist_items($results, $menu_entries = null, $is_album = false)
 
         $artists = parse_song_artists($data, 1);
 
-        $album = parse_song_album($data, 2);
+        $album = parse_song_album($data, 3);
 
         $views = get_item_text($data, 2);
 
@@ -92,7 +92,7 @@ function parse_playlist_items($results, $menu_entries = null, $is_album = false)
 
         $isExplicit = nav($data, BADGE_LABEL, true) !== null;
 
-        $videoType = nav($data, join(MENU_ITEMS, '0.menuNavigationItemRenderer.navigationEndpoint', NAVIGATION_VIDEO_TYPE), true);
+        $videoType = nav($data, join(MENU_ITEMS, '0', MNIR, 'navigationEndpoint', NAVIGATION_VIDEO_TYPE), true);
         if (!$videoType) {
             $videoType = nav($data, join(PLAY_BUTTON, "playNavigationEndpoint", NAVIGATION_VIDEO_TYPE), true);
         }
@@ -116,7 +116,7 @@ function parse_playlist_items($results, $menu_entries = null, $is_album = false)
 
         if ($is_album) {
             $track_idx_found = nav($data, ["index", "runs", 0, "text"], true);
-            $track->track_number = $track_idx_found ? (int)$track_idx_found : null;
+            $track->trackNumber = $track_idx_found ? (int)$track_idx_found : null;
             $track->playCount = get_item_text($data, 2);
         }
 

@@ -87,6 +87,7 @@ function parse_song_artists_runs($runs)
 function parse_song_album($data, $index)
 {
     $flex_item = get_flex_column_item($data, $index);
+    $browse_id = nav($flex_item, join(TEXT_RUN, NAVIGATION_BROWSE_ID), true);
 
     if (!$flex_item) {
         return null;
@@ -94,7 +95,7 @@ function parse_song_album($data, $index)
 
     return (object)[
         "name" => get_item_text($data, $index),
-        "id" => get_browse_id($flex_item, 0),
+        "id" => $browse_id,
     ];
 }
 

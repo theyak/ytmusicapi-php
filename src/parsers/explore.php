@@ -42,6 +42,8 @@ function parse_chart_artist($data)
 }
 
 /**
+ * 1.5.2 removed this function but I think it will still be needed.
+ *
  * @return array
  */
 function parse_chart_trending($data)

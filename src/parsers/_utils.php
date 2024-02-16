@@ -5,12 +5,12 @@ namespace Ytmusicapi;
 function parse_menu_playlists($data, &$result)
 {
     $menu_items = nav($data, MENU_ITEMS);
-    $watch_menu = find_objects_by_key($menu_items, 'menuNavigationItemRenderer');
+    $watch_menu = find_objects_by_key($menu_items, MNIR);
 
     foreach ($watch_menu as $_x) {
         $item = $_x->menuNavigationItemRenderer;
 
-        $icon = nav($item, 'icon.iconType');
+        $icon = nav($item, ICON_TYPE);
         if ($icon == 'MUSIC_SHUFFLE') {
             $watch_key = 'shuffleId';
         } elseif ($icon == 'MIX') {
@@ -66,14 +66,6 @@ function get_fixed_column_item($item, $index)
         return null;
     }
     return $item->fixedColumns[$index]->musicResponsiveListItemFixedColumnRenderer;
-}
-
-function get_browse_id($item, $index)
-{
-    if (!isset($item->text->runs[$index]->navigationEndpoint)) {
-        return null;
-    }
-    return nav($item->text->runs[$index], NAVIGATION_BROWSE_ID);
 }
 
 /**
@@ -137,6 +129,14 @@ function parse_duration($duration)
     }
 
     return $seconds;
+}
+
+function parse_id_name($sub_run)
+{
+    return [
+        "id" => nav($sub_run, NAVIGATION_BROWSE_ID, true),
+        "name" => nav($sub_run, "text", true),
+    ];
 }
 
 function i18n($method)

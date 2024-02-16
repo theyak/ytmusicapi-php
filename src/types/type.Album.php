@@ -15,6 +15,11 @@ class Album extends Record
     public $title;
 
     /**
+     * @var bool
+     */
+    public $isExplicit;
+
+    /**
      * @var string
      */
     public $type;
@@ -48,6 +53,11 @@ class Album extends Record
      * @var string
      */
     public $duration;
+
+    /**
+     * @var string
+     */
+    public $likeStatus;
 
     /**
      * @var string

@@ -35,7 +35,7 @@ test('get_charts', function () {
     }
     $this->expect(count($charts["videos"]["items"]))->toBeGreaterThan(30);
     $this->expect(count($charts["artists"]["items"]))->toBeGreaterThan(30);
-})->only();
+});
 
 test('get_charts_us', function () {
     $yt = new YTMusic();
@@ -47,7 +47,7 @@ test('get_charts_us', function () {
         $this->expect(count($charts["songs"]["items"]))->toBeGreaterThan(30);
     }
     $this->expect(array_keys($charts))->toContain("videos", "artists", "genres");
-})->only();
+});
 
 test('get_charts_outside_us', function () {
     $yt = new YTMusic();
@@ -62,4 +62,4 @@ test('get_charts_outside_us', function () {
     }
 
     $this->expect(array_keys($charts))->not()->toContain("genres");
-})->only();
+});

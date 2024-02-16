@@ -91,11 +91,24 @@ function parse_content_list($results, $parse_func, $key = null)
  */
 function parse_album($result)
 {
+    $artists = [];
+    $runs = nav($result, "subtitle.runs", true);
+    if ($runs) {
+        foreach ($runs as $run) {
+            if (isset($run->navigationEndpoint)) {
+                $artists[] = parse_id_name($run->navigationEndpoint);
+            }
+        }
+    }
+
     return (object)[
         'resultType' => 'album',
+        'type' => nav($result, SUBTITLE),
         'title' => nav($result, TITLE_TEXT),
         'year' => nav($result, SUBTITLE2, true),
+        'artists' => $artists,
         'browseId' => nav($result, join(TITLE, NAVIGATION_BROWSE_ID)),
+        'audioPlaylistId' => nav($result, THUMBNAIL_OVERLAY, true),
         'thumbnails' => nav($result, THUMBNAIL_RENDERER),
         'isExplicit' => nav($result, SUBTITLE_BADGE_LABEL, true) !== null,
     ];

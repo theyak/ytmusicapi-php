@@ -52,14 +52,24 @@ function parse_top_result($data, $search_result_types)
     }
 
     if (in_array($result_type, ['song', 'video', 'album'])) {
+        $search_result['videoId'] = nav($data, ['onTap', WATCH_VIDEO_ID], true);
+        $search_result['videoType'] = nav($data, ['onTap', NAVIGATION_VIDEO_TYPE], true);
+
         $search_result['title'] = nav($data, TITLE_TEXT);
-        $runs = array_slice(nav($data, 'subtitle.runs'), 2);
+        $runs = nav($data, 'subtitle.runs');
         $song_info = parse_song_runs($runs);
         $search_result = array_merge($search_result, $song_info);
     }
 
     if ($result_type === 'album') {
         $search_result['browseId'] = nav($data, join(TITLE, NAVIGATION_BROWSE_ID), true);
+    }
+
+    if ($result_type === 'playlist') {
+        $runs = nav($data, "subtitle.runs");
+        $search_result['playlistId'] = nav($data, MENU_PLAYLIST_ID);
+        $search_result['title'] = nav($data, TITLE_TEXT);
+        $search_result['author'] = parse_song_artists_runs(array_slice($runs, 2));
     }
 
     $search_result['thumbnails'] = nav($data, THUMBNAILS, true);
@@ -154,23 +164,36 @@ function parse_search_result($data, $search_result_types, $result_type, $categor
         }
     }
 
-    // Python version doesn't add videoId and videoType to albums - maybe this is a new feature of YTMusic?
-    if ($result_type === 'song' || $result_type === 'video' || $result_type === 'album') {
+    if (in_array($result_type, ['song', 'video', 'episode'])) {
         $search_result['videoId'] = nav($data, join(PLAY_BUTTON, 'playNavigationEndpoint.watchEndpoint.videoId'), true);
         $search_result['videoType'] = $video_type;
+    }
+
+    // Python version doesn't add videoId and videoType to albums - maybe this is a new feature of YTMusic?
+    if ($result_type === 'song' || $result_type === 'video' || $result_type === 'album') {
         $search_result['duration'] = null;
         $flex_item = get_flex_column_item($data, 1);
-        $runs = array_slice($flex_item->text->runs, $default_offset);
+        $runs = $flex_item->text->runs;
         $song_info = parse_song_runs($runs);
         $search_result = array_merge($search_result, $song_info);
     }
 
-    if (in_array($result_type, ['artist', 'album', 'playlist', 'profile'])) {
+    if (in_array($result_type, ['artist', 'album', 'playlist', 'profile', 'podcast'])) {
         $search_result['browseId'] = nav($data, NAVIGATION_BROWSE_ID, true);
     }
 
     if (in_array($result_type, ['song', 'album'])) {
         $search_result['isExplicit'] = nav($data, BADGE_LABEL, true) !== null;
+    }
+
+    if (in_array($result_type, ['episode'])) {
+        $flex_item = get_flex_column_item($data, 1);
+        $has_date = count($flex_item->text->runs) > 1;
+        $search_result['live'] = nav($data, 'badges.0.liveBadgeRenderer', true) !== null;
+        if ($has_date) {
+            $search_result['date'] = nav($flex_item, TEXT_RUN_TEXT);
+        }
+        $search_result['podcast'] = parse_id_name(nav($flex_item, ['text', 'runs', $has_date * 2]));
     }
 
     $search_result['thumbnails'] = nav($data, THUMBNAILS, true);
