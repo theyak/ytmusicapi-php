@@ -7,6 +7,7 @@ define("Ytmusicapi\CONTENT", "contents.0");
 define("Ytmusicapi\RUN_TEXT", "runs.0.text");
 define("Ytmusicapi\TAB_CONTENT", "tabs.0.tabRenderer.content");
 define("Ytmusicapi\TAB_1_CONTENT", "tabs.1.tabRenderer.content");
+define("Ytmusicapi\TWO_COLUMN_RENDERER", "contents.twoColumnBrowseResultsRenderer");
 define("Ytmusicapi\SINGLE_COLUMN", "contents.singleColumnBrowseResultsRenderer");
 define("Ytmusicapi\SINGLE_COLUMN_TAB", "contents.singleColumnBrowseResultsRenderer.tabs.0.tabRenderer.content");
 define("Ytmusicapi\SECTION", "sectionListRenderer");

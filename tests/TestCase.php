@@ -36,6 +36,9 @@ class TestCase extends BaseTestCase
     public $playlistAuthor = "Cinemix Radio";
     public $playlistYear = "2023";
 
+    public $podcast_id = "PLLnpHn493BHHNUfHN5lDf11UD8jQ5Bpzl";
+    public $episode_id = "aJLBIoIPdhA";
+
     // A playlist that you own. Store this value in the environment
     // variable OWN_PLAYLIST_ID.
     // Make sure you have at least a few items in it so that related

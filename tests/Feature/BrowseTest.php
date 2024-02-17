@@ -202,7 +202,6 @@ test('get_artist_albums() - Without prefix', function () {
     $artist = $yt->get_artist($this->artistId);
     $channelId = substr($artist->albums->browseId, 4);
     $params = $artist->albums->params;
-    echo $channelId . "\n";
     $albums = $yt->get_artist_albums($channelId, $params, null);
     expect(count($albums))->toBeGreaterThan(100);
 });

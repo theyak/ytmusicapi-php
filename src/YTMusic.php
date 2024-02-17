@@ -35,6 +35,7 @@ class YTMusic
     use Library;
     use Playlists;
     use Uploads;
+    use Podcasts;
 
     public $_base_headers;
     public $_headers;
@@ -48,12 +49,8 @@ class YTMusic
     public $origin;
 
     public $cookies = [];
-    // public $user;
     public $language = "en";
     public $auth;
-    // public $input;
-    // public $is_oauth_auth;
-    // public $is_browser_auth;
     public $headers;
     public $context;
     public $sapisid;
@@ -319,5 +316,10 @@ class YTMusic
         if (!$this->auth) {
             throw new \Exception("Please provide authentication before using this function");
         }
+    }
+
+    private function _($key)
+    {
+        return $this->lang[$key] ?? $key;
     }
 }

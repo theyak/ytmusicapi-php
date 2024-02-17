@@ -195,7 +195,9 @@ trait Browse
             $sort_options = nav(
                 $response,
                 join(
-                    SINGLE_COLUMN_TAB, SECTION, HEADER_SIDE,
+                    SINGLE_COLUMN_TAB,
+                    SECTION,
+                    HEADER_SIDE,
                     "endItems.0.musicSortFilterButtonRenderer",
                     "menu.musicMultiSelectMenuRenderer.options"
                 ),

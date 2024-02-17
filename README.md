@@ -167,9 +167,23 @@ try {
 }
 ```
 
+```php
+// Fetch information about a podcast episode
+
+$yt = new Ytmusicapi\YTMusic();
+$result = $yt->get_episode("nDnLSYCOg7E");
+
+echo "Author: {$result->author->name}\n";
+echo "Title: {$result->title}\n";
+echo "Date: {$result->date}\n";
+echo "Duration: {$result->duration}\n";
+echo "Playlist ID: {$result->playlistId}\n";
+echo "Description: {$result->description}\n";
+```
+
 ## Usage
 
-View the files in the _tests/Features_ to view example usage of almost all functions.
+View the files in the _tests/Features_ to view example usage of many functions.
 
 
 ## Reference
@@ -240,6 +254,10 @@ editor's Intellisense may be able to provide reference documentation.
 * [get_library_upload_album($browseId)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_library_upload_album)
 * [upload_song($filepath)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.upload_song)
 * [delete_upload_entity($entityId)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.delete_upload_entity)
+
+#### Podcasts
+* [get_podcast($playlistId, $limit = 100)](https://ytmusicapi.readthedocs.io/en/stable/reference.html#ytmusicapi.YTMusic.get_podcast)
+* [get_episode($videoId)](https://ytmusicapi.readthedocs.io/en/stable/reference.html#ytmusicapi.YTMusic.get_episode)
 
 ### Credits
 

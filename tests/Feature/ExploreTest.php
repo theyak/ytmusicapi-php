@@ -29,7 +29,7 @@ test('get_charts', function () {
 
     if (count($charts) === 3) {
         $this->expect(array_keys($charts))->toContain("countries", "videos", "artists");
-    } else if (count($charts) === 4) {
+    } elseif (count($charts) === 4) {
         $this->expect(array_keys($charts))->toContain("countries", "songs", "videos", "artists");
         $this->expect(count($charts["songs"]["items"]))->toBeGreaterThan(30);
     }
@@ -42,7 +42,7 @@ test('get_charts_us', function () {
     $charts = $yt->get_charts(country: "US");
     if (count($charts) === 4) {
         $this->expect(array_keys($charts))->toContain("countries", "videos", "artists", "genres");
-    } else if (count($charts) === 5) {
+    } elseif (count($charts) === 5) {
         $this->expect(array_keys($charts))->toContain("countries", "songs", "videos", "artists", "genres");
         $this->expect(count($charts["songs"]["items"]))->toBeGreaterThan(30);
     }
@@ -56,7 +56,7 @@ test('get_charts_outside_us', function () {
 
     if (count($charts) === 3) {
         $this->expect(array_keys($charts))->toContain("countries", "videos", "artists");
-    } else if (count($charts) === 4) {
+    } elseif (count($charts) === 4) {
         $this->expect(array_keys($charts))->toContain("countries", "songs", "videos", "artists");
         $this->expect(count($charts["songs"]["items"]))->toBeGreaterThan(30);
     }

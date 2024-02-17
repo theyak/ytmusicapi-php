@@ -57,7 +57,7 @@ trait Watch
         $is_playlist = false;
         if ($playlistId) {
             $playlistId = validate_playlist_id($playlistId);
-            $is_playlist = substr($body["playlistId"], 0, 2) === "PL" || substr($body["playlistId"], 0, 3) === "OLA";
+            $is_playlist = substr($playlistId, 0, 2) === "PL" || substr($playlistId, 0, 3) === "OLA";
             $body["playlistId"] = $playlistId;
         }
 
