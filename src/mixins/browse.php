@@ -514,6 +514,47 @@ trait Browse
     }
 
     /**
+     * Returns transcript of song or video, which includes start time and duration.
+     * Not all songs have a transcript, and those will return an empty array
+     *
+     * @param string $videoId Video ID
+     * @return object[] Transcript of the song or video
+     */
+    public function get_transcript($videoId) {
+        $transcript = [];
+
+        $endpoint = "player";
+        $body = ["videoId" => $videoId];
+        $response = $this->_send_request($endpoint, $body);
+        $url = nav($response, "captions.playerCaptionsTracklistRenderer.captionTracks.0.baseUrl", true);
+        if ($url) {
+            $response = $this->_session->post(
+                $url,
+                null,
+                json_encode($body),
+            );
+
+            if ($response->body && str_starts_with($response->body, "<?xml")) {
+                $xml = simplexml_load_string($response->body);
+
+                if ($xml) {
+                    foreach ($xml->text as $text) {
+                        $line = (object)[
+                            'duration' => (string)$text->attributes()->{'dur'},
+                            'start' => (string)$text->attributes()->{'start'},
+                            'text' => (string)$text
+                        ];
+                        $transcript[] = $line;
+                    }
+                }
+            }
+        }
+
+        return $transcript;
+    }
+
+
+    /**
      * Returns lyrics of a song or video. Note that not all songs have lyrics.
      * You may have an empty result if there are no lyrics.
      *

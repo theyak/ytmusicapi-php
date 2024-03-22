@@ -28,6 +28,8 @@ package for communication with YouTube Music.
 
 * Addition of get_account() function to get information about the authorized account.
 
+* Addition of get_transcript() function, which is basically timestamped lyrics. Not all songs have this available.
+
 * Addition of get_playlist_continuation() which allows pagniated results of tracks. Useful when wanting to provide a progress indicator while loading a playlist.
 
 * Addition of get_song_info() to get basic information about a track, include if the track is a music video or not.
@@ -211,6 +213,7 @@ editor's Intellisense may be able to provide reference documentation.
 * [set_taste_profile($artists, $taste_profile = null)](https://ytmusicapi.readthedocs.io/en/stable/reference.html#ytmusicapi.YTMusic.set_taste_profile)
 * get_account(): Account
 * get_song_info(string|Song $videoId): SongInfo
+* get_transcript($videoId): object[]
 
 #### Explore
 * [get_mood_categories()](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_mood_categories)
