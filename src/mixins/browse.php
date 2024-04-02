@@ -10,7 +10,9 @@ trait Browse
      * @return Account
      *
      * Known differences from Python version:
-     *   - Function not available in Python version
+     *   - This is very similar to the Python versions get_account_info() function.
+     *     This exists because this was written before the Python version has a similar function.
+     *     It has all thumbnails and also has an is_premium flag.
      */
     public function get_account()
     {
@@ -156,7 +158,7 @@ trait Browse
             $artist->songs->results = parse_playlist_items($musicShelf->contents);
         }
 
-        $categories = parse_artist_contents($results);
+        $categories = $this->parse_channel_contents($results);
         foreach ($categories as $key => $value) {
             $artist->{$key} = $value;
         }
@@ -338,11 +340,11 @@ trait Browse
         $response = $this->_send_request($endpoint, $body);
 
         $user = [
-            "name" => nav($response, join("header.musicVisualHeaderRenderer", TITLE_TEXT)),
+            "name" => nav($response, join(HEADER_MUSIC_VISUAL, TITLE_TEXT)),
             "channelId" => $channelId,
         ];
         $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST));
-        $user = array_merge($user, parse_artist_contents($results));
+        $user = array_merge($user, $this->parse_channel_contents($results));
 
         return (object)$user;
     }

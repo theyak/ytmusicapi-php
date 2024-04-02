@@ -37,61 +37,7 @@ trait Playlists
 
         $playlist = (object)["id" => $results->playlistId];
 
-        $own_playlist = !empty($response->header->musicEditablePlaylistDetailHeaderRenderer);
-        if ($own_playlist) {
-            $header = $response->header->musicEditablePlaylistDetailHeaderRenderer;
-            $playlist->privacy = $header->editHeader->musicPlaylistEditHeaderRenderer->privacy;
-            $header = $header->header->musicDetailHeaderRenderer;
-        } else {
-            $header = $response->header->musicDetailHeaderRenderer;
-            $playlist->privacy = "PUBLIC";
-        }
-
-        // Mark playlist private if doing Liked music
-        if ($playlist->id === "LM" || $playlist->id === "VLLM") {
-            $playlist->privacy = "PRIVATE";
-        }
-
-        $playlist->title = nav($header, TITLE_TEXT);
-        $playlist->thumbnails = nav($header, THUMBNAIL_CROPPED);
-        $playlist->description = nav($header, DESCRIPTION, true);
-        $run_count = count(nav($header, SUBTITLE_RUNS));
-        if ($run_count > 1) {
-            $playlist->author = (object)[
-                "name" => nav($header, SUBTITLE2),
-                "id" => nav($header, join(SUBTITLE_RUNS, 2, NAVIGATION_BROWSE_ID), true),
-            ];
-            if ($run_count == 5) {
-                $playlist->year = nav($header, SUBTITLE3);
-            }
-        }
-
-        $playlist->views = null;
-        $playlist->duration = null;
-        if (isset($header->secondSubtitle->runs)) {
-            $second_subtitle_runs = $header->secondSubtitle->runs;
-            $has_views = (count($second_subtitle_runs) > 3) * 2;
-            $playlist->views = null;
-            if ($has_views) {
-                $playlist->views = (int)($second_subtitle_runs[0]->text);
-            }
-            $has_duration = (count($second_subtitle_runs) > 1) * 2;
-            $playlist->duration = null;
-            if ($has_duration) {
-                $playlist->duration = $second_subtitle_runs[$has_views + $has_duration]->text;
-            }
-            $song_count = explode(" ", $second_subtitle_runs[$has_views]->text);
-            $song_count = count($song_count) > 1 ? (int)($song_count[0]) : 0;
-        } else {
-            // Could not figure out how to get this response.
-            // @codeCoverageIgnoreStart
-            $song_count = count($results->contents);
-            // @codeCoverageIgnoreEnd
-        }
-
-        // Track count is approximate. If tracks have been removed, they won't load,
-        // but will still be included in this count, because YouTube is funny that way.
-        $playlist->track_count = $song_count;
+        $playlist = array_merge($playlist, parse_playlist_header($response));
 
         // Load suggestions and related items.
         // Suggestions and related are not available on all playlists, e.g., liked music.
@@ -106,6 +52,7 @@ trait Playlists
 
         if (!empty($section_list->continuations)) {
             $additionalParams = get_continuation_params($section_list);
+            $own_playlist = !empty($response->header->musicEditablePlaylistDetailHeaderRenderer);
             if ($own_playlist && ($suggestions_limit > 0 || $related)) {
                 $parse_func = function ($results) {
                     return parse_playlist_items($results);

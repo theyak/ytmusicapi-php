@@ -36,6 +36,7 @@ class YTMusic
     use Playlists;
     use Uploads;
     use Podcasts;
+    use I18n;
 
     public $_base_headers;
     public $_headers;

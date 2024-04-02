@@ -45,6 +45,7 @@ define("Ytmusicapi\TEXT_RUN", "text.runs.0");
 define("Ytmusicapi\TEXT_RUN_TEXT", "text.runs.0.text");
 define("Ytmusicapi\SUBTITLE", "subtitle.runs.0.text");
 define("Ytmusicapi\SUBTITLE_RUNS", "subtitle.runs");
+define("Ytmusicapi\SUBTITLE_RUN", "subtitle.runs.0");
 define("Ytmusicapi\SUBTITLE2", "subtitle.runs.2.text");
 define("Ytmusicapi\SUBTITLE3", "subtitle.runs.4.text");
 define("Ytmusicapi\THUMBNAIL", "thumbnail.thumbnails");
@@ -58,6 +59,7 @@ define("Ytmusicapi\BADGE_LABEL", "badges.0.musicInlineBadgeRenderer.accessibilit
 define("Ytmusicapi\SUBTITLE_BADGE_LABEL", "subtitleBadges.0.musicInlineBadgeRenderer.accessibilityData.accessibilityData.label");
 define("Ytmusicapi\CATEGORY_TITLE", "musicNavigationButtonRenderer.buttonText.runs.0.text");
 define("Ytmusicapi\CATEGORY_PARAMS", "musicNavigationButtonRenderer.clickCommand.browseEndpoint.params");
+define("Ytmusicapi\MMRIR", "musicMultiRowListItemRenderer");
 define("Ytmusicapi\MRLIR", "musicResponsiveListItemRenderer");
 define("Ytmusicapi\MTRIR", "musicTwoRowItemRenderer");
 define("Ytmusicapi\MNIR", "menuNavigationItemRenderer");
@@ -68,6 +70,7 @@ define("Ytmusicapi\MENU_PLAYLIST_ID", "menu.menuRenderer.items.0.menuNavigationI
 define("Ytmusicapi\MULTI_SELECT", "musicMultiSelectMenuItemRenderer");
 define("Ytmusicapi\HEADER_DETAIL", "header.musicDetailHeaderRenderer");
 define("Ytmusicapi\HEADER_SIDE", "header.musicSideAlignedItemRenderer");
+define("Ytmusicapi\HEADER_MUSIC_VISUAL", "header.musicVisualHeaderRenderer");
 define("Ytmusicapi\DESCRIPTION_SHELF", "musicDescriptionShelfRenderer");
 define("Ytmusicapi\DESCRIPTION", "description.runs.0.text");
 define("Ytmusicapi\CAROUSEL", "musicCarouselShelfRenderer");

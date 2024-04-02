@@ -166,7 +166,13 @@ function parse_episode_header($header)
 {
     $metadata = _parse_base_header($header);
     $metadata->date = nav($header, \Ytmusicapi\SUBTITLE2);
-    $metadata->duration = nav($header, \Ytmusicapi\SUBTITLE3);
+    $metadata->duration = nav($header, \Ytmusicapi\SUBTITLE3, true);
+    if (!$metadata->duration) { // progress started
+        $progress_renderer = nav($header, "progress.musicPlaybackProgressRenderer");
+        $metadata->duration = nav($progress_renderer, "durationText.runs.1.text");
+        $metadata->progressPercentage = nav($progress_renderer, "playbackProgressPercentage");
+    }
+
     $metadata->saved = nav($header, join("buttons.0", \Ytmusicapi\TOGGLED_BUTTON), true);
 
     $metadata->playlistId = null;
@@ -181,39 +187,39 @@ function parse_episode_header($header)
 }
 
 /**
+ * Parses a single episode under "Episodes" on a channel page or on a podcast page
+ *
  * @param object $results
  * @return Episode[]
  */
-function parse_episodes($results)
+function parse_episode($data)
 {
-    $episodes = [];
-    foreach ($results as $result) {
-        $data = nav($result, "musicMultiRowListItemRenderer");
-        if (count(nav($data, \Ytmusicapi\SUBTITLE_RUNS)) === 1) {
-            $duration = nav($data, \Ytmusicapi\SUBTITLE);
-        } else {
-            $date = nav($data, \Ytmusicapi\SUBTITLE);
-            $duration = nav($data, \Ytmusicapi\SUBTITLE2, true);
-        }
-        $title = nav($data, join(\Ytmusicapi\TITLE_TEXT));
-        $description = nav($data, \Ytmusicapi\DESCRIPTION, true);
-        $videoId = nav($data, join("onTap", \Ytmusicapi\WATCH_VIDEO_ID), true);
-        $browseId = nav($data, join(\Ytmusicapi\TITLE, \Ytmusicapi\NAVIGATION_BROWSE_ID), true);
-        $videoType = nav($data, join("onTap", \Ytmusicapi\NAVIGATION_VIDEO_TYPE), true);
-        $index = nav($data, "onTap.watchEndpoint.index");
-
-        $episode = new \Ytmusicapi\Episode();
-        $episode->index = $index;
-        $episode->title = $title;
-        $episode->description = $description;
-        $episode->duration = $duration;
-        $episode->videoId = $videoId;
-        $episode->browseId = $browseId;
-        $episode->videoType = $videoType;
-        $episode->date = $date;
-
-        $episodes[] = $episode;
+    $thumbnails = nav($data, \Ytmusicapi\THUMBNAILS);
+    $date = null;
+    if (count(nav($data, \Ytmusicapi\SUBTITLE_RUNS)) === 1) {
+        $duration = nav($data, \Ytmusicapi\SUBTITLE);
+    } else {
+        $date = nav($data, \Ytmusicapi\SUBTITLE);
+        $duration = nav($data, \Ytmusicapi\SUBTITLE2, true);
     }
 
-    return $episodes;
+    $title = nav($data, join(\Ytmusicapi\TITLE_TEXT));
+    $description = nav($data, \Ytmusicapi\DESCRIPTION, true);
+    $videoId = nav($data, join("onTap", \Ytmusicapi\WATCH_VIDEO_ID), true);
+    $browseId = nav($data, join(\Ytmusicapi\TITLE, \Ytmusicapi\NAVIGATION_BROWSE_ID), true);
+    $videoType = nav($data, join("onTap", \Ytmusicapi\NAVIGATION_VIDEO_TYPE), true);
+    $index = nav($data, "onTap.watchEndpoint.index", true);
+
+    $episode = new \Ytmusicapi\Episode();
+    $episode->index = $index;
+    $episode->title = $title;
+    $episode->description = $description;
+    $episode->duration = $duration;
+    $episode->videoId = $videoId;
+    $episode->browseId = $browseId;
+    $episode->videoType = $videoType;
+    $episode->date = $date;
+    $episode->thumbnails = $thumbnails;
+
+    return $episode;
 }

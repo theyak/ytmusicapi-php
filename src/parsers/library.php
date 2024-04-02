@@ -87,6 +87,38 @@ function parse_library_albums($response, $request_func, $limit)
 }
 
 /**
+ * Parse a list of podcasts from library.
+ * Calls parse_content_list to do actual parsing.
+ *
+ * @param object $response ytmusicapi response
+ * @param callable $request_func function to call to get next page of results
+ * @param int $limit Continue getting playlists until at least this many playlists are found or no more playlists available
+ * @return PlaylistInfo[]
+ */
+function parse_library_podcasts($response, $request_func, $limit)
+{
+    $results = get_library_contents($response, GRID);
+    $parse_func = fn ($contents) => parse_content_list($contents, 'Ytmusicapi\\parse_podcast');
+    $podcasts = $parse_func(array_slice($results->items, 1));
+
+    if (!empty($results->continuations)) {
+        $remaining_limit = $limit === null ? null : ($limit - count($podcasts));
+        $podcasts = array_merge(
+            $podcasts,
+            get_continuations(
+                $results,
+                'gridContinuation',
+                $remaining_limit,
+                $request_func,
+                $parse_func
+            )
+        );
+    }
+
+    return $podcasts;
+}
+
+/**
  * Parse a list of artists from library artists
  * Calls parse_artists to do actual parsing.
  *

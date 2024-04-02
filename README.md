@@ -1,5 +1,15 @@
 # ytmusicapi-php
 
+## TODO
+* Add tests for new functions
+  * get_library_podcasts
+  * get_library_channels
+  * get_account_info
+  * get_channel
+  * get_channel_episodes
+  * get_episodes_playlist
+* Do complete tests to determine what I broke.
+
 ## About
 
 This is a port of the [ytmusicapi](https://github.com/sigma67/ytmusicapi)
@@ -8,12 +18,12 @@ possible. All API function names, parameter names, and public methods have
 been kept the same as in their original Python library. Keeping everything
 the same should make it easy to reference their
 [documentation](https://ytmusicapi.readthedocs.io/en/stable/index.html).
+This package is currently feature compatable with YtMusicAPI v1.6.0.
 
 ## Requirements
 This package was developed and tested in PHP 8.2 and the testing library
 requires 8.1+ so I have not tested in anything lower than PHP 8.2.
-That being said, I have tried to keep the code compatible with PHP 7.0+,
-though this has not been tested. I'm pretty sure it will work with PHP 7.4.
+That being said, I have tried to keep the code compatible with PHP 7.4+.
 
 This package uses the [requests](https://requests.ryanmccue.info/)
 package for communication with YouTube Music.
@@ -26,7 +36,7 @@ package for communication with YouTube Music.
 
 * You can pass a cookie string from your browser as the `$auth` parameter in the YTMusic constructor in the PHP version.
 
-* Addition of get_account() function to get information about the authorized account.
+* Addition of get_account() function to get information about the authorized account. This was developed before the Python version's get_account_info() function.
 
 * Addition of get_transcript() function, which is basically timestamped lyrics. Not all songs have this available.
 
@@ -238,6 +248,10 @@ editor's Intellisense may be able to provide reference documentation.
 * [rate_playlist($playlistId, $rating = "INDIFFERENT")](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.rate_playlist)
 * [subscribe_artists($channelIds)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.subscribe_artists)
 * [unsubscribe_artists($channelIds)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.unsubscribe_artists)
+* [get_library_podcasts($limit = 25, $order = null)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_library_podcasts)
+* [get_library_channels($limit = 25, $order = null)](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_library_channels)
+* [get_account_info()](https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_account_info)
+
 
 #### Playlists
 * [get_playlist($playlistId, $limit = 100, $related = false, $suggestions_limit = 0, $get_continuations = true)](https://ytmusicapi.readthedocs.io/en/stable/reference.html#ytmusicapi.YTMusic.get_playlist)
@@ -261,6 +275,10 @@ editor's Intellisense may be able to provide reference documentation.
 #### Podcasts
 * [get_podcast($playlistId, $limit = 100)](https://ytmusicapi.readthedocs.io/en/stable/reference.html#ytmusicapi.YTMusic.get_podcast)
 * [get_episode($videoId)](https://ytmusicapi.readthedocs.io/en/stable/reference.html#ytmusicapi.YTMusic.get_episode)
+* [get_channel($channelId)](https://ytmusicapi.readthedocs.io/en/stable/reference.html#ytmusicapi.YTMusic.get_channel)
+* [get_channel_episodes($channelId, $params)](https://ytmusicapi.readthedocs.io/en/stable/reference.html#ytmusicapi.YTMusic.get_channel_episodes)
+* [get_episodes_playlist($playlist_id = "RDPN")](https://ytmusicapi.readthedocs.io/en/stable/reference.html#ytmusicapi.YTMusic.get_episodes_playlist)
+
 
 ### Credits
 
