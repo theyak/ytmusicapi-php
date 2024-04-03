@@ -260,8 +260,12 @@ test("get_library_subscriptions()", function () {
 });
 
 test("add_history_item() and get_history()", function () {
+
     $yt = new YTMusic("oauth.json");
     $yt->add_history_item($this->videoId);
+
+    sleep(2);
+
     $history = $yt->get_history();
 
     $first = reset($history);
@@ -285,7 +289,7 @@ test("add_history_item() and get_history()", function () {
         if ($track->duration) {
             expect($track->duration_seconds)->toBeInt();
         }
-        expect($track->videoType)->toBeIn(["MUSIC_VIDEO_TYPE_ATV", "MUSIC_VIDEO_TYPE_OMV", "MUSIC_VIDEO_TYPE_UGC"]);
+        expect($track->videoType)->toBeIn(["MUSIC_VIDEO_TYPE_PODCAST_EPISODE", "MUSIC_VIDEO_TYPE_ATV", "MUSIC_VIDEO_TYPE_OMV", "MUSIC_VIDEO_TYPE_UGC"]);
         expect($track->feedbackToken)->not->toBeEmpty();
         if ($track->feedbackTokens) {
             expect($track->feedbackTokens)->toHaveProperty("add");

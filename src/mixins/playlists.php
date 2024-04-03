@@ -37,7 +37,13 @@ trait Playlists
 
         $playlist = (object)["id" => $results->playlistId];
 
-        $playlist = array_merge($playlist, parse_playlist_header($response));
+        $playlist = object_merge($playlist, parse_playlist_header($response));
+
+
+        // [PHP Only] Mark playlist private if doing Liked music
+        if ($browseId === "VLLM") {
+            $playlist->privacy = "PRIVATE";
+        }
 
         // Load suggestions and related items.
         // Suggestions and related are not available on all playlists, e.g., liked music.

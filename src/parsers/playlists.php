@@ -17,11 +17,6 @@ function parse_playlist_header($response)
     }
     $playlist->owned = $own_playlist;
 
-    // [PHP Only] Mark playlist private if doing Liked music
-    if ($playlist->id === "LM" || $playlist->id === "VLLM") {
-        $playlist->privacy = "PRIVATE";
-    }
-
     $playlist->title = nav($header, TITLE_TEXT);
     $playlist->thumbnails = nav($header, THUMBNAIL_CROPPED);
     $playlist->description = nav($header, DESCRIPTION, true);
@@ -138,7 +133,7 @@ function parse_playlist_item($data, $menu_entries = null, $is_album = false)
 
     $artists = parse_song_artists($data, 1);
 
-    // This seems backwards.
+    // Last item is album? - Not true for podcasts
     $album = !$is_album ? parse_song_album($data, $flex_column_count - 1) : null;
 
     $views = null;

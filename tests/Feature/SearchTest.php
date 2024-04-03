@@ -20,7 +20,6 @@ test('Search should return results for random queries', function () {
 
     foreach ($queries as $q) {
         $results = $yt->search($q);
-        print_r($results);
         expect(count($results))->toBeGreaterThanOrEqual(3);
     }
 

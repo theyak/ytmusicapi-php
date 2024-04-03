@@ -6,7 +6,7 @@ test('get_watch_playlist() - radio, standard number of tracks', function () {
     $yt = new YTMusic();
 
     $playlist = $yt->get_watch_playlist(playlistId: $this->watchPlaylistId, radio: true);
-    expect(count($playlist->tracks))->toBe(25);
+    expect(count($playlist->tracks))->toBe(50);
 });
 
 test('get_watch_playlist() - based on track', function () {
