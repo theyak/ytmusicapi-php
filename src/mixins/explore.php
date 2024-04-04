@@ -143,7 +143,7 @@ trait Explore
         }
 
         if ($has_trending) {
-            $charts['trending'] = $parse_chart(3 + (int)$has_genres, 'Ytmusicapi\\parse_chart_trending', MRLIR);
+            $charts['trending'] = ['items' => $parse_chart(3 + (int)$has_genres, 'Ytmusicapi\\parse_chart_trending', MRLIR)];
         }
 
         return $charts;
