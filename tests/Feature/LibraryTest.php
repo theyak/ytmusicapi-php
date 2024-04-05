@@ -403,7 +403,7 @@ test("get_library_podcasts", function () {
     expect(count($podcasts))->toBeGreaterThan(2);
 });
 
-test("get_library_podcasts - unauthorized", function () {
+test("get_library_podcasts - throws when unauthorized", function () {
     $yt = new YTMusic();
     $podcasts = $yt->get_library_podcasts(50, "a_to_z");
     expect(count($podcasts))->toBe(1);
@@ -415,7 +415,7 @@ test("get_library_channels", function () {
     expect(count($channels))->toBeGreaterThan(0);
 });
 
-test("get_library_channels - unauthorized", function () {
+test("get_library_channels - throws when unauthorized", function () {
     $yt = new YTMusic();
     $channels = $yt->get_library_channels(50, "a_to_z");
     expect(count($channels))->toBe(0);
