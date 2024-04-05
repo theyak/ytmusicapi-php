@@ -8,6 +8,7 @@
   * get_channel
   * get_channel_episodes
   * get_episodes_playlist
+* Create Podcast type for use in parsers/podcasts.php::parse_podcast
 * Do complete tests to determine what I broke.
 
 ## About

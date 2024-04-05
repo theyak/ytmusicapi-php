@@ -2,6 +2,8 @@
 
 namespace Ytmusicapi;
 
+use function Ytmusicapi\parse_podcast;
+
 /**
  * Helper function to parse artists from search results
  *
@@ -98,7 +100,7 @@ function parse_library_albums($response, $request_func, $limit)
 function parse_library_podcasts($response, $request_func, $limit)
 {
     $results = get_library_contents($response, GRID);
-    $parse_func = fn ($contents) => parse_content_list($contents, 'Ytmusicapi\\parse_podcast');
+    $parse_func = fn ($contents) => parse_content_list($contents, fn ($c) => parse_podcast($c));
     $podcasts = $parse_func(array_slice($results->items, 1));
 
     if (!empty($results->continuations)) {

@@ -396,3 +396,28 @@ test("get_history() throws exception with bad data", function () {
     $yt->shouldReceive("_send_request")->andReturn($return);
     $yt->get_history();
 })->throws(\Exception::class);
+
+test("get_library_podcasts", function () {
+    $yt = new YTMusic("oauth.json");
+    $podcasts = $yt->get_library_podcasts(50, "a_to_z");
+    expect(count($podcasts))->toBeGreaterThan(2);
+});
+
+test("get_library_podcasts - unauthorized", function () {
+    $yt = new YTMusic();
+    $podcasts = $yt->get_library_podcasts(50, "a_to_z");
+    expect(count($podcasts))->toBe(1);
+})->throws(\Exception::class);
+
+test("get_library_channels", function () {
+    $yt = new YTMusic("oauth.json");
+    $channels = $yt->get_library_channels(50, "a_to_z");
+    expect(count($channels))->toBeGreaterThan(0);
+});
+
+test("get_library_channels - unauthorized", function () {
+    $yt = new YTMusic();
+    $channels = $yt->get_library_channels(50, "a_to_z");
+    expect(count($channels))->toBe(0);
+})->throws(\Exception::class);
+

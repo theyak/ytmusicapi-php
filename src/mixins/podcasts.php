@@ -4,9 +4,6 @@ namespace Ytmusicapi;
 
 use Ytmusicapi\Podcasts\Description;
 
-use function Ytmusicapi\Podcasts\parse_episodes;
-use function Ytmusicapi\Podcasts\parse_podcast_header;
-use function Ytmusicapi\Podcasts\parse_episode_header;
 
 trait Podcasts
 {
