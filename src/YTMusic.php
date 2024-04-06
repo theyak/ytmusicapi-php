@@ -321,6 +321,10 @@ class YTMusic
 
     private function _($key)
     {
+        if ($key === "episodes") {
+            return "Latest episodes";
+        }
+
         return $this->lang[$key] ?? $key;
     }
 }

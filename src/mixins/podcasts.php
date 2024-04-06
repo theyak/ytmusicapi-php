@@ -68,7 +68,7 @@ trait Podcasts
         $podcast = parse_podcast_header($header);
 
         $results = nav($two_columns, join("secondaryContents", SECTION_LIST_ITEM, MUSIC_SHELF));
-        $parse_func = fn($contents) => parse_content_list($contents, "Ytmusicapi\\Podcasts\\parse_episode", MMRIR);
+        $parse_func = fn($contents) => parse_content_list($contents, "Ytmusicapi\\parse_episode", MMRIR);
         $episodes = $parse_func($results->contents);
 
         if (!empty($results->continuations)) {

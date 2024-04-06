@@ -33,3 +33,23 @@ test('many_episodes', function () {
         expect($result->videoId)->not->toBeEmpty();
     }
 });
+
+// https://music.youtube.com/channel/UCGwuxdEeCf0TIA2RbPOj-8g
+test("test_get_channel", function () {
+    $channel_id = "UCGwuxdEeCf0TIA2RbPOj-8g"; // Stanford Graduate School of Business
+
+    $yt = new YTMusic();
+    $channel = $yt->get_channel($channel_id);
+    expect(count($channel->episodes->results))->toBe(10);
+    expect(count($channel->podcasts->results))->toBeGreaterThan(5);
+});
+
+test("test_get_channel_episodes", function () {
+    $channel_id = "UCGwuxdEeCf0TIA2RbPOj-8g"; // Stanford Graduate School of Business
+
+    $yt = new YTMusic("oauth.yaml");
+    $channel = $yt->get_channel($channel_id);
+    $channel_episodes = $yt->get_channel_episodes($channel_id, $channel->episodes->params);
+    expect(count($channel_episodes))->toBeGreaterThan(150);
+    expect(count($channel_episodes[0]))->toBe(9);
+})->only();

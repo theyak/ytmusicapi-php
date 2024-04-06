@@ -1,4 +1,8 @@
 <?php
+/**
+ * The Podcast type represents information about a Podcast.
+ * See the PodcastShelfItem type to get information about a Podcast listed on a channel or in your library.
+ */
 
 namespace Ytmusicapi;
 

@@ -467,7 +467,7 @@ trait Browse
 
         // Probably some dumb regulation written and passed by people
         // who don't know anything about technology. The "madeForKids" label
-        // is a very loose indiation of whether the track is made for kids
+        // is a very loose indication of whether the track is made for kids
         // or not. It's not always accurate.
         $track->madeForKids = $toast && strpos($toast, $this->_("for kids")) !== false;
 

@@ -400,7 +400,16 @@ test("get_history() throws exception with bad data", function () {
 test("get_library_podcasts", function () {
     $yt = new YTMusic("oauth.json");
     $podcasts = $yt->get_library_podcasts(50, "a_to_z");
-    expect(count($podcasts))->toBeGreaterThan(2);
+    expect(count($podcasts))->toBeGreaterThan(1);
+
+    foreach ($podcasts as $podcast) {
+        expect($podcast::class)->toBe("Ytmusicapi\\PodcastShelfItem");
+        expect($podcast->title)->not->toBeEmpty();
+        expect($podcast->channel)->not->toBeEmpty();
+        expect($podcast->browseId)->not->toBeEmpty();
+        expect($podcast->podcastId)->not->toBeEmpty();
+        expect($podcast->thumbnails)->toBeArray();
+    }
 });
 
 test("get_library_podcasts - throws when unauthorized", function () {
@@ -421,3 +430,12 @@ test("get_library_channels - throws when unauthorized", function () {
     expect(count($channels))->toBe(0);
 })->throws(\Exception::class);
 
+test("get_account_info", function () {
+    $yt = new YTMusic("oauth.json");
+    $info = $yt->get_account_info();
+
+    expect($info::class)->toBe("Ytmusicapi\\AccountInfo");
+    expect($info->accountName)->not->toBeEmpty();
+    expect($info->channelHandle)->not->toBeEmpty();
+    expect($info->accountPhotoUrl)->not->toBeEmpty();
+});

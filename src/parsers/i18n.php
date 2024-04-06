@@ -4,16 +4,6 @@ namespace Ytmusicapi;
 
 trait I18n
 {
-    /**
-     * Placeholder function for language conversion.
-     *
-     * @param string $string
-     */
-    public function _($string)
-    {
-        return $string;
-    }
-
     public function get_search_result_types()
     {
         return [
@@ -33,6 +23,8 @@ trait I18n
      */
     function parse_channel_contents($results)
     {
+
+        file_put_contents("channel_contents.json", json_encode($results, JSON_PRETTY_PRINT));
         $categories = [
             ["albums", $this->_("albums"), "Ytmusicapi\parse_album", MTRIR],
             ["singles", $this->_("singles"), "Ytmusicapi\parse_single", MTRIR],
@@ -44,13 +36,14 @@ trait I18n
         ];
 
         $artist = [];
-        foreach ($categories as $i => $category) {
+
+        foreach ($categories as $category) {
             [$category, $category_local, $category_parser, $category_key] = $category;
             $artist[$category] = null;
 
             // Find the shelf for the category.
-            $data = array_filter($results, function ($r) use ($category_local, $i) {
-                if (!isset($r->musicCarouselShelfRenderer)) {
+            $data = array_filter($results, function ($r) use ($category_local) {
+                if (empty($r->musicCarouselShelfRenderer)) {
                     return false;
                 }
 

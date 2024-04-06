@@ -228,17 +228,19 @@ function parse_episode($data)
 }
 
 /**
- * Parses a single podcast under "Podcasts" on a channel page
+ * Parses a single podcast under "Podcasts" on a channel or library page
  *
  * @param object $results
- * @return Podcast[]
+ * @return PodcastShelfItem
  */
 function parse_podcast($data) {
-    return (object)[
-        "title" => nav($data, TITLE_TEXT),
-        "channel" => parse_id_name(nav($data, join(SUBTITLE_RUNS, 0))),
-        "browseId" => nav($data, join(TITLE, NAVIGATION_BROWSE_ID)),
-        "podcastId" => nav($data, THUMBNAIL_OVERLAY, true),
-        "thumbnails" => nav($data, THUMBNAIL_RENDERER),
-    ];
+
+    $shelf = new PodcastShelfItem();
+    $shelf->title = nav($data, TITLE_TEXT);
+    $shelf->channel = parse_id_name(nav($data, join(SUBTITLE_RUNS, 0)));
+    $shelf->browseId = nav($data, join(TITLE, NAVIGATION_BROWSE_ID));
+    $shelf->podcastId = nav($data, THUMBNAIL_OVERLAY, true);
+    $shelf->thumbnails = nav($data, THUMBNAIL_RENDERER);
+
+    return $shelf;
 }

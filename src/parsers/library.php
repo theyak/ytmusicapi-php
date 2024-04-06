@@ -95,7 +95,7 @@ function parse_library_albums($response, $request_func, $limit)
  * @param object $response ytmusicapi response
  * @param callable $request_func function to call to get next page of results
  * @param int $limit Continue getting playlists until at least this many playlists are found or no more playlists available
- * @return PlaylistInfo[]
+ * @return PodcastShelfItem[]
  */
 function parse_library_podcasts($response, $request_func, $limit)
 {
