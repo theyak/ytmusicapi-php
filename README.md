@@ -1,15 +1,5 @@
 # ytmusicapi-php
 
-## TODO
-* Add tests for new functions
-  * get_library_podcasts
-  * get_library_channels
-  * get_account_info
-  * get_channel
-  * get_channel_episodes
-  * get_episodes_playlist
-* Do complete tests to determine what I broke.
-
 ## About
 
 This is a port of the [ytmusicapi](https://github.com/sigma67/ytmusicapi)
