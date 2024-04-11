@@ -130,13 +130,21 @@ trait Podcasts
      */
     function get_episodes_playlist($playlist_id = "RDPN")
     {
+        $this->_check_auth();
+
         $browseId = str_starts_with($playlist_id, "VL") ? $playlist_id : "VL" . $playlist_id;
         $body = ["browseId" => $browseId];
         $endpoint = "browse";
         $response = $this->_send_request($endpoint, $body);
         $playlist = parse_playlist_header($response);
 
-        $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, MUSIC_SHELF));
+        $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, MUSIC_SHELF), true);
+
+        // Known difference: PHP checks additional property
+        if (!$results) {
+            $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, "musicPlaylistShelfRenderer"));
+        }
+
         $parse_func = fn ($contents) => parse_content_list($contents, "Ytmusicapi\\parse_episode", MMRIR);
         $playlist->episodes = $parse_func($results->contents);
 

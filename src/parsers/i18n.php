@@ -23,8 +23,6 @@ trait I18n
      */
     function parse_channel_contents($results)
     {
-
-        file_put_contents("channel_contents.json", json_encode($results, JSON_PRETTY_PRINT));
         $categories = [
             ["albums", $this->_("albums"), "Ytmusicapi\parse_album", MTRIR],
             ["singles", $this->_("singles"), "Ytmusicapi\parse_single", MTRIR],
