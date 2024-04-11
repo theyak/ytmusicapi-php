@@ -119,6 +119,9 @@ class Description
     }
 }
 
+
+namespace Ytmusicapi;
+
 /**
  * parse common left hand side (header) items of an episode or podcast page
  *
@@ -130,10 +133,10 @@ function _parse_base_header($header)
     $strapline = nav($header, "straplineTextOne");
     return (object)[
         "author" => (object)[
-            "name" => nav($strapline, \Ytmusicapi\RUN_TEXT),
-            "id" => nav($strapline, join("runs.0", \Ytmusicapi\NAVIGATION_BROWSE_ID)),
+            "name" => nav($strapline, RUN_TEXT),
+            "id" => nav($strapline, join("runs.0", NAVIGATION_BROWSE_ID)),
         ],
-        "title" => nav($header, \Ytmusicapi\TITLE_TEXT),
+        "title" => nav($header, TITLE_TEXT),
     ];
 }
 
@@ -148,12 +151,12 @@ function parse_podcast_header($header)
         $header,
         join(
             "description",
-            \Ytmusicapi\DESCRIPTION_SHELF,
-            \Ytmusicapi\DESCRIPTION
+            DESCRIPTION_SHELF,
+            DESCRIPTION
         ),
         true
     );
-    $metadata->saved = nav($header, join("buttons.1", \Ytmusicapi\TOGGLED_BUTTON));
+    $metadata->saved = nav($header, join("buttons.1", TOGGLED_BUTTON));
 
     return $metadata;
 }
@@ -165,15 +168,21 @@ function parse_podcast_header($header)
 function parse_episode_header($header)
 {
     $metadata = _parse_base_header($header);
-    $metadata->date = nav($header, \Ytmusicapi\SUBTITLE2);
-    $metadata->duration = nav($header, \Ytmusicapi\SUBTITLE3);
-    $metadata->saved = nav($header, join("buttons.0", \Ytmusicapi\TOGGLED_BUTTON), true);
+    $metadata->date = nav($header, SUBTITLE2);
+    $metadata->duration = nav($header, SUBTITLE3, true);
+    if (!$metadata->duration) { // progress started
+        $progress_renderer = nav($header, "progress.musicPlaybackProgressRenderer");
+        $metadata->duration = nav($progress_renderer, "durationText.runs.1.text");
+        $metadata->progressPercentage = nav($progress_renderer, "playbackProgressPercentage");
+    }
+
+    $metadata->saved = nav($header, join("buttons.0", TOGGLED_BUTTON), true);
 
     $metadata->playlistId = null;
     $menu_buttons = nav($header, join("buttons.-1.menuRenderer.items"));
     foreach ($menu_buttons as $button) {
-        if (nav($button, join(\Ytmusicapi\MNIR, \Ytmusicapi\ICON_TYPE), true) === "BROADCAST") {
-            $metadata->playlistId = nav($button, join(\Ytmusicapi\MNIR, \Ytmusicapi\NAVIGATION_BROWSE_ID));
+        if (nav($button, join(MNIR, ICON_TYPE), true) === "BROADCAST") {
+            $metadata->playlistId = nav($button, join(MNIR, NAVIGATION_BROWSE_ID));
         }
     }
 
@@ -181,39 +190,57 @@ function parse_episode_header($header)
 }
 
 /**
+ * Parses a single episode under "Episodes" on a channel page or on a podcast page
+ *
  * @param object $results
  * @return Episode[]
  */
-function parse_episodes($results)
+function parse_episode($data)
 {
-    $episodes = [];
-    foreach ($results as $result) {
-        $data = nav($result, "musicMultiRowListItemRenderer");
-        if (count(nav($data, \Ytmusicapi\SUBTITLE_RUNS)) === 1) {
-            $duration = nav($data, \Ytmusicapi\SUBTITLE);
-        } else {
-            $date = nav($data, \Ytmusicapi\SUBTITLE);
-            $duration = nav($data, \Ytmusicapi\SUBTITLE2, true);
-        }
-        $title = nav($data, join(\Ytmusicapi\TITLE_TEXT));
-        $description = nav($data, \Ytmusicapi\DESCRIPTION, true);
-        $videoId = nav($data, join("onTap", \Ytmusicapi\WATCH_VIDEO_ID), true);
-        $browseId = nav($data, join(\Ytmusicapi\TITLE, \Ytmusicapi\NAVIGATION_BROWSE_ID), true);
-        $videoType = nav($data, join("onTap", \Ytmusicapi\NAVIGATION_VIDEO_TYPE), true);
-        $index = nav($data, "onTap.watchEndpoint.index");
-
-        $episode = new \Ytmusicapi\Episode();
-        $episode->index = $index;
-        $episode->title = $title;
-        $episode->description = $description;
-        $episode->duration = $duration;
-        $episode->videoId = $videoId;
-        $episode->browseId = $browseId;
-        $episode->videoType = $videoType;
-        $episode->date = $date;
-
-        $episodes[] = $episode;
+    $thumbnails = nav($data, THUMBNAILS);
+    $date = null;
+    if (count(nav($data, SUBTITLE_RUNS)) === 1) {
+        $duration = nav($data, SUBTITLE);
+    } else {
+        $date = nav($data, SUBTITLE);
+        $duration = nav($data, SUBTITLE2, true);
     }
 
-    return $episodes;
+    $title = nav($data, join(TITLE_TEXT));
+    $description = nav($data, DESCRIPTION, true);
+    $videoId = nav($data, join("onTap", WATCH_VIDEO_ID), true);
+    $browseId = nav($data, join(TITLE, NAVIGATION_BROWSE_ID), true);
+    $videoType = nav($data, join("onTap", NAVIGATION_VIDEO_TYPE), true);
+    $index = nav($data, "onTap.watchEndpoint.index", true);
+
+    $episode = new Episode();
+    $episode->index = $index;
+    $episode->title = $title;
+    $episode->description = $description;
+    $episode->duration = $duration;
+    $episode->videoId = $videoId;
+    $episode->browseId = $browseId;
+    $episode->videoType = $videoType;
+    $episode->date = $date;
+    $episode->thumbnails = $thumbnails;
+
+    return $episode;
+}
+
+/**
+ * Parses a single podcast under "Podcasts" on a channel or library page
+ *
+ * @param object $results
+ * @return PodcastShelfItem
+ */
+function parse_podcast($data) {
+
+    $shelf = new PodcastShelfItem();
+    $shelf->title = nav($data, TITLE_TEXT);
+    $shelf->channel = parse_id_name(nav($data, join(SUBTITLE_RUNS, 0)));
+    $shelf->browseId = nav($data, join(TITLE, NAVIGATION_BROWSE_ID));
+    $shelf->podcastId = nav($data, THUMBNAIL_OVERLAY, true);
+    $shelf->thumbnails = nav($data, THUMBNAIL_RENDERER);
+
+    return $shelf;
 }

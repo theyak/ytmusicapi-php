@@ -36,6 +36,7 @@ class YTMusic
     use Playlists;
     use Uploads;
     use Podcasts;
+    use I18n;
 
     public $_base_headers;
     public $_headers;
@@ -227,6 +228,10 @@ class YTMusic
         // set on first use
         if (!$this->_headers) {
             $this->_headers = $this->base_headers();
+
+            // Seems to be needed for get_channel_episodes. I couldn't find any other endpoint
+            // that required this. Go figure. I wonder if this is some sort of A/B testing thing.
+            $this->_headers["X-Goog-Visitor-Id"] = get_visitor_id(fn ($url) => $this->_send_get_request($url));
         }
 
         // keys updated each use, custom oauth implementations left untouched
@@ -261,9 +266,11 @@ class YTMusic
             $options["proxy"] = $this->proxies;
         }
 
+        $header = $this->header();
+
         $response = $this->_session->post(
             YTM_BASE_API . $endpoint . $this->params . $additionalParams,
-            $this->header(),
+            $header,
             json_encode($body),
             $options
         );
@@ -320,6 +327,10 @@ class YTMusic
 
     private function _($key)
     {
+        if ($key === "episodes") {
+            return "Latest episodes";
+        }
+
         return $this->lang[$key] ?? $key;
     }
 }

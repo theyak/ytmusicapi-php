@@ -22,6 +22,8 @@ class Token
     public int $expires_at = 0;
     public int $expires_in = 0;
 
+    public string $filepath = "";
+
     public static function members()
     {
         return array_keys(get_class_vars("Ytmusicapi\Token"));

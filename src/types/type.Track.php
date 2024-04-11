@@ -61,7 +61,7 @@ class Track
     public $duration_seconds;
 
     /**
-     * @var string
+     * @var "MUSIC_VIDEO_TYPE_PODCAST_EPISODE" | "MUSIC_VIDEO_TYPE_ATV" | "MUSIC_VIDEO_TYPE_OMV" | "MUSIC_VIDEO_TYPE_UGC"
      */
     public $videoType;
 

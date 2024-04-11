@@ -210,6 +210,54 @@ trait Library
     }
 
     /**
+     * Get podcasts the user has added to the library
+     *
+     * @param int $limit Number of podcasts to return
+     * @param string $order Order of podcasts to return. Allowed values: 'a_to_z', 'z_to_a', 'recently_added'. Default: Default order.
+     * @return array List of podcasts. New Episodes playlist is the first podcast returned, but only if subscribed to relevant podcasts.
+     */
+    public function get_library_podcasts($limit = 25, $order = null)
+    {
+        $this->_check_auth();
+        $body = ['browseId' => 'FEmusic_library_non_music_audio_list'];
+        validate_order_parameter($order);
+        if ($order) {
+            $body["params"] = prepare_order_params($order);
+        }
+        $endpoint = "browse";
+        $response = $this->_send_request($endpoint, $body);
+        return parse_library_podcasts(
+            $response,
+            fn ($additionalParams) => $this->_send_request($endpoint, $body, $additionalParams),
+            $limit
+        );
+    }
+
+    /**
+     * Get channels the user has added to the library
+     *
+     * @param int $limit Number of channels to return
+     * @param string $order Order of channels to return. Allowed values: 'a_to_z', 'z_to_a', 'recently_added'. Default: Default order.
+     * @return array List of channels
+     */
+    public function get_library_channels($limit = 25, $order = null)
+    {
+        $this->_check_auth();
+        $body = ['browseId' => 'FEmusic_library_non_music_audio_channels_list'];
+        validate_order_parameter($order);
+        if ($order) {
+            $body["params"] = prepare_order_params($order);
+        }
+        $endpoint = "browse";
+        $response = $this->_send_request($endpoint, $body);
+        return parse_library_artists(
+            $response,
+            fn ($additionalParams) => $this->_send_request($endpoint, $body, $additionalParams),
+            $limit
+        );
+    }
+
+    /**
      * Gets your play history in reverse chronological order
      *
      * @return HistoryTrack[]
@@ -243,6 +291,44 @@ trait Library
 
         return $songs;
     }
+
+    /**
+     * Gets information about the currently authenticated user's account.
+     *
+     * @return AccountInto with user's account name, channel handle, and URL of their account photo.
+     */
+    public function get_account_info()
+    {
+        $this->_check_auth();
+        $endpoint = "account/account_menu";
+        $response = $this->_send_request($endpoint, []);
+
+        $ACCOUNT_INFO = join(
+            "actions",
+            0,
+            "openPopupAction",
+            "popup",
+            "multiPageMenuRenderer",
+            "header",
+            "activeAccountHeaderRenderer",
+        );
+        $ACCOUNT_RUNS_TEXT = "runs.0.text";
+        $ACCOUNT_NAME = join($ACCOUNT_INFO, "accountName", $ACCOUNT_RUNS_TEXT);
+        $ACCOUNT_CHANNEL_HANDLE = join($ACCOUNT_INFO, "channelHandle", $ACCOUNT_RUNS_TEXT);
+        $ACCOUNT_PHOTO_URL = join($ACCOUNT_INFO, "accountPhoto", "thumbnails.0.url");
+
+        $account_name = nav($response, $ACCOUNT_NAME);
+        $channel_handle = nav($response, $ACCOUNT_CHANNEL_HANDLE);
+        $account_photo_url = nav($response, $ACCOUNT_PHOTO_URL);
+
+        $account_info = new AccountInfo();
+        $account_info->accountName = $account_name;
+        $account_info->channelHandle = $channel_handle;
+        $account_info->accountPhotoUrl = $account_photo_url;
+
+        return $account_info;
+    }
+
 
     /**
      * Add an item to the account's history using the playbackTracking URI

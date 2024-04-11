@@ -109,7 +109,7 @@ trait Search
 
         foreach ($results as $res) {
             if (isset($res->musicCardShelfRenderer)) {
-                $top_result = parse_top_result($res->musicCardShelfRenderer, get_search_result_types());
+                $top_result = parse_top_result($res->musicCardShelfRenderer, $this->get_search_result_types());
                 $search_results[] = $top_result;
                 $results = nav($res, 'musicCardShelfRenderer.contents', true);
                 if ($results) {
@@ -135,7 +135,7 @@ trait Search
                 continue;
             }
 
-            $search_result_types = get_search_result_types();
+            $search_result_types = $this->get_search_result_types();
             $search_results = array_merge(
                 $search_results,
                 parse_search_results($results, $search_result_types, $type, $category)

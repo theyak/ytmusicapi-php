@@ -15,6 +15,11 @@ class Episode
     public $title;
 
     /**
+     * @var Thumbnail[]
+     */
+    public $thumbnails;
+
+    /**
      * @var string
      */
     public $date;

@@ -260,8 +260,12 @@ test("get_library_subscriptions()", function () {
 });
 
 test("add_history_item() and get_history()", function () {
+
     $yt = new YTMusic("oauth.json");
     $yt->add_history_item($this->videoId);
+
+    sleep(2);
+
     $history = $yt->get_history();
 
     $first = reset($history);
@@ -285,7 +289,7 @@ test("add_history_item() and get_history()", function () {
         if ($track->duration) {
             expect($track->duration_seconds)->toBeInt();
         }
-        expect($track->videoType)->toBeIn(["MUSIC_VIDEO_TYPE_ATV", "MUSIC_VIDEO_TYPE_OMV", "MUSIC_VIDEO_TYPE_UGC"]);
+        expect($track->videoType)->toBeIn(["MUSIC_VIDEO_TYPE_PODCAST_EPISODE", "MUSIC_VIDEO_TYPE_ATV", "MUSIC_VIDEO_TYPE_OMV", "MUSIC_VIDEO_TYPE_UGC"]);
         expect($track->feedbackToken)->not->toBeEmpty();
         if ($track->feedbackTokens) {
             expect($track->feedbackTokens)->toHaveProperty("add");
@@ -392,3 +396,46 @@ test("get_history() throws exception with bad data", function () {
     $yt->shouldReceive("_send_request")->andReturn($return);
     $yt->get_history();
 })->throws(\Exception::class);
+
+test("get_library_podcasts", function () {
+    $yt = new YTMusic("oauth.json");
+    $podcasts = $yt->get_library_podcasts(50, "a_to_z");
+    expect(count($podcasts))->toBeGreaterThan(1);
+
+    foreach ($podcasts as $podcast) {
+        expect($podcast::class)->toBe("Ytmusicapi\\PodcastShelfItem");
+        expect($podcast->title)->not->toBeEmpty();
+        expect($podcast->channel)->not->toBeEmpty();
+        expect($podcast->browseId)->not->toBeEmpty();
+        expect($podcast->podcastId)->not->toBeEmpty();
+        expect($podcast->thumbnails)->toBeArray();
+    }
+});
+
+test("get_library_podcasts - throws when unauthorized", function () {
+    $yt = new YTMusic();
+    $podcasts = $yt->get_library_podcasts(50, "a_to_z");
+    expect(count($podcasts))->toBe(1);
+})->throws(\Exception::class);
+
+test("get_library_channels", function () {
+    $yt = new YTMusic("oauth.json");
+    $channels = $yt->get_library_channels(50, "a_to_z");
+    expect(count($channels))->toBeGreaterThan(0);
+});
+
+test("get_library_channels - throws when unauthorized", function () {
+    $yt = new YTMusic();
+    $channels = $yt->get_library_channels(50, "a_to_z");
+    expect(count($channels))->toBe(0);
+})->throws(\Exception::class);
+
+test("get_account_info", function () {
+    $yt = new YTMusic("oauth.json");
+    $info = $yt->get_account_info();
+
+    expect($info::class)->toBe("Ytmusicapi\\AccountInfo");
+    expect($info->accountName)->not->toBeEmpty();
+    expect($info->channelHandle)->not->toBeEmpty();
+    expect($info->accountPhotoUrl)->not->toBeEmpty();
+});

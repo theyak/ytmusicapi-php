@@ -37,14 +37,43 @@ test('get_charts', function () {
     $this->expect(count($charts["artists"]["items"]))->toBeGreaterThan(30);
 });
 
+test('get_charts - authed', function () {
+    // When logged in with premium account: countries, songs, videos, artists
+    // When not logged in or no premium account: countries, videos, artists
+
+    $yt = new YTMusic("oauth.json");
+    $charts = $yt->get_charts();
+
+    if (count($charts) === 3) {
+        $this->expect(array_keys($charts))->toContain("countries", "videos", "artists");
+    } elseif (count($charts) === 4) {
+        $this->expect(array_keys($charts))->toContain("countries", "songs", "videos", "artists");
+        $this->expect(count($charts["songs"]["items"]))->toBeGreaterThan(30);
+    }
+    $this->expect(count($charts["videos"]["items"]))->toBeGreaterThan(30);
+    $this->expect(count($charts["artists"]["items"]))->toBeGreaterThan(30);
+});
+
 test('get_charts_us', function () {
     $yt = new YTMusic();
     $charts = $yt->get_charts(country: "US");
     if (count($charts) === 4) {
         $this->expect(array_keys($charts))->toContain("countries", "videos", "artists", "genres");
     } elseif (count($charts) === 5) {
-        $this->expect(array_keys($charts))->toContain("countries", "songs", "videos", "artists", "genres");
-        $this->expect(count($charts["songs"]["items"]))->toBeGreaterThan(30);
+        $this->expect(array_keys($charts))->toContain("countries", "trending", "videos", "artists", "genres");
+        $this->expect(count($charts["trending"]["items"]))->toBeGreaterThan(19);
+    }
+    $this->expect(array_keys($charts))->toContain("videos", "artists", "genres");
+});
+
+test('get_charts_us - authed', function () {
+    $yt = new YTMusic("oauth.json");
+    $charts = $yt->get_charts(country: "US");
+    if (count($charts) === 4) {
+        $this->expect(array_keys($charts))->toContain("countries", "videos", "artists", "genres");
+    } elseif (count($charts) === 5) {
+        $this->expect(array_keys($charts))->toContain("countries", "trending", "videos", "artists", "genres");
+        $this->expect(count($charts["trending"]["items"]))->toBeGreaterThan(19);
     }
     $this->expect(array_keys($charts))->toContain("videos", "artists", "genres");
 });
@@ -53,12 +82,25 @@ test('get_charts_outside_us', function () {
     $yt = new YTMusic();
     $charts = $yt->get_charts(country: "BE");
 
+    if (count($charts) === 3) {
+        $this->expect(array_keys($charts))->toContain("countries", "videos", "artists");
+    } elseif (count($charts) === 4) {
+        $this->expect(array_keys($charts))->toContain("countries", "trending", "videos", "artists");
+        $this->expect(count($charts["trending"]["items"]))->toBeGreaterThan(19);
+    }
+
+    $this->expect(array_keys($charts))->not()->toContain("genres");
+});
+
+test('get_charts_outside_us - authed', function () {
+    $yt = new YTMusic("oauth.json");
+    $charts = $yt->get_charts(country: "BE");
 
     if (count($charts) === 3) {
         $this->expect(array_keys($charts))->toContain("countries", "videos", "artists");
     } elseif (count($charts) === 4) {
-        $this->expect(array_keys($charts))->toContain("countries", "songs", "videos", "artists");
-        $this->expect(count($charts["songs"]["items"]))->toBeGreaterThan(30);
+        $this->expect(array_keys($charts))->toContain("countries", "trending", "videos", "artists");
+        $this->expect(count($charts["trending"]["items"]))->toBeGreaterThan(19);
     }
 
     $this->expect(array_keys($charts))->not()->toContain("genres");
