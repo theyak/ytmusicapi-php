@@ -1,5 +1,11 @@
 # ytmusicapi-php
 
+WARNING!
+
+YouTube Music has recently updated a lot of their response data causing
+this library to no longer work for some use cases. Please use at your
+own risk!
+
 ## About
 
 This is a port of the [ytmusicapi](https://github.com/sigma67/ytmusicapi)
