@@ -5,17 +5,16 @@ namespace Ytmusicapi;
 function parse_playlist_header($response)
 {
     $playlist = new \stdClass();
-    $own_playlist = !empty($response->header->musicEditablePlaylistDetailHeaderRenderer);
 
-    if ($own_playlist) {
-        $header = $response->header->musicEditablePlaylistDetailHeaderRenderer;
-        $playlist->privacy = $header->editHeader->musicPlaylistEditHeaderRenderer->privacy;
-        $header = $header->header->musicDetailHeaderRenderer;
+    $editable_header = nav($response, join(HEADER, EDITABLE_PLAYLIST_DETAIL_HEADER), true);
+    $playlist->owned = !!$editable_header;
+    $playlist->privacy = "PUBLIC";
+    if ($playlist->owned) {
+        $header = nav($response, HEADER_DETAIL);
+        $playlist->privacy = $editable_header->editHeader->musicPlaylistEditHeaderRenderer->privacy;
     } else {
-        $header = $response->header->musicDetailHeaderRenderer;
-        $playlist->privacy = "PUBLIC";
+        $header = nav($response, HEADER_DETAIL, true);
     }
-    $playlist->owned = $own_playlist;
 
     $playlist->title = nav($header, TITLE_TEXT);
     $playlist->thumbnails = nav($header, THUMBNAIL_CROPPED);

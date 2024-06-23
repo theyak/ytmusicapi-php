@@ -93,10 +93,10 @@ trait Search
             $results = $response->contents;
         }
 
-        $results = nav($results, SECTION_LIST);
+        $section_list = nav($results, SECTION_LIST);
 
         // no results
-        if (count($results) === 1 && isset($results[0]->itemSectionRenderer)) {
+        if (count($section_list) === 1 && isset($section_list[0]->itemSectionRenderer)) {
             return $search_results;
         }
 
@@ -107,38 +107,44 @@ trait Search
             $filter = "uploads";
         }
 
-        foreach ($results as $res) {
+        foreach ($section_list as $res) {
+            $result_type = null;
+            $category = null;
+            $search_result_types = $this->get_search_result_types();
+
             if (isset($res->musicCardShelfRenderer)) {
-                $top_result = parse_top_result($res->musicCardShelfRenderer, $this->get_search_result_types());
+                $top_result = parse_top_result(
+                    $res->musicCardShelfRenderer, $this->get_search_result_types()
+                );
                 $search_results[] = $top_result;
-                $results = nav($res, 'musicCardShelfRenderer.contents', true);
-                if ($results) {
-                    $category = null;
-                    // category "more from youtube" is missing sometimes
-                    if (isset($results[0]->messageRenderer)) {
-                        $first = array_shift($results);
-                        $category = nav($first, join('messageRenderer', TEXT_RUN_TEXT));
-                    }
-                    $type = null;
-                } else {
+
+                $shelf_contents = nav($res, ["musicCardShelfRenderer", "contents"], true);
+                if (!$shelf_contents) {
                     continue;
                 }
-            } elseif (isset($res->musicShelfRenderer)) {
-                $results = $res->musicShelfRenderer->contents;
-                $type_filter = $filter;
-                $category = nav($res, join(MUSIC_SHELF, TITLE_TEXT), true);
-                if (!$type_filter && $scope === "library") {
-                    $type_filter = $category;
+
+                // if "more from youtube" is present, remove it - it's not parseable
+                if (isset($shelf_contents[0]->messageRenderer)) {
+                    $category = nav($shelf_contents[0], join("messageRenderer", TEXT_RUN_TEXT));
+                    array_shift($shelf_contents);
                 }
-                $type = $type_filter ? substr($type_filter, 0, -1) : null;
+            } elseif (isset($res->musicShelfRenderer)) {
+                $shelf_contents = $res->musicShelfRenderer->contents;
+                $category = nav($res, join(MUSIC_SHELF, TITLE_TEXT), true);
+
+                # if we know the filter it's easy to set the result type
+                # unfortunately uploads is modeled as a filter (historical reasons),
+                # so we take care to not set the result type for that scope
+                if ($filter && $filter !== $scopes[1]) {
+                    $result_type = strtolower(substr($filter, 0, -1));
+                }
             } else {
                 continue;
             }
 
-            $search_result_types = $this->get_search_result_types();
             $search_results = array_merge(
                 $search_results,
-                parse_search_results($results, $search_result_types, $type, $category)
+                parse_search_results($shelf_contents, $search_result_types, $result_type, $category)
             );
 
             if ($filter) {  // if filter is set, there are continuations
@@ -146,8 +152,8 @@ trait Search
                     return $this->_send_request($endpoint, $body, $additionalParams);
                 };
 
-                $parse_func = function ($contents) use ($search_result_types, $type, $category) {
-                    return parse_search_results($contents, $search_result_types, $type, $category);
+                $parse_func = function ($contents) use ($search_result_types, $result_type, $category) {
+                    return parse_search_results($contents, $search_result_types, $result_type, $category);
                 };
 
                 $search_results = array_merge(

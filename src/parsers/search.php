@@ -2,6 +2,9 @@
 
 namespace Ytmusicapi;
 
+define('UNIQUE_RESULT_TYPES', ["artist", "playlist", "song", "video", "station", "profile", "podcast", "episode"]);
+define('ALL_RESULT_TYPES', ["album", ...UNIQUE_RESULT_TYPES]);
+
 /**
  * Check if found result type is valid.
  *
@@ -15,14 +18,13 @@ function get_search_result_type($result_type_local, $result_types_local)
         return null;
     }
 
-    $result_types = ['artist', 'playlist', 'song', 'video', 'station', 'profile', 'podcast', 'episode'];
     $result_type_local = mb_strtolower($result_type_local);
 
     // default to album since it's labeled with multiple values ('Single', 'EP', etc.)
     if (!in_array($result_type_local, $result_types_local)) {
         $result_type = 'album';
     } else {
-        $result_type = $result_types[array_search($result_type_local, $result_types_local)];
+        $result_type = UNIQUE_RESULT_TYPES[array_search($result_type_local, $result_types_local)];
     }
 
     return $result_type;
@@ -57,12 +59,13 @@ function parse_top_result($data, $search_result_types)
 
         $search_result['title'] = nav($data, TITLE_TEXT);
         $runs = nav($data, 'subtitle.runs');
-        $song_info = parse_song_runs($runs);
+        $song_info = parse_song_runs(array_slice($runs, 2));
         $search_result = array_merge($search_result, $song_info);
     }
 
     if ($result_type === 'album') {
         $search_result['browseId'] = nav($data, join(TITLE, NAVIGATION_BROWSE_ID), true);
+        $search_result['playlistId'] = nav($data, join("buttons.0.buttonRenderer.command", WATCH_PID), true);
     }
 
     if ($result_type === 'playlist') {
@@ -83,17 +86,32 @@ function parse_search_result($data, $search_result_types, $result_type, $categor
     $search_result = ['category' => $category];
     $video_type = nav($data, join(PLAY_BUTTON, 'playNavigationEndpoint', NAVIGATION_VIDEO_TYPE), true);
 
-    if (empty($result_type) && $video_type) {
-        // NOTE: This logic differs from Python. It makes a half-hearted
-        // attempt to fix https://github.com/sigma67/ytmusicapi/issues/483
-        $text = strtolower(get_item_text($data, 1)); // TODO: Does this need language processing?
-        if (!in_array($text, ["album", "single"])) {
+    // determine result type based on browseId
+    // if there was no category title (i.e. for extra results in Top Result)
+    if (!$result_type) {
+        $browse_id = nav($data, NAVIGATION_BROWSE_ID, true);
+        if ($browse_id) {
+            $mapping = [
+                "VM" => "playlist",
+                "RD" => "playlist",
+                "VL" => "playlist",
+                "MPLA" => "artist",
+                "MPRE" => "album",
+                "MPSP" => "podcast",
+                "MPED" => "episode",
+                "UC" => "artist",
+            ];
+
+            $result_type = null;
+            foreach ($mapping as $prefix => $type) {
+                if (strpos($browse_id, $prefix) === 0) {
+                    $result_type = $type;
+                    break;
+                }
+            }
+        } else {
             $result_type = $video_type === 'MUSIC_VIDEO_TYPE_ATV' ? 'song' : 'video';
         }
-    }
-
-    if (!$result_type) {
-        $result_type = get_search_result_type(get_item_text($data, 1), $search_result_types);
     }
 
     $search_result['resultType'] = $result_type;
@@ -111,6 +129,9 @@ function parse_search_result($data, $search_result_types, $result_type, $categor
         $flex_item = get_flex_column_item($data, 1)->text->runs;
         $has_author = count($flex_item) === $default_offset + 3;
         $search_result['itemCount'] = explode(' ', get_item_text($data, 1, $default_offset + $has_author * 2))[0];
+        if ($search_result["itemCount"] && is_numeric($search_result["itemCount"])) {
+            $search_result["itemCount"] = (int)$search_result["itemCount"];
+        }
         $search_result['author'] = !$has_author ? null : get_item_text($data, 1, $default_offset);
     } elseif ($result_type === 'station') {
         $search_result['videoId'] = nav($data, NAVIGATION_VIDEO_ID);
@@ -170,11 +191,13 @@ function parse_search_result($data, $search_result_types, $result_type, $categor
     }
 
     // Python version doesn't add videoId and videoType to albums - maybe this is a new feature of YTMusic?
-    if ($result_type === 'song' || $result_type === 'video' || $result_type === 'album') {
+    if (in_array($result_type, ['song', 'video', 'album'])) {
         $search_result['duration'] = null;
+        $search_result['year'] = null;
         $flex_item = get_flex_column_item($data, 1);
         $runs = $flex_item->text->runs;
-        $song_info = parse_song_runs($runs);
+        $runs_offset = count($runs) === 1 ? 2 : 0;
+        $song_info = parse_song_runs(array_slice($runs, $runs_offset));
         $search_result = array_merge($search_result, $song_info);
     }
 
@@ -184,6 +207,14 @@ function parse_search_result($data, $search_result_types, $result_type, $categor
 
     if (in_array($result_type, ['song', 'album'])) {
         $search_result['isExplicit'] = nav($data, BADGE_LABEL, true) !== null;
+    }
+
+    if (in_array($result_type, ['album'])) {
+        $search_result['playlistId'] = nav(
+            $data,
+            join(PLAY_BUTTON, 'playNavigationEndpoint.watchEndpoint.playlistId'),
+            true
+        );
     }
 
     if (in_array($result_type, ['episode'])) {

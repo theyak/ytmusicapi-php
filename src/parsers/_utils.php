@@ -4,9 +4,12 @@ namespace Ytmusicapi;
 
 function parse_menu_playlists($data, &$result)
 {
-    $menu_items = nav($data, MENU_ITEMS);
-    $watch_menu = find_objects_by_key($menu_items, MNIR);
+    $menu_items = nav($data, MENU_ITEMS, true);
+    if (!$menu_items) {
+        return;
+    }
 
+    $watch_menu = find_objects_by_key($menu_items, MNIR);
     foreach ($watch_menu as $_x) {
         $item = $_x->menuNavigationItemRenderer;
 
@@ -112,7 +115,7 @@ function get_dot_separator_index($runs)
 
 function parse_duration($duration)
 {
-    if ($duration === null) {
+    if ($duration === null || (is_string($duration) && !trim($duration))) {
         return $duration;
     }
 
