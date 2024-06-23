@@ -44,13 +44,15 @@ function parse_mixed_content($rows)
                         $content = parse_related_artist($data);
                     } elseif ($page_type === "MUSIC_PAGE_TYPE_PLAYLIST") {
                         $content = parse_playlist($data);
+                    } else if ($page_type === "MUSIC_PAGE_TYPE_PODCAST_SHOW_DETAIL_PAGE") {
+                        $content = parse_podcast($data);
                     }
+                } else if (nav($result, MRLIR, true)) {
+                    $content = parse_song_flat(nav($result, MRLIR));
+                } else if (nav($result, MMRIR, true)) {
+                    $content = parse_episode(nav($result, MMRIR));
                 } else {
-                    $data = nav($result, MRLIR, true);
-                    if (!$data) {
-                        continue;
-                    }
-                    $content = parse_song_flat($data);
+                    continue;
                 }
 
                 $contents[] = $content;
@@ -101,17 +103,24 @@ function parse_album($result)
         }
     }
 
-    return (object)[
+    $album = (object)[
         'resultType' => 'album',
         'type' => nav($result, SUBTITLE),
+        'year' => null,
         'title' => nav($result, TITLE_TEXT),
-        'year' => nav($result, SUBTITLE2, true),
         'artists' => $artists,
         'browseId' => nav($result, join(TITLE, NAVIGATION_BROWSE_ID)),
         'audioPlaylistId' => nav($result, THUMBNAIL_OVERLAY, true),
         'thumbnails' => nav($result, THUMBNAIL_RENDERER),
         'isExplicit' => nav($result, SUBTITLE_BADGE_LABEL, true) !== null,
     ];
+
+    $year = nav($result, SUBTITLE2, true);
+    if ($year && is_numeric($year)) {
+        $album->year = $year;
+    }
+
+    return $album;
 }
 
 /**

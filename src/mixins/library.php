@@ -318,7 +318,7 @@ trait Library
         $ACCOUNT_PHOTO_URL = join($ACCOUNT_INFO, "accountPhoto", "thumbnails.0.url");
 
         $account_name = nav($response, $ACCOUNT_NAME);
-        $channel_handle = nav($response, $ACCOUNT_CHANNEL_HANDLE);
+        $channel_handle = nav($response, $ACCOUNT_CHANNEL_HANDLE, true);
         $account_photo_url = nav($response, $ACCOUNT_PHOTO_URL);
 
         $account_info = new AccountInfo();

@@ -34,7 +34,10 @@ function parse_uploaded_items($results)
         $title = get_item_text($data, 0);
         $like = nav($data, MENU_LIKE_STATUS);
         $thumbnails = isset($data->thumbnail) ? nav($data, THUMBNAILS) : null;
-        $duration = get_fixed_column_item($data, 0)->text->runs[0]->text;
+        $duration = null;
+        if (isset($data->fixedColumns)) {
+            $duration = get_fixed_column_item($data, 0)->text->runs[0]->text;
+        }
         $song = new UploadTrack();
         $song->entityId = $entityId;
         $song->videoId = $videoId;

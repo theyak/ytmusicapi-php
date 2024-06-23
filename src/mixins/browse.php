@@ -84,8 +84,20 @@ trait Browse
      * albums, singles, videos, and related artists). The top lists
      * contain pointers for getting the full list of releases.
      *
-     * For songs/videos, pass the browseId to `get_playlist`.
-     * For albums/singles, pass browseId and params to `get_artist_albums`.
+     * Possible content types for get_artist are:
+     *  - songs
+     *  - albums
+     *  - singles
+     *  - shows
+     *  - videos
+     *  - episodes
+     *  - podcasts
+     *  - related
+     *
+     * Each of these content keys in the response contains
+     *   ``results`` and possibly ``browseId`` and ``params``.
+     *   - For songs/videos, pass the browseId to `get_playlist`.
+     *   - For albums/singles/shows, pass browseId and params to `get_artist_albums`.
      *
      * warning:
      *
@@ -167,7 +179,7 @@ trait Browse
     }
 
     /**
-     * Get the full list of an artist's albums or singles
+     * Get the full list of an artist's albums, singles, or shows
      *
      * @param string $channelId browseId of the artist as returned by `get_artist`
      * @param array $params params obtained by `get_artist`
@@ -269,13 +281,22 @@ trait Browse
             throw new \Exception("Invalid album browseId provided, must start with MPRE.");
         }
 
-
         $body = ["browseId" => $browseId];
         $endpoint = "browse";
         $response = $this->_send_request($endpoint, $body);
 
-        $album = parse_album_header($response);
-        $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, MUSIC_SHELF));
+        if (isset($response->header)) {
+            $album = parse_album_header($response);
+        } else {
+            $album = parse_album_header_2024($response);
+        }
+
+        $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, GRID_ITEMS), true);
+        if (!$results) {
+            // fallback for 2024 format
+            $results = nav($response, join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION_LIST_ITEM, MUSIC_SHELF), true);
+        }
+
         $album->tracks = parse_playlist_items($results->contents, null, true);
         $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST, 1, CAROUSEL), true);
         if ($results) {

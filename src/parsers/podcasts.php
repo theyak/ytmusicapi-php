@@ -128,7 +128,7 @@ namespace Ytmusicapi;
  * @param object $header
  * @return object
  */
-function _parse_base_header($header)
+function parse_base_header($header)
 {
     $strapline = nav($header, "straplineTextOne");
     return (object)[
@@ -146,7 +146,7 @@ function _parse_base_header($header)
  */
 function parse_podcast_header($header)
 {
-    $metadata = _parse_base_header($header);
+    $metadata = parse_base_header($header);
     $metadata->description = nav(
         $header,
         join(
@@ -167,7 +167,7 @@ function parse_podcast_header($header)
  */
 function parse_episode_header($header)
 {
-    $metadata = _parse_base_header($header);
+    $metadata = parse_base_header($header);
     $metadata->date = nav($header, SUBTITLE2);
     $metadata->duration = nav($header, SUBTITLE3, true);
     if (!$metadata->duration) { // progress started
@@ -237,7 +237,7 @@ function parse_podcast($data) {
 
     $shelf = new PodcastShelfItem();
     $shelf->title = nav($data, TITLE_TEXT);
-    $shelf->channel = parse_id_name(nav($data, join(SUBTITLE_RUNS, 0)));
+    $shelf->channel = parse_id_name(nav($data, join(SUBTITLE_RUNS, 0), true));
     $shelf->browseId = nav($data, join(TITLE, NAVIGATION_BROWSE_ID));
     $shelf->podcastId = nav($data, THUMBNAIL_OVERLAY, true);
     $shelf->thumbnails = nav($data, THUMBNAIL_RENDERER);
