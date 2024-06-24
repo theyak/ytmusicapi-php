@@ -176,9 +176,10 @@ trait Playlists
         // [PHP Only] Attempt at getting author
         $author = nav($header_data, join(RESPONSIVE_HEADER, "straplineTextOne.runs.0"), true);
         if ($author) {
+            file_put_contents("blah.json", json_encode($author, JSON_PRETTY_PRINT));
             $playlist["author"] = (object)[
                 "name" => $author->text,
-                "id" => $author->navigationEndpoint->browseEndpoint->browseId,
+                "id" => nav($author, "navigationEndpoint.browseEndpoint.browseId", true),
             ];
         } else {
             $playlist["author"] = null;

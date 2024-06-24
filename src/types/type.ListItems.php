@@ -302,4 +302,10 @@ class ArtistInfo
      * @var Thumbnail[]
      */
     public $thumbnails;
+
+    /**
+     * @var string
+     * Artist type. Currently one of "channel" or "artist"
+     */
+    public $type;
 }
