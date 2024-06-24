@@ -7,7 +7,7 @@ this library to no longer work for some use cases. We do not recommend
 using this library for any commercial purposes as it is not considered
 stable. For commercial purposes, consider using Google's paid [YouTube
 Data API](https://developers.google.com/youtube/v3). Use of this
-library is at your own rick.
+library is at your own risk.
 
 ## About
 
