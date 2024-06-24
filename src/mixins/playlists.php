@@ -35,9 +35,16 @@ trait Playlists
 
         $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, "musicPlaylistShelfRenderer"), true);
         if (!$results) {
-            return $this->_parse_new_playlist_format(
+            $playlist = $this->_parse_new_playlist_format(
                 $response, $endpoint, $body, $suggestions_limit, $related, $limit, $get_continuations
             );
+
+            // [PHP Only] Mark playlist private if doing Liked music
+            if ($browseId === "VLLM") {
+                $playlist->privacy = "PRIVATE";
+            }
+
+            return $playlist;
         }
 
         $playlist = (object)["id" => $results->playlistId];
@@ -144,11 +151,13 @@ trait Playlists
         $limit,
         $get_continuations
     ) {
+
         // Assume these constants and helper functions are defined elsewhere
         $header_data = nav($response, join(TWO_COLUMN_RENDERER, TAB_CONTENT, SECTION_LIST_ITEM));
         $section_list = nav($response, join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION));
         $playlist = [];
-        $playlist["owned"] = !empty($header_data->musicEditablePlaylistDetailHeaderRenderer[0]);
+
+        $playlist["owned"] = !empty($header_data->musicEditablePlaylistDetailHeaderRenderer->editHeader);
 
         if (!$playlist["owned"]) {
             $header = nav($header_data, RESPONSIVE_HEADER);
@@ -161,8 +170,22 @@ trait Playlists
         } else {
             $playlist["id"] = nav($header_data, join(EDITABLE_PLAYLIST_DETAIL_HEADER, PLAYLIST_ID));
             $header = nav($header_data, join(EDITABLE_PLAYLIST_DETAIL_HEADER, HEADER, RESPONSIVE_HEADER));
-            $playlist["privacy"] = nav($header_data, join(EDITABLE_PLAYLIST_DETAIL_HEADER, "0", "editHeader", "musicPlaylistEditHeaderRenderer", "privacy"), true);
+            $playlist["privacy"] = nav($header_data, join(EDITABLE_PLAYLIST_DETAIL_HEADER, "editHeader", "musicPlaylistEditHeaderRenderer", "privacy"), true);
         }
+
+        // [PHP Only] Attempt at getting author
+        $author = nav($header_data, join(RESPONSIVE_HEADER, "straplineTextOne.runs.0"), true);
+        if ($author) {
+            $playlist["author"] = (object)[
+                "name" => $author->text,
+                "id" => $author->navigationEndpoint->browseEndpoint->browseId,
+            ];
+        } else {
+            $playlist["author"] = null;
+        }
+
+        // [PHP Only] Attempt at getting thumbnails
+        $playlist["thumbnails"] = nav($header_data, join(RESPONSIVE_HEADER, THUMBNAILS), true);
 
         $description_shelf = nav($header, join("description", DESCRIPTION_SHELF), true);
         $playlist["description"] = $description_shelf
@@ -192,7 +215,7 @@ trait Playlists
         };
 
         $playlist["related"] = [];
-        if (isset($section_list->continuations)) {
+        if (isset($section_list->continuations) && $get_continuations) {
             $additionalParams = get_continuation_params($section_list);
             if ($playlist["owned"] && ($suggestions_limit > 0 || $related)) {
                 $parse_func = function($results) {
@@ -222,7 +245,7 @@ trait Playlists
                 $continuation = nav($response, SECTION_LIST_CONTINUATION, true);
                 if ($continuation) {
                     $parse_func = function($results) {
-                        return parse_content_list($results, 'parse_playlist');
+                        return parse_content_list($results, 'Ytmusicapi\\parse_playlist');
                     };
                     $playlist["related"] = get_continuation_contents(
                         nav($continuation, join(CONTENT, CAROUSEL)),
@@ -237,26 +260,30 @@ trait Playlists
         if (isset($content_data->contents)) {
             $playlist["tracks"] = parse_playlist_items($content_data->contents);
 
-            $parse_func = function($contents) {
-                return parse_playlist_items($contents);
-            };
-            if (isset($content_data->continuations) && $get_continuations) {
-                $playlist["tracks"] = array_merge(
-                    $playlist["tracks"],
-                    get_continuations(
-                        $content_data,
-                        "musicPlaylistShelfContinuation",
-                        $limit,
-                        $request_func,
-                        $parse_func
-                    )
-                );
+            $parse_func = fn ($content) => parse_playlist_items($content_data->contents);
+
+            if (isset($content_data->continuations)) {
+                if ($get_continuations) {
+                    $playlist["tracks"] = array_merge(
+                        $playlist["tracks"],
+                        get_continuations(
+                            $content_data,
+                            "musicPlaylistShelfContinuation",
+                            $limit,
+                            $request_func,
+                            $parse_func
+                        )
+                    );
+                } else {
+                    $playlist["continuation"] = nav($content_data, "continuations.0.nextContinuationData.continuation", true);
+                }
             }
         }
 
-        $playlist["duration_seconds"] = sum_total_duration($playlist);
+        $playlist = (object)$playlist;
+        $playlist->duration_seconds = sum_total_duration($playlist);
 
-        return (object)$playlist;
+        return $playlist;
     }
 
     /**
@@ -427,6 +454,7 @@ trait Playlists
 
         $body['actions'] = $actions;
         $endpoint = 'browse/edit_playlist';
+
         $response = $this->_send_request($endpoint, $body);
         return $response->status ?? $response;
     }

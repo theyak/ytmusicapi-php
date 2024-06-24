@@ -125,6 +125,8 @@ trait Podcasts
      * Get all episodes in an episodes playlist. Currently the only known playlist is the
      * "New Episodes" auto-generated playlist
      *
+     * Note: It appears the response format has changed, and this function is not currently working.
+     *
      * @param string $playlist_id Playlist ID, defaults to "RDPN", the id of the New Episodes playlist
      * @return object Object in format of `get_podcast`
      */
@@ -136,13 +138,18 @@ trait Podcasts
         $body = ["browseId" => $browseId];
         $endpoint = "browse";
         $response = $this->_send_request($endpoint, $body);
+
+        if (empty($reponse->header)) {
+            throw new Exception("Response format changed. No header found in response.");
+        }
+
         $playlist = parse_playlist_header($response);
 
         $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, MUSIC_SHELF), true);
 
         // Known difference: PHP checks additional property
         if (!$results) {
-            $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, "musicPlaylistShelfRenderer"));
+            $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, "musicPlaylistShelfRenderer"), true);
         }
 
         $parse_func = fn ($contents) => parse_content_list($contents, "Ytmusicapi\\parse_episode", MMRIR);

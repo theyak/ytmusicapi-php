@@ -86,8 +86,12 @@ function get_continuation_string($ctoken)
 
 function get_continuation_params($results, $ctoken_path = '')
 {
-    $ctoken = nav($results, ['continuations', 0, 'next' . $ctoken_path . 'ContinuationData', 'continuation']);
-    return get_continuation_string($ctoken);
+    $continuations = nav($results, 'continuations');
+
+    $ctoken = nav($results, ['continuations', 0, 'next' . $ctoken_path . 'ContinuationData', 'continuation'], true);
+    if ($ctoken) {
+        return get_continuation_string($ctoken);
+    }
 }
 
 function get_continuation_contents($continuation, $parse_func)

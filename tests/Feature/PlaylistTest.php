@@ -74,7 +74,6 @@ test("get_playlist() - large playlist", function () {
     }
 });
 
-
 test("get_playlist() - skip continuations", function () {
     $yt = new YTMusic();
     $playlist = $yt->get_playlist($this->playlistId, limit: 1, get_continuations: false);
@@ -115,7 +114,7 @@ test("get_playlist() - skip continuations", function () {
 test("Get own playlist + suggestions + related", function () {
     $yt = new YTMusic("oauth.json");
 
-    $playlist = $yt->get_playlist($this->ownPlaylistId, related: true, suggestions_limit: 30);
+    $playlist = $yt->get_playlist(getenv("OWN_PLAYLIST_ID"), related: true, suggestions_limit: 30);
 
     expect($playlist->suggestions)->toBeArray();
     expect(count($playlist->suggestions))->toBeGreaterThan(0);
@@ -179,10 +178,10 @@ test("Get liked music", function () {
 test("Edit playlist", function () {
     $yt = new YTMusic("oauth.json");
 
-    $playlist = $yt->get_playlist($this->ownPlaylistId);
+    $playlist = $yt->get_playlist(getenv("OWN_PLAYLIST_ID"));
 
     $response = $yt->edit_playlist(
-        $this->ownPlaylistId,
+        playlistId: getenv("OWN_PLAYLIST_ID"),
         title: "New title",
         description: "New description",
         privacyStatus: "PRIVATE",
@@ -194,7 +193,7 @@ test("Edit playlist", function () {
 
     sleep(5); // Wait for changes to take effect
 
-    $updated_list = $yt->get_playlist($this->ownPlaylistId);
+    $updated_list = $yt->get_playlist(getenv("OWN_PLAYLIST_ID"));
 
     expect($updated_list->title)->toBe("New title");
     expect($updated_list->description)->toBe("New description");
@@ -204,7 +203,7 @@ test("Edit playlist", function () {
 
     // Revert changes
     $response = $yt->edit_playlist(
-        $this->ownPlaylistId,
+        playlistId: getenv("OWN_PLAYLIST_ID"),
         title: $playlist->title,
         description: $playlist->description,
         privacyStatus: $playlist->privacy,

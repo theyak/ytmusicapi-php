@@ -3,8 +3,11 @@
 WARNING!
 
 YouTube Music has recently updated a lot of their response data causing
-this library to no longer work for some use cases. Please use at your
-own risk!
+this library to no longer work for some use cases. We do not recommend
+using this library for any commercial purposes as it is not considered
+stable. For commercial purposes, consider using Google's paid [YouTube
+Data API](https://developers.google.com/youtube/v3). Use of this
+library is at your own rick.
 
 ## About
 
@@ -14,7 +17,7 @@ possible. All API function names, parameter names, and public methods have
 been kept the same as in their original Python library. Keeping everything
 the same should make it easy to reference their
 [documentation](https://ytmusicapi.readthedocs.io/en/stable/index.html).
-This package is currently feature compatable with YtMusicAPI v1.6.0.
+This package is currently feature compatable with YtMusicAPI v1.7.3.
 
 ## Requirements
 This package was developed and tested in PHP 8.2 and the testing library
@@ -82,7 +85,7 @@ php vendor/bin/setup-ytmusicapi oauth --filename=youtubemusic.json
 ```
 
 ### Browser
-Please note that this method requires Firefox to work correctly.
+Please note that this method requires Firefox to work correctly, and even then it's somewhat unreliable.
 
 * Open a new tab
 * Open the developer tools (Ctrl-Shift-I or Cmd-Shift-I) and select the “Network” tab

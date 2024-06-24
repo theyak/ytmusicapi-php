@@ -281,11 +281,11 @@ test("add_history_item() and get_history()", function () {
             expect($track->album->id)->not->toBeEmpty();
         }
         expect($track->thumbnails)->toBeArray();
-        expect($track->likeStatus)->not->toBeEmpty();
         expect($track->inLibrary)->toBeBool();
         expect($track->isAvailable)->toBeBool();
         expect($track->isExplicit)->toBeBool();
         // expect($track->duration)->not->toBeEmpty(); // Fun fact, not all history items have duration
+        // expect($track->likeStatus)->not->toBeEmpty(); // If track isn't available it won't have a like status
         if ($track->duration) {
             expect($track->duration_seconds)->toBeInt();
         }

@@ -58,7 +58,7 @@ function parse_album_header_2024($response) {
     $album->description = nav($header, join("description", DESCRIPTION_SHELF, DESCRIPTION), true);
 
     $album_info = parse_song_runs(array_slice($header->subtitle->runs, 2));
-    $album_info->artists = [parse_base_header($header)->author];
+    $album_info['artists'] = [parse_base_header($header)->author];
     object_merge($album, $album_info);
 
     if (count($header->secondSubtitle->runs) > 1) {
