@@ -1,6 +1,6 @@
 # ytmusicapi-php
 
-WARNING!
+WARNING ONE!
 
 YouTube Music has recently updated a lot of their response data causing
 this library to no longer work for some use cases. We do not recommend
@@ -8,6 +8,12 @@ using this library for any commercial purposes as it is not considered
 stable. For commercial purposes, consider using Google's paid [YouTube
 Data API](https://developers.google.com/youtube/v3). Use of this
 library is at your own risk.
+
+WARNING TWO!
+
+Google has banned me from using the API without being logged in. I can't
+guarantee they won't ban you from using the API as well. I wasn't banned
+from anything other than using the API. Probably an IP ban? 
 
 ## About
 
