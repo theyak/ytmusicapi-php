@@ -11,9 +11,10 @@ library is at your own risk.
 
 WARNING TWO!
 
-Google has banned me from using the API without being logged in. I can't
-guarantee they won't ban you from using the API as well. I wasn't banned
-from anything other than using the API. Probably an IP ban? 
+Google has taken a harder stance against bots. Endpoints that may have
+previously worked while not authenticated may now responsd with an error.
+This seems especially true if you are running the software on a common
+hosting provider such as AWS, Netlify, Vercel, Digital Ocean, or Linode.
 
 ## About
 
