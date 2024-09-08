@@ -42,7 +42,7 @@ trait Search
             'videos', 'profiles', 'podcasts', 'episodes'
         ];
         if ($filter && !in_array($filter, $filters)) {
-            throw new \Exception(
+            throw new YTMusicUserError(
                 "Invalid filter provided. Please use one of the following filters or leave out the parameter: "
                 . implode(', ', $filters)
             );
@@ -50,20 +50,20 @@ trait Search
 
         $scopes = ['library', 'uploads'];
         if ($scope && !in_array($scope, $scopes)) {
-            throw new \Exception(
+            throw new YTMusicUserError(
                 "Invalid scope provided. Please use one of the following scopes or leave out the parameter: "
                 . implode(', ', $scopes)
             );
         }
 
         if ($scope === "uploads" && $filter) {
-            throw new \Exception(
+            throw new YTMusicUserError(
                 "No filter can be set when searching uploads. Please unset the filter parameter when scope is set to uploads."
             );
         }
 
         if ($scope === "library" && in_array($filter, ['community_playlists', 'featured_playlists'])) {
-            throw new \Exception(
+            throw new YTMusicUserError(
                 "$filter cannot be set when searching library. Please use one of the following filters or leave out the parameter: "
                 . implode(', ', array_merge(array_slice($filters, 0, 3), array_slice($filters, 5)))
             );

@@ -129,7 +129,7 @@ class OAuthCredentials extends Credentials
                     . "YouTubeData API is not enabled."
                 );
             } else {
-                throw new \Exception(
+                throw new YTMusicServerError(
                     "OAuth request error. status_code: " . $response->status_code . ", url: " . $url . ", content: " . $response->body
                 );
             }

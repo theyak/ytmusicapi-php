@@ -278,26 +278,26 @@ trait Browse
     public function get_album($browseId)
     {
         if (!$browseId || !str_starts_with($browseId, "MPRE")) {
-            throw new \Exception("Invalid album browseId provided, must start with MPRE.");
+            throw new YTMusicError("Invalid album browseId provided, must start with MPRE.");
         }
 
         $body = ["browseId" => $browseId];
         $endpoint = "browse";
         $response = $this->_send_request($endpoint, $body);
 
-        if (isset($response->header)) {
-            $album = parse_album_header($response);
-        } else {
-            $album = parse_album_header_2024($response);
-        }
-
-        $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, GRID_ITEMS), true);
-        if (!$results) {
-            // fallback for 2024 format
-            $results = nav($response, join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION_LIST_ITEM, MUSIC_SHELF), true);
-        }
+        $album = parse_album_header_2024($response);
+        $results = nav($response, join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION_LIST_ITEM, MUSIC_SHELF), true);
 
         $album->tracks = parse_playlist_items($results->contents, null, true);
+
+        $other_versions = nav(
+            $response,
+            join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION_LIST, 1, CAROUSEL)
+        );
+        if ($other_versions) {
+            $album->other_versions = parse_content_list($other_versions->contents, "Ytmusicapi\\parse_album");
+        }
+
         $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST, 1, CAROUSEL), true);
         if ($results) {
             $album->other_versions = parse_content_list($results->contents, "Ytmusicapi\\parse_album"); // Probably need a function to parse album
@@ -348,6 +348,12 @@ trait Browse
     /**
      * Retrieve a user's page. A user may own videos or playlists.
      *
+     * Use `get_user_playlists` to retrieve all playlists:
+     *    $result = get_user($channelId);
+     *    get_user_playlists($channelId, $result->playlists->params);
+     * Similarly, use `get_user_videos` to retrieve all videos:
+     *    get_user_videos($channelId, $result->videos->params);
+     *
      * Known differences from Python version:
      *   - Adds channelId to response
      *
@@ -394,6 +400,28 @@ trait Browse
 
         $user_playlists = parse_content_list($results, "Ytmusicapi\\parse_playlist");
         return $user_playlists;
+    }
+
+    /**
+     * Retrieve a list of videos for a given user.
+     * Call this function again with the returned `params` to get the full list.
+     *
+     * @param string $channelId channelId of the user
+     * @param string $params params obtained by previous call to `get_user`
+     * @return object[] List of user videos
+     */
+    public function get_user_videos($channelId, $params) {
+        $endpoint = "browse";
+        $body = ["browseId" => $channelId, "params" => $params];
+        $response = $this->_send_request($endpoint, $body);
+        $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, GRID_ITEMS), true);
+        if (!$results) {
+            return [];
+        }
+
+        $user_videos = parse_content_list($results, "Ytmusicapi\\parse_video");
+
+        return $user_videos;
     }
 
     /**
@@ -524,7 +552,7 @@ trait Browse
     public function get_song_related($browseId)
     {
         if (!is_string($browseId)) {
-            throw new \Exception("Invalid browseId provided.");
+            throw new YTMusicError("Invalid browseId provided.");
         }
 
         $body = ["browseId" => $browseId];
@@ -600,7 +628,7 @@ trait Browse
         $lyrics = (object)[];
 
         if (!is_string($browseId)) {
-            throw new \Exception("Invalid browseId provided. This song might not have lyrics.");
+            throw new YTMusicUserError("Invalid browseId provided. This song might not have lyrics.");
         }
 
         $response = $this->_send_request("browse", ["browseId" => $browseId]);
@@ -679,10 +707,10 @@ trait Browse
 
         foreach ($artists as $artist) {
             if (empty($taste_profile[$artist])) {
-                throw new \Exception("The artist, $artist, was not present in taste!");
+                throw new YTMusicUserError("The artist, $artist, was not present in taste!");
             }
             if (empty($taste_profile[$artist]->selectionValue)) {
-                throw new \Exception("The artist, $artist, has no selectionValue!");
+                throw new YTMusicUserError("The artist, $artist, has no selectionValue!");
             }
 
             $formData["selectedValues"][] = $taste_profile[$artist]->selectionValue;

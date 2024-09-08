@@ -35,7 +35,7 @@ trait Watch
         ];
 
         if (!$videoId && !$playlistId) {
-            throw new \Exception("You must provide either a video id, a playlist id, or both");
+            throw new YTMusicUserError("You must provide either a video id, a playlist id, or both");
         }
 
         if ($videoId) {
@@ -82,7 +82,7 @@ trait Watch
             if ($playlistId) {
                 $msg .= "\nEnsure you have access to $playlistId - a private playlist may cause this.";
             }
-            throw new \Exception($msg);
+            throw new YTMusicServerError($msg);
         }
 
         $playlist = "";

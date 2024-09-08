@@ -159,16 +159,16 @@ trait Uploads
         $this->_check_auth();
 
         if (!$this->auth_type === AuthType::BROWSER) {
-            throw new \Exception("Please provide browser authentication before using this function");
+            throw new YTMusicUserError("Please provide browser authentication before using this function");
         }
 
         if (!file_exists($filepath)) {
-            throw new \Exception("The provided file does not exist.");
+            throw new YTMusicUserError("The provided file does not exist.");
         }
 
         $supported_filetypes = ["mp3", "m4a", "wma", "flac", "ogg"];
         if (!in_array(pathinfo($filepath, PATHINFO_EXTENSION), $supported_filetypes)) {
-            throw new \Exception("The provided file type is not supported by YouTube Music. Supported file types are " . implode(', ', $supported_filetypes));
+            throw new YTMusicUserError("The provided file type is not supported by YouTube Music. Supported file types are " . implode(', ', $supported_filetypes));
         }
 
         $headers = $this->headers;

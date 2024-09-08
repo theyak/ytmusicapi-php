@@ -25,7 +25,7 @@ class Album extends Record
     public $type;
 
     /**
-     * @var Thumbnails[]
+     * @var Thumbnail[]
      */
     public $thumbnails;
 

@@ -3,6 +3,7 @@
 namespace Ytmusicapi;
 
 include "constants.php";
+include "exceptions.php";
 include "polyfills.php";
 include "navigation.php";
 include "continuations.php";

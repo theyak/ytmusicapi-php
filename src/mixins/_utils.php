@@ -19,7 +19,7 @@ function validate_order_parameter($order)
 {
     $orders = ['a_to_z', 'z_to_a', 'recently_added'];
     if ($order && !in_array($order, $orders)) {
-        throw new \Exception(
+        throw new YTMusicUserError(
             "Invalid order provided. Please use one of the following orders or leave out the parameter: "
             . implode(', ', $orders)
         );

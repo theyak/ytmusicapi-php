@@ -67,7 +67,7 @@ trait Library
         };
 
         if ($validate_responses && $limit === null) {
-            throw new \Exception("Validation is not supported without a limit parameter.");
+            throw new YTMusicUserError("Validation is not supported without a limit parameter.");
         }
 
         if ($validate_responses) {
@@ -274,7 +274,7 @@ trait Library
             $data = nav($content, join(MUSIC_SHELF, 'contents'), true);
             if (!$data) {
                 $error = nav($content, join('musicNotifierShelfRenderer', TITLE), true);
-                throw new \Exception($error ?? "Error reading history");
+                throw new YTMusicServerError($error ?? "Error reading history");
             }
             $menu_entries = [join("-1", MENU_SERVICE, FEEDBACK_TOKEN)];
             $songlist = parse_playlist_items($data, $menu_entries);

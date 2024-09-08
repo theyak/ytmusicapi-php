@@ -138,14 +138,9 @@ trait Podcasts
         $body = ["browseId" => $browseId];
         $endpoint = "browse";
         $response = $this->_send_request($endpoint, $body);
-
-        if (empty($reponse->header)) {
-            throw new Exception("Response format changed. No header found in response.");
-        }
-
         $playlist = parse_playlist_header($response);
 
-        $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST_ITEM, MUSIC_SHELF), true);
+        $results = nav($response, join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION_LIST_ITEM, MUSIC_SHELF), true);
 
         // Known difference: PHP checks additional property
         if (!$results) {
