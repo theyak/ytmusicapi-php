@@ -5,6 +5,9 @@ namespace Ytmusicapi\Podcasts;
 use function Ytmusicapi\nav;
 use function Ytmusicapi\join;
 
+define('\Ytmusicapi\PROGRESS_RENDERER', "musicPlaybackProgressRenderer");
+define('\Ytmusicapi\DURATION_TEXT', "durationTextl.runs.1.text");
+
 class DescriptionElement
 {
     /**
@@ -134,7 +137,7 @@ function parse_base_header($header)
     return (object)[
         "author" => (object)[
             "name" => nav($strapline, RUN_TEXT),
-            "id" => nav($strapline, join("runs.0", NAVIGATION_BROWSE_ID)),
+            "id" => nav($strapline, join("runs.0", NAVIGATION_BROWSE_ID), true),
         ],
         "title" => nav($header, TITLE_TEXT),
     ];
@@ -168,15 +171,12 @@ function parse_podcast_header($header)
 function parse_episode_header($header)
 {
     $metadata = parse_base_header($header);
-    $metadata->date = nav($header, SUBTITLE2);
-    $metadata->duration = nav($header, SUBTITLE3, true);
-    if (!$metadata->duration) { // progress started
-        $progress_renderer = nav($header, "progress.musicPlaybackProgressRenderer");
-        $metadata->duration = nav($progress_renderer, "durationText.runs.1.text");
-        $metadata->progressPercentage = nav($progress_renderer, "playbackProgressPercentage");
-    }
 
-    $metadata->saved = nav($header, join("buttons.0", TOGGLED_BUTTON), true);
+    $metadata->date = nav($header, SUBTITLE);
+    $progress_renderer = nav($header, join("progress", PROGRESS_RENDERER));
+    $metadata->duration = nav($progress_renderer, DURATION_TEXT, true);
+    $metadata->progressPercentage = nav($progress_renderer, "playbackProgressPercentage");
+    $metadata->saved = nav($header, join("buttons.0", TOGGLED_BUTTON), true) ?? false;
 
     $metadata->playlistId = null;
     $menu_buttons = nav($header, join("buttons.-1.menuRenderer.items"));
@@ -198,14 +198,9 @@ function parse_episode_header($header)
 function parse_episode($data)
 {
     $thumbnails = nav($data, THUMBNAILS);
-    $date = null;
-    if (count(nav($data, SUBTITLE_RUNS)) === 1) {
-        $duration = nav($data, SUBTITLE);
-    } else {
-        $date = nav($data, SUBTITLE);
-        $duration = nav($data, SUBTITLE2, true);
-    }
 
+    $date = nav($data, SUBTITLE, true);
+    $duration = nav($data, join("playbackProgress", PROGRESS_RENDERER, DURATION_TEXT), true);
     $title = nav($data, join(TITLE_TEXT));
     $description = nav($data, DESCRIPTION, true);
     $videoId = nav($data, join("onTap", WATCH_VIDEO_ID), true);

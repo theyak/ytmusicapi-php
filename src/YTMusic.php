@@ -199,7 +199,7 @@ class YTMusic
             $this->origin = $this->_base_headers["origin"] ?? $this->_base_headers["x-origin"];
 
             if (!$this->sapisid) {
-                throw new \Exception("Your cookie is missing the required value __Secure-3PAPISID");
+                throw new YTMusicUserError("Your cookie is missing the required value __Secure-3PAPISID");
             }
         }
     }
@@ -282,7 +282,7 @@ class YTMusic
             $reason = $response_text->error->message ?? "Unknown error";
             $message = "Server returned HTTP " . $response->status_code . ": " . $reason . ".\n";
             $error = $response_text->error->message;
-            throw new \Exception($message . $error);
+            throw new YTMusicServerError($message . $error);
         }
 
         return $response_text;
@@ -322,7 +322,7 @@ class YTMusic
     private function _check_auth()
     {
         if (!$this->auth) {
-            throw new \Exception("Please provide authentication before using this function");
+            throw new YTMusicUserError("Please provide authentication before using this function");
         }
     }
 

@@ -240,7 +240,10 @@ function get_library_contents($response, $renderer)
     $section = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST), true);
     $contents = null;
     if ($section === null) {
-        $contents = nav($response, join(SINGLE_COLUMN, TAB_1_CONTENT, SECTION_LIST_ITEM, $renderer), true);
+        // covers the case of non-premium subscribers - no downloads tab
+        $num_tabs = count(nav($response, join(SINGLE_COLUMN, "tabs")));
+        $library_tab = $num_tabs < 3 ? TAB_1_CONTENT : TAB_2_CONTENT;
+        $contents = nav($response, join(SINGLE_COLUMN, $library_tab, SECTION_LIST_ITEM, $renderer), true);
     } else {
         $results = find_object_by_key($section, 'itemSectionRenderer');
         if ($results === null) {

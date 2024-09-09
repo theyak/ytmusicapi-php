@@ -125,6 +125,7 @@ function parse_search_result($data, $search_result_types, $result_type, $categor
         parse_menu_playlists($data, $search_result);
     } elseif ($result_type === 'album') {
         $search_result['type'] = get_item_text($data, 1);
+        $search_result['playlistId'] = nav($data, join(PLAY_BUTTON, 'playNavigationEndpoint', WATCH_PID), true);
     } elseif ($result_type === 'playlist') {
         $flex_item = get_flex_column_item($data, 1)->text->runs;
         $has_author = count($flex_item) === $default_offset + 3;
@@ -207,14 +208,6 @@ function parse_search_result($data, $search_result_types, $result_type, $categor
 
     if (in_array($result_type, ['song', 'album'])) {
         $search_result['isExplicit'] = nav($data, BADGE_LABEL, true) !== null;
-    }
-
-    if (in_array($result_type, ['album'])) {
-        $search_result['playlistId'] = nav(
-            $data,
-            join(PLAY_BUTTON, 'playNavigationEndpoint.watchEndpoint.playlistId'),
-            true
-        );
     }
 
     if (in_array($result_type, ['episode'])) {

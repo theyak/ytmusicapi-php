@@ -7,6 +7,7 @@ define("Ytmusicapi\CONTENT", "contents.0");
 define("Ytmusicapi\RUN_TEXT", "runs.0.text");
 define("Ytmusicapi\TAB_CONTENT", "tabs.0.tabRenderer.content");
 define("Ytmusicapi\TAB_1_CONTENT", "tabs.1.tabRenderer.content");
+define("Ytmusicapi\TAB_2_CONTENT", "tabs.2.tabRenderer.content");
 define("Ytmusicapi\TWO_COLUMN_RENDERER", "contents.twoColumnBrowseResultsRenderer");
 define("Ytmusicapi\SINGLE_COLUMN", "contents.singleColumnBrowseResultsRenderer");
 define("Ytmusicapi\SINGLE_COLUMN_TAB", "contents.singleColumnBrowseResultsRenderer.tabs.0.tabRenderer.content");
@@ -22,7 +23,8 @@ define("Ytmusicapi\MENU", "menu.menuRenderer");
 define("Ytmusicapi\MENU_ITEMS", "menu.menuRenderer.items");
 define("Ytmusicapi\MENU_LIKE_STATUS", "menu.menuRenderer.topLevelButtons.0.likeButtonRenderer.likeStatus");
 define("Ytmusicapi\MENU_SERVICE", "menuServiceItemRenderer.serviceEndpoint");
-define("Ytmusicapi\TOGGLE_MENU", "toggleMenuServiceItemRenderer");
+define("Ytmusicapi\
+eMenuServiceItemRenderer");
 define("Ytmusicapi\OVERLAY_RENDERER", "musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer");
 define("Ytmusicapi\PLAY_BUTTON", "overlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer");
 define("Ytmusicapi\NAVIGATION_BROWSE", "navigationEndpoint.browseEndpoint");
