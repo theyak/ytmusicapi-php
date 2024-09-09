@@ -121,7 +121,6 @@ trait Browse
         $body = ["browseId" => $channelId];
         $endpoint = "browse";
         $response = $this->_send_request($endpoint, $body);
-
         $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST));
 
         $header = nav($response, "header.musicImmersiveHeaderRenderer", true);
@@ -175,7 +174,7 @@ trait Browse
             $artist->{$key} = $value;
         }
 
-        return $artist;
+        return object_merge(new Artist(), $artist);
     }
 
     /**

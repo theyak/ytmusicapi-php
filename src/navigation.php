@@ -23,8 +23,7 @@ define("Ytmusicapi\MENU", "menu.menuRenderer");
 define("Ytmusicapi\MENU_ITEMS", "menu.menuRenderer.items");
 define("Ytmusicapi\MENU_LIKE_STATUS", "menu.menuRenderer.topLevelButtons.0.likeButtonRenderer.likeStatus");
 define("Ytmusicapi\MENU_SERVICE", "menuServiceItemRenderer.serviceEndpoint");
-define("Ytmusicapi\
-eMenuServiceItemRenderer");
+define("Ytmusicapi\TOGGLE_MENU", "toggleMenuServiceItemRenderer");
 define("Ytmusicapi\OVERLAY_RENDERER", "musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer");
 define("Ytmusicapi\PLAY_BUTTON", "overlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer");
 define("Ytmusicapi\NAVIGATION_BROWSE", "navigationEndpoint.browseEndpoint");

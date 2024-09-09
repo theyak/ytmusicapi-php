@@ -56,7 +56,6 @@ trait Playlists
         // [PHP Only] Attempt at getting author
         $author = nav($header_data, join(RESPONSIVE_HEADER, "straplineTextOne.runs.0"), true);
         if ($author) {
-            file_put_contents("blah.json", json_encode($author, JSON_PRETTY_PRINT));
             $playlist["author"] = (object)[
                 "name" => $author->text,
                 "id" => nav($author, "navigationEndpoint.browseEndpoint.browseId", true),
@@ -168,6 +167,10 @@ trait Playlists
                     $playlist["continuation"] = nav($content_data, "continuations.0.nextContinuationData.continuation", true);
                 }
             }
+        }
+
+        if ($playlistId === "LM") {
+            $playlist["privacy"] = "PRIVATE";
         }
 
         $playlist = (object)$playlist;

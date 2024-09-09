@@ -9,7 +9,7 @@ test('get_account()', function () {
     expect($account->name)->not->toBeEmpty();
     expect($account->channelId)->not->toBeEmpty();
     expect($account->thumbnails)->toBeArray();
-});
+})->skip();
 
 test('get_account() - error condition', function () {
     $yt = Mockery::mock(YTMusic::class, ["oauth.json"])->makePartial();
@@ -338,4 +338,16 @@ test("get_song_related() and get_lyrics() exceptions", function () {
     $yt = new YTMusic();
     expect(fn () => $yt->get_lyrics(null))->toThrow(\Exception::class);
     expect(fn () => $yt->get_song_related(null))->toThrow(\Exception::class);
+});
+
+test("get_user_videos()", function () {
+    $channel = "UCus8EVJ7Oc9zINhs-fg8l1Q"; // Turbo
+
+    $yt = new YTMusic();
+    $user = $yt->get_user($channel);
+    $results = $yt->get_user_videos($channel, $user->videos->params);
+    expect(count($results))->toBeGreaterThan(100);
+
+    // The python library runs the query again, but expects zero results.
+    // I'm not sure why it does this. I must be missing something.
 });

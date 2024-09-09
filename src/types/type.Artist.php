@@ -65,6 +65,16 @@ class Artist
     public $singles;
 
     /**
+     * @var AlbumList
+     */
+    public $shows;
+
+    /**
+     * @var Episode[]
+     */
+    public $episodes;
+
+    /**
      * @var PlaylistList
      */
     public $playlists;

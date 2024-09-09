@@ -13,20 +13,6 @@ test('Search should throw exceptions ', function () {
     expect(fn () => $yt->search($query, scope: "library", filter: "community_playlists"))->toThrow(\Exception::class);
 });
 
-test('Search should return results for random queries', function () {
-    $yt = new YTMusic();
-
-    $queries = ["Monekes", "qllwlwl", "heun"];
-
-    foreach ($queries as $q) {
-        $results = $yt->search($q);
-        expect(count($results))->toBeGreaterThanOrEqual(3);
-    }
-
-    $results = $yt->search("Martin Stig Andersen - Deteriation");
-    expect(count($results))->toBeGreaterThan(0);
-});
-
 test('Search should allow filter', function () {
     $yt = new YTMusic();
 

@@ -5,8 +5,8 @@ namespace Ytmusicapi\Podcasts;
 use function Ytmusicapi\nav;
 use function Ytmusicapi\join;
 
-define('\Ytmusicapi\PROGRESS_RENDERER', "musicPlaybackProgressRenderer");
-define('\Ytmusicapi\DURATION_TEXT', "durationTextl.runs.1.text");
+define('Ytmusicapi\PROGRESS_RENDERER', "musicPlaybackProgressRenderer");
+define('Ytmusicapi\DURATION_TEXT', "durationTextl.runs.1.text");
 
 class DescriptionElement
 {

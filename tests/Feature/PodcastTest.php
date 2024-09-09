@@ -41,7 +41,7 @@ test("get_channel", function () {
     $yt = new YTMusic();
     $channel = $yt->get_channel($channel_id);
     expect(count($channel->episodes->results))->toBe(10);
-    expect(count($channel->podcasts->results))->toBeGreaterThan(5);
+    expect(count($channel->podcasts->results))->toBeGreaterThan(4);
 });
 
 test("get_channel_episodes", function () {

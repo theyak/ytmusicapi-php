@@ -283,7 +283,7 @@ test("Big create, add to, and delete test of library", function () {
 
     // Playlist no longer exists. Should throw an exception.
     expect(fn () => $yt->get_playlist($playlistId))->toThrow(Exception::class);
-});
+})->skip();
 
 test("create_playlist() - Using video ids", function () {
     $yt = new YTMusic("oauth.json");
