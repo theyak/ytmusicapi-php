@@ -29,8 +29,8 @@ trait I18n
             ["shows", $this->_("Audiobooks and shows"), "Ytmusicapi\parse_album", MTRIR],
             ["videos", $this->_("videos"), "Ytmusicapi\parse_video", MTRIR],
             ["playlists", $this->_("playlists"), "Ytmusicapi\parse_playlist", MTRIR],
-            ["related", $this->_("related"), "Ytmusicapi\parse_related_artist", MTRIR],
-            ["episodes", $this->_("episodes"), "Ytmusicapi\parse_episode", MMRIR],
+            ["related", $this->_("fans might also like"), "Ytmusicapi\parse_related_artist", MTRIR],
+            ["episodes", $this->_("latest episodes"), "Ytmusicapi\parse_episode", MMRIR],
             ["podcasts", $this->_("podcasts"), "Ytmusicapi\parse_podcast", MTRIR],
         ];
 
