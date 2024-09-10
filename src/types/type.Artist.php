@@ -75,6 +75,11 @@ class Artist
     public $episodes;
 
     /**
+     * @var Podcast[]
+     */
+    public $podcasts;
+
+    /**
      * @var PlaylistList
      */
     public $playlists;

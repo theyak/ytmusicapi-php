@@ -26,7 +26,7 @@ trait I18n
         $categories = [
             ["albums", $this->_("albums"), "Ytmusicapi\parse_album", MTRIR],
             ["singles", $this->_("singles"), "Ytmusicapi\parse_single", MTRIR],
-            ["shows", $this->_("shows"), "Ytmusicapi\parse_album", MTRIR],
+            ["shows", $this->_("Audiobooks and shows"), "Ytmusicapi\parse_album", MTRIR],
             ["videos", $this->_("videos"), "Ytmusicapi\parse_video", MTRIR],
             ["playlists", $this->_("playlists"), "Ytmusicapi\parse_playlist", MTRIR],
             ["related", $this->_("related"), "Ytmusicapi\parse_related_artist", MTRIR],

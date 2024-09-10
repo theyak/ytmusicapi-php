@@ -122,6 +122,16 @@ test('get_song_info() - Invalid video ID type', function () {
     $track = $yt->get_song_info(12);
 })->throws(Exception::class);
 
+test('get_artist() shows', function () {
+    // Requires authentication
+    $yt = new YTMusic("oauth.json");
+    $results = $yt->get_artist("UCyiY-0Af0O6emoI3YvCEDaA");
+    expect(count($results->shows->results))->toBe(10);
+
+    $results = $yt->get_artist_albums($results->shows->browseId, $results->shows->params);
+    expect(count($results))->toBe(100);
+})->only();
+
 test('get_artist() and get_artist_albums()', function () {
     $yt = new YTMusic("oauth.json");
     $artist = $yt->get_artist($this->artistId);
