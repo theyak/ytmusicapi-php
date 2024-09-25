@@ -85,33 +85,14 @@ function get_tab_browse_id($watchNextRenderer, $tab_id)
     }
 }
 
-function test_function($results) {
-    $tracks = [];
-    $PPVWR = 'playlistPanelVideoWrapperRenderer';
-    $PPVR = 'playlistPanelVideoRenderer';
+function increment_x($results) {
 
-    foreach ($results as $result) {
-        $counterpart = null;
-        if (isset($result->{$PPVWR})) {
-            $counterpart = $result->{$PPVWR}->counterpart[0]->counterpartRenderer->{$PPVR};
-            $result = $result->{$PPVWR}->primaryRenderer;
-        }
-        if (!isset($result->{$PPVR})) {
-            continue;
-        }
-
-        $data = $result->{$PPVR};
-        if (isset($data->unplayableText)) {
-            continue;
-        }
-
-        $track = parse_watch_track($data);
-        if ($counterpart) {
-            $track->counterpart = parse_watch_track($counterpart);
-        }
-
-        $tracks[] = $track;
+    if ($results) {
+        $x++;
+        $a = ['foo' => 'bar'];
     }
 
-    return $tracks;
+    echo $a['hmm'];
+    echo $a['foo'];
+    echo $a->foo;
 }
