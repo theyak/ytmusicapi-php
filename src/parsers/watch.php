@@ -84,3 +84,15 @@ function get_tab_browse_id($watchNextRenderer, $tab_id)
         return null;
     }
 }
+
+function increment_x($results) {
+
+    if ($results) {
+        $x++;
+        $a = ['foo' => 'bar'];
+    }
+
+    echo $a['hmm'];
+    echo $a['foo'];
+    echo $a->foo;
+}
