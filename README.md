@@ -1,20 +1,15 @@
 # ytmusicapi-php
 
-WARNING ONE!
-
-YouTube Music has recently updated a lot of their response data causing
-this library to no longer work for some use cases. We do not recommend
-using this library for any commercial purposes as it is not considered
-stable. For commercial purposes, consider using Google's paid [YouTube
-Data API](https://developers.google.com/youtube/v3). Use of this
-library is at your own risk.
-
-WARNING TWO!
+WARNING
 
 Google has taken a harder stance against bots. Endpoints that may have
 previously worked while not authenticated may now responsd with an error.
 This seems especially true if you are running the software on a common
 hosting provider such as AWS, Netlify, Vercel, Digital Ocean, or Linode.
+
+Google has also modified or disabled OAuth authentication. [[1]](https://github.com/yt-dlp/yt-dlp/issues/3766) 
+[[2]](https://github.com/sigma67/ytmusicapi/issues/676) so please use
+cookie authentication.
 
 ## About
 
@@ -71,7 +66,7 @@ There are several ways to authenticate:
 
 ### OAuth
 
-OAuth is the simplest and recommended form of authorization. Run:
+OAuth is temporarily unavailable. Please see Browser section, below.
 
 ```
 php vendor/bin/setup-ytmusicapi oauth
