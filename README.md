@@ -7,10 +7,6 @@ previously worked while not authenticated may now responsd with an error.
 This seems especially true if you are running the software on a common
 hosting provider such as AWS, Netlify, Vercel, Digital Ocean, or Linode.
 
-Google has also modified or disabled OAuth authentication. [[1]](https://github.com/yt-dlp/yt-dlp/issues/3766) 
-[[2]](https://github.com/sigma67/ytmusicapi/issues/676) so please use
-cookie authentication.
-
 ## About
 
 This is a port of the [ytmusicapi](https://github.com/sigma67/ytmusicapi)
@@ -62,29 +58,6 @@ composer require ytmusicapi/ytmusicapi
 
 To do anything specific with your own data, such as view private playlists
 or edit your playlist, you will need to authenticate to YouTube Music.
-There are several ways to authenticate:
-
-### OAuth
-
-OAuth is temporarily unavailable. Please see Browser section, below.
-
-```
-php vendor/bin/setup-ytmusicapi oauth
-```
-
-Go to the URL provided and go through Google's authorization procedure.
-When complete, press enter. A file named _oauth.json_ will be created.
-You can then use that file to authenticate to YouTube Music.
-
-```php
-$yt = new Ytmusicapi\YTMusic("oauth.json");
-```
-
-You can optionally specify a filename if you don't want to use the default _oauth.json_.
-
-```
-php vendor/bin/setup-ytmusicapi oauth --filename=youtubemusic.json
-```
 
 ### Browser
 Please note that this method requires Firefox to work correctly, and even then it's somewhat unreliable.
