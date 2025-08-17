@@ -6,12 +6,13 @@ include __DIR__ . "/../vendor/autoload.php";
 include "polyfills.php";
 include "helpers.php";
 include "constants.php";
-include "auth/models.php";
 include "auth/exceptions.php";
-include "auth/credentials.php";
-include "auth/token.php";
+include "auth/oauth/models.php";
+include "auth/oauth/credentials.php";
+include "auth/oauth/token.php";
 include "auth/types.php";
 include "auth/browser.php";
+include "mixins/_utils.php";
 
 // php vendor/bin/setup-ytmusicapi oauth --file oauth.json
 // php vendor/bin/setup-ytmusicapi browser --file browser.json
@@ -30,28 +31,22 @@ function setup($filepath = null, $headers_raw = null) {
 /**
  * Starts oauth flow from the terminal and returns a string that can be passed to YTMusic()
  *
+ * @param string $client_id Used to specify the client_id oauth should use for authentication
+ * @param string $client_secret Optional. Same as client_id but for the oauth client secret.
  * @param string $filepath Optional filepath to store headers to.
  * @param Session $session Session to use for authentication
  * @param array $proxies Proxies to use for authentication
  * @param bool (Not implemented) $open_browser – If True, open the default browser with the setup link
- * @param string $client_id Optional. Used to specify the client_id oauth should use for authentication
- *   flow. If provided, client_secret MUST also be passed or both will be ignored.
- * @param string $client_secret Optional. Same as client_id but for the oauth client secret.
  */
 function setup_oauth(
+	$client_id,
+	$client_secret,
 	$filepath = null,
 	$session = null,
 	$proxies = null,
 	$open_browser = false,
-	$client_id = null,
-	$client_secret = null
 ) {
-	if ($client_id && $client_secret) {
-		$oauth_credentials = new OAuthCredentials($client_id, $client_secret, $session, $proxies);
-	} else {
-		$oauth_credentials = new OAuthCredentials(null, null, $session, $proxies);
-	}
-
+	$oauth_credentials = new OAuthCredentials($client_id, $client_secret, $session, $proxies);
 	RefreshingToken::prompt_for_token($oauth_credentials, $open_browser, $filepath);
 }
 
@@ -61,42 +56,89 @@ function show_help() {
 	exit;
 }
 
-function parse_args() {
-	global $argv;
+function parse_args($argv) {
+    // Remove the script name
+    $args = array_slice($argv, 1);
 
-	if (count($argv) <= 1) {
-		show_help();
-	}
+    // Default values
+    $result = (object)[
+        "setup_type" => null,
+        "file" => null,
+        "client_id" => null,
+        "client_secret" => null,
+        "version" => null,
+    ];
 
-	$setup_type = strtolower($argv[1]);
-	if ($setup_type !== "oauth" && $setup_type !== "browser") {
-		show_help();
-	}
+    // Version flag
+    foreach ($args as $i => $arg) {
+        if ($arg === "-v" || $arg === "--version") {
+            // You would replace this with the actual version retrieval logic
+            $result->version = "ytmusicapi 1.0.0";
+            echo $result->version . "\n";
+            exit(0);
+        }
+    }
 
-	if (!isset($argv[2]) || strtolower($argv[2]) !== "--file") {
-		$filename = $setup_type . ".json";
-	} else {
-		$filename = isset($argv[3]) ? $argv[3] : $setup_type . ".json";
-	}
+    // Find setup_type (must be first positional argument)
+    if (count($args) === 0 || ($args[0] !== "oauth" && $args[0] !== "browser")) {
+        echo "Usage: php setup-ytmusicapi <setup_type> [--file <filename>] [--client-id <id>] [--client-secret <secret>]\n";
+        echo "setup_type: oauth, browser\n";
+        exit(1);
+    }
+    $result->setup_type = $args[0];
 
-	return (object)[
-		"setup_type" => $setup_type,
-		"file" => $filename
-	];
+    // Parse options
+    for ($i = 1; $i < count($args); $i++) {
+        $arg = $args[$i];
+        if ($arg === "--file" && isset($args[$i + 1])) {
+            $result->file = $args[$i + 1];
+            $i++;
+        } elseif ($arg === "--client-id" && isset($args[$i + 1])) {
+            $result->client_id = $args[$i + 1];
+            $i++;
+        } elseif ($arg === "--client-secret" && isset($args[$i + 1])) {
+            $result->client_secret = $args[$i + 1];
+            $i++;
+        }
+    }
+
+    // Set default file if not provided
+    if ($result->file === null) {
+        $result->file = $result->setup_type . ".json";
+    }
+
+    return $result;
 }
 
-
 function main() {
-	$args = parse_args();
+	global $argv;
+	$args = parse_args($argv);
 
 	$filename = $args->file;
 
+	if ($args->setup_type === "oauth") {
+		if (!$args->client_id) {
+			$args->client_id = readline("Enter your Google Youtube Data API client ID: ");
+            if (!$args->client_id && getenv('GOOGLE_CLIENT_ID')) {
+                $args->client_id = getenv('GOOGLE_CLIENT_ID');
+            }
+		}
+	
+		if (!$args->client_secret) {
+			$args->client_secret = readline("Enter your Google Youtube Data API client secret: ");
+            if (!$args->client_secret && getenv('GOOGLE_CLIENT_SECRET')) {
+                $args->client_secret = getenv('GOOGLE_CLIENT_SECRET');
+            }
+		}
+	}
+
 	echo "Creating {$filename} with your authentication credentials...\n";
 	if ($args->setup_type === "oauth") {
-		setup_oauth($filename, false);
+		setup_oauth($args->client_id, $args->client_secret, $args->file, false);
 	} else {
-		setup($filename);
+		setup($args->file);
 	}
-	echo "Created $filename.\n";
+
+	echo "Created {$args->file}.\n";
 }
 main();

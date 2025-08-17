@@ -26,7 +26,7 @@ class Credentials
     /**
      * Method for obtaining a new user auth code. First step of token creation.
      *
-     * @return object
+     * @return AuthCodeDict
      */
     public function get_code()
     {
@@ -63,25 +63,24 @@ class OAuthCredentials extends Credentials
     public $_session;
 
     /**
-     * @param string $client_id Optional. Set the GoogleAPI client_id used for auth flows.
-     *   Requires client_secret also be provided if set.
-     * @param string $client_secret Optional. Corresponding secret for provided client_id.
+     * @param string $client_id Set the GoogleAPI client_id used for auth flows.
+     * @param string $client_secret Corresponding secret for provided client_id.
      * @param \WpOrg\Requests\Session $session Optional. Connection pooling with an active session.
-     * @param array $proxies Optional. Modify the session with proxy parameters.
+     * @param array $proxies Optional. Modify the Session with proxy parameters.
      */
     public function __construct(
-        $client_id = null,
-        $client_secret = null,
+        $client_id,
+        $client_secret,
         $session = null,
         $proxies = null
     ) {
-        if ($client_id !== null && $client_secret === null) {
-            throw new \Exception("OAuthCredential init failure. Provide both client_id and client_secret or neither.");
+        if ($client_id === null || $client_secret === null) {
+            throw new \Exception("OAuthCredential init failure. Provide both client_id and client_secret.");
         }
 
         // bind instance to OAuth client for auth flows
-        $this->client_id = $client_id ?: OAUTH_CLIENT_ID;
-        $this->client_secret = $client_secret ?: OAUTH_CLIENT_SECRET;
+        $this->client_id = trim($client_id);
+        $this->client_secret = trim($client_secret);
 
         $this->_session = $session ?: new \WpOrg\Requests\Session();
         if ($proxies) {
@@ -97,7 +96,7 @@ class OAuthCredentials extends Credentials
     public function get_code()
     {
         $code_response = $this->_send_request(OAUTH_CODE_URL, ["scope" => OAUTH_SCOPE]);
-        return json_decode($code_response->body);
+        return typingCast(AuthCodeDict::class, json_decode($code_response->body));
     }
 
     /**
@@ -114,25 +113,25 @@ class OAuthCredentials extends Credentials
 
         $response = $this->_session->post(
             $url,
-            [ "User-Agent" => OAUTH_USER_AGENT ],
+            [ "User-Agent" => \Ytmusicapi\OAUTH_USER_AGENT ],
             $data
         );
 
-        if ($response->status_code === 401) {
+        // This logic differs for Python implementation.
+        if ($response->status_code >= 400) {
             $data = json_decode($response->body);
-            $issue = $data->error;
-            if ($issue === "unauthorized_client") {
-                throw new UnauthorizedOAuthClient("Token refresh error. Most likely client/token mismatch.");
-            } elseif ($issue == "invalid_client") {
-                throw new BadOAuthClient(
-                    "OAuth client failure. Most likely client_id and client_secret mismatch or "
-                    . "YouTubeData API is not enabled."
-                );
+
+            echo "Error creating OAuth credentials:\n";
+            echo "status_code: " . $response->status_code . "\n";
+            echo "url: " . $url . "\n";
+            echo "content: " . $data->error . "\n";
+            if (!empty($data->error_description)) {
+                echo "error: " . $data->error_description . "\n";
             } else {
-                throw new YTMusicServerError(
-                    "OAuth request error. status_code: " . $response->status_code . ", url: " . $url . ", content: " . $response->body
-                );
+                print_r($data);
             }
+
+            exit;
         }
 
         return $response;
@@ -140,6 +139,9 @@ class OAuthCredentials extends Credentials
 
     /**
      * Method for verifying user auth code and conversion into a FullTokenDict.
+     * 
+     * @param string $device_code
+     * @return RefreshableTokenDict
      */
     public function token_from_code($device_code)
     {
@@ -152,7 +154,7 @@ class OAuthCredentials extends Credentials
             ]
         );
 
-        return json_decode($response->body);
+        return typingCast(RefreshableTokenDict::class, json_decode($response->body));
     }
 
     /**
@@ -172,6 +174,6 @@ class OAuthCredentials extends Credentials
                 "refresh_token" => $refresh_token
             ]
         );
-        return json_decode($response->body);
+        return typingCast(BaseTokenDict::class, json_decode($response->body));
     }
 }

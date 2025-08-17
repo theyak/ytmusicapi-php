@@ -54,6 +54,7 @@ define("Ytmusicapi\SUBTITLE3", "subtitle.runs.4.text");
 define("Ytmusicapi\THUMBNAIL", "thumbnail.thumbnails");
 define("Ytmusicapi\THUMBNAILS", "thumbnail.musicThumbnailRenderer.thumbnail.thumbnails");
 define("Ytmusicapi\THUMBNAIL_RENDERER", "thumbnailRenderer.musicThumbnailRenderer.thumbnail.thumbnails");
+define("Ytmusicapi\THUMBNAIL_OVERLAY_NAVIGATION", "thumbnailOverlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer.playNavigationEndpoint");
 define("Ytmusicapi\THUMBNAIL_OVERLAY", "thumbnailOverlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer.playNavigationEndpoint.watchPlaylistEndpoint.playlistId");
 define("Ytmusicapi\THUMBNAIL_CROPPED", "thumbnail.croppedSquareThumbnailRenderer.thumbnail.thumbnails");
 define("Ytmusicapi\FEEDBACK_TOKEN", "feedbackEndpoint.feedbackToken");
@@ -85,6 +86,7 @@ define("Ytmusicapi\CAROUSEL_CONTENTS", "musicCarouselShelfRenderer.contents");
 define("Ytmusicapi\CAROUSEL_TITLE", "header.musicCarouselShelfBasicHeaderRenderer.title.runs.0");
 define("Ytmusicapi\CARD_SHELF_TITLE", "header.musicCardShelfHeaderBasicRenderer.title.runs.0.text");
 define("Ytmusicapi\FRAMEWORK_MUTATIONS", "frameworkUpdates.entityBatchUpdate.mutations");
+define("Ytmusicapi\TIMESTAMPED_LYRICS", "contents.elementRenderer.newElement.type.componentType.model.timedLyricsModel.lyricsData");
 
 /**
  * Create a nested array from a string of keys sepatated by dots.
@@ -113,6 +115,12 @@ function denav($keys, $value = null)
     return $result;
 }
 
+/**
+ * @param array|object $root
+ * @param array|string $items
+ * @param bool $null_if_absent
+ * @return mixed
+ */
 function nav($root, $items, $null_if_absent = false)
 {
     if (is_string($items)) {
@@ -157,6 +165,13 @@ function nav($root, $items, $null_if_absent = false)
     return $root;
 }
 
+/**
+ * @param array $object_list
+ * @param string $key
+ * @param string $nested
+ * @param bool $is_key
+ * @return mixed
+ */
 function find_object_by_key($object_list, $key, $nested = null, $is_key = false)
 {
     foreach ($object_list as $item) {
@@ -176,10 +191,17 @@ function find_object_by_key($object_list, $key, $nested = null, $is_key = false)
             return $is_key ? $item->$key : $item;
         }
     }
+
     return null;
 }
 
-function find_objects_by_key($object_list, $key)
+/**
+ * @param array $object_list
+ * @param string $key
+ * @param string $nested
+ * @return array
+ */
+function find_objects_by_key($object_list, $key, $nested = null)
 {
     $objects = [];
     foreach ($object_list as $item) {

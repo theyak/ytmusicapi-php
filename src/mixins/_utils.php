@@ -44,3 +44,35 @@ function html_to_txt($html_text)
     }
     return $html_text;
 }
+
+/**
+ * Advanced approach with reflection and type casting
+ */
+function typingCast(string $className, $data) {
+    if (!class_exists($className)) {
+        throw new \InvalidArgumentException("Class {$className} does not exist");
+    }
+    
+    // Convert to array if needed
+    if ($data instanceof \stdClass) {
+        $data = json_decode(json_encode($data), true);
+    }
+    
+    $reflection = new \ReflectionClass($className);
+    $object = $reflection->newInstance();
+    
+    foreach ($data as $key => $value) {
+        if ($reflection->hasProperty($key)) {
+            $property = $reflection->getProperty($key);
+            
+            // Make private/protected properties accessible
+            if (!$property->isPublic()) {
+                $property->setAccessible(true);
+            }
+            
+            $property->setValue($object, $value);
+        }
+    }
+    
+    return $object;
+}
