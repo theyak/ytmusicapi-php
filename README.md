@@ -51,7 +51,7 @@ package for communication with YouTube Music.
 
 - Addition of get_track() to get regular track information about a track. This function is useful to get track information in the form of a Track type with the addition of IDs to get lyrics and related tracks.
 
-- There are various minor differences throughout. They have been labeled in the code with "Known differences."
+- There are various minor differences throughout. They have been labeled in the code with "Known differences" or "Custom"
 
 ## Installation
 

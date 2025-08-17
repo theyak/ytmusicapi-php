@@ -65,7 +65,7 @@ class OAuthToken extends Token
     public static function is_oauth($headers)
     {
         $members = Token::members();
-
+        
         foreach ($members as $key) {
             if (!isset($headers[$key])) {
                 return false;
@@ -122,7 +122,7 @@ class RefreshingToken extends OAuthToken
      */
     public ?string $_local_cache = null;
 
-    public function __construct($credentials, $local_cache = null, $headers = null)
+    public function __construct($credentials, $local_cache = null, $headers = [])
     {
         $this->credentials = $credentials;
         $this->_local_cache = $local_cache;

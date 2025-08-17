@@ -20,7 +20,7 @@ include_all("mixins");
 include_all("parsers");
 include_all("auth");
 include_all("auth/oauth");
-
+include_all("types");
 
 use WpOrg\Requests\Utility\CaseInsensitiveDictionary as CaseInsensitiveDict;
 
@@ -114,18 +114,33 @@ class YTMusic
         $this->auth_type = AuthType::UNAUTHORIZED;
 
         if ($auth) {
-            [$this->_auth_headers, $auth_path] = parse_auth_str($auth);
-            $this->auth_type = determine_auth_type($this->_auth_headers);
+            // Custom, pass in cookie string directly. A bit easier for Chrome users.
+            // A valid cookie must contain both __Secure-3PAPISID, SAPISID, and SID
+            if (is_string($auth) && strpos($auth, "__Secure-3PAPISID") >= 0 && strpos($auth, "SAPISID=") >= 0) {    
+                $this->auth_type = AuthType::BROWSER;
+                $this->_auth_headers = [
+                    "cookie" => $auth,
+                    "x-goog-authuser" => $user ?? "0",
+                    "origin" => YTM_DOMAIN,
+                    "user-agent" => USER_AGENT,
+                    "accept" => "*/*",
+                    "accept-encoding" => "gzip, deflate",
+                    "content-type" => "application/json",
+                    "content-encodng" => "gzip",
+                ];
+            } else {
+                [$this->_auth_headers, $auth_path] = parse_auth_str($auth);
+                $this->auth_type = determine_auth_type($this->_auth_headers);
 
-            if ($this->auth_type == AuthType::OAUTH_CUSTOM_CLIENT) {
-                if (!$oauth_credentials) {
-                    $message = "oauth JSON provided via auth argument, but oauth_credentials not provided.\n";
-                    $message .= "Please provide oauth_credentials as specified in the OAuth setup documentation.\n";
-                    throw new YTMusicUserError($message);
+                if ($this->auth_type == AuthType::OAUTH_CUSTOM_CLIENT) {
+                    if (!$oauth_credentials) {
+                        $message = "oauth JSON provided via auth argument, but oauth_credentials not provided.\n";
+                        $message .= "Please provide oauth_credentials as specified in the OAuth setup documentation.\n";
+                        throw new YTMusicUserError($message);
+                    }
+                    $this->_token = new RefreshingToken($oauth_credentials, $auth_path, $this->_auth_headers);
                 }
             }
-
-            $this->_token = new RefreshingToken($oauth_credentials, $auth_path, $this->_auth_headers);
         }
 
         // Prepare context
@@ -142,39 +157,16 @@ class YTMusic
             $this->context->user->onBehalfOfUser = $user;
         }
 
-        // $auth_headers = $this->_input_dict["authorization"];
-
-        // if ($auth_headers) {
-        //     if (str_contains($auth_headers, "SAPISIDHASH")) {
-        //         $this->auth_type = AuthType::BROWSER;
-        //     } elseif (str_starts_with($auth_headers, "Bearer")) {
-        //         $this->auth_type = AuthType::OAUTH_CUSTOM_FULL;
-        //     }
-        // } elseif (is_string($auth)) {
-        //     // Check for cookie string passed in diretly
-        //     if (strpos($auth, "__Secure-3PAPISID")) {
-        //         $this->auth_type = AuthType::BROWSER;
-        //         $this->_input_dict["cookie"] = $auth;
-        //         $this->_input_dict["x-goog-authuser"] = $user;
-        //         $this->_input_dict["origin"] = YTM_DOMAIN;
-        //         $this->_input_dict["user-agent"] = USER_AGENT;
-        //         $this->_input_dict["accept"] = "*/*";
-        //         $this->_input_dict["accept-encoding"] = "gzip, deflate";
-        //         $this->_input_dict["content-type"] = "application/json";
-        //         $this->_input_dict["content-encodng"] = "gzip";
-        //         unset($this->context->user->onBehalfOfUser);
-        //     }
-        // }
-
         $this->params = YTM_PARAMS;
 
         if ($this->auth_type === AuthType::BROWSER) {
             $this->params .= YTM_PARAMS_KEY;
 
-            $cookie = $this->_base_headers["cookie"] ?: "";
+            $headers = $this->base_headers();
+            $cookie = $headers["cookie"] ?: "";
 
             $this->sapisid = sapisid_from_cookie($cookie);
-            $this->origin = $this->_base_headers["origin"] ?? $this->_base_headers["x-origin"];
+            $this->origin = $headers["origin"] ?? $headers["x-origin"];
 
             if (!$this->sapisid) {
                 throw new YTMusicUserError("Your cookie is missing the required value __Secure-3PAPISID");
@@ -185,7 +177,7 @@ class YTMusic
     public function base_headers()
     {
         if ($this->auth_type === AuthType::BROWSER || $this->auth_type === AuthType::OAUTH_CUSTOM_FULL) {
-            $headers = [$this->_base_headers];
+            $headers = $this->_auth_headers;
         } else {
             $headers = initialize_headers();
         }
@@ -202,7 +194,7 @@ class YTMusic
         $headers = $this->base_headers();
 
         if ($this->auth_type === AuthType::BROWSER) {
-            $headers["authorization"] = get_authorization($this->sapisid, $this->origin);
+            $headers["authorization"] = get_authorization($this->sapisid . " " . $this->origin);
         } else if ($this->auth_type === AuthType::OAUTH_CUSTOM_CLIENT) {
             $headers["authorization"] = $this->_token->as_auth();
             $headers["X-Goog-Request-Time"] = strval(time());
@@ -231,6 +223,12 @@ class YTMusic
         $header = $this->headers();
         $header["cookies"] = convert_cookies_to_string($this->cookies);
 
+        if ($header instanceof CaseInsensitiveDict) {
+            $header = $header->getAll();
+        }
+
+        // print_r($header);
+        // exit;
         $response = $this->_session->post(
             YTM_BASE_API . $endpoint . $this->params . $additionalParams,
             $header,
@@ -239,6 +237,7 @@ class YTMusic
         );
 
         $response_text = json_decode($response->body);
+
         if ($response->status_code >= 400) {
             $reason = $response_text->error->message ?? "Unknown error";
             $message = "Server returned HTTP " . $response->status_code . ": " . $reason . ".\n";

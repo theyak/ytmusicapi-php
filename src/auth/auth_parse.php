@@ -52,6 +52,7 @@ function determine_auth_type($auth_headers)
     }
 
     $authorization = $auth_headers->offsetExists("authorization") ? $auth_headers["authorization"] : null;
+
     if ($authorization) {
         if (str_contains($authorization, "SAPISIDHASH")) {
             $auth_type = AuthType::BROWSER;

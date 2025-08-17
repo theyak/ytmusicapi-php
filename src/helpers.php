@@ -177,6 +177,8 @@ function sapisid_from_cookie($raw_cookie): string
 }
 
 /**
+ * Get authorization header for YouTube Music.
+ * 
  * @param string $sapisid
  * @return string
  */

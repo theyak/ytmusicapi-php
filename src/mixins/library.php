@@ -18,15 +18,14 @@ trait Library
         $response = $this->_send_request($endpoint, $body);
 
         $results = get_library_contents($response, GRID);
+        if (!$results) {
+            return [];
+        }
         $playlists = parse_content_list(array_slice($results->items, 1), 'Ytmusicapi\\parse_playlist');
 
         if (isset($results->continuations)) {
-            $request_func = function ($additionalParams) use ($endpoint, $body) {
-                return $this->_send_request($endpoint, $body, $additionalParams);
-            };
-            $parse_func = function ($contents) {
-                return parse_content_list($contents, 'Ytmusicapi\\parse_playlist');
-            };
+            $request_func = fn ($additionalParams) => $this->_send_request($endpoint, $body, $additionalParams);
+            $parse_func = fn ($contents) => parse_content_list($contents, 'Ytmusicapi\\parse_playlist');
             $remaining_limit = $limit === null ? null : ($limit - count($playlists));
             $playlists = array_merge($playlists, get_continuations($results, 'gridContinuation', $remaining_limit, $request_func, $parse_func));
         }
@@ -58,31 +57,24 @@ trait Library
         $endpoint = 'browse';
         $per_page = 25;
 
-        $request_func = function ($additionalParams) use ($endpoint, $body) {
-            return $this->_send_request($endpoint, $body);
-        };
-
-        $parse_func = function ($raw_response) {
-            return parse_library_songs($raw_response);
-        };
+        $request_func = fn ($additionalParams) =>$this->_send_request($endpoint, $body);
+        $parse_func = fn ($raw_response) => parse_library_songs($raw_response);
 
         if ($validate_responses && $limit === null) {
             throw new YTMusicUserError("Validation is not supported without a limit parameter.");
         }
 
         if ($validate_responses) {
-            $validate_func = function ($parsed) use ($per_page, $limit) {
-                return validate_response($parsed, $per_page, $limit, 0);
-            };
-            $response = resend_request_until_parsed_response_is_valid($request_func, null, $parse_func, $validate_func, 3);
+            $validate_func = fn ($parsed) => validate_response($parsed, $per_page, $limit, 0);
+            $response = resend_request_until_parsed_response_is_valid($request_func, "", $parse_func, $validate_func, 3);
         } else {
-            $response = $parse_func($request_func(null));
+            $response = $parse_func($request_func(""));
         }
 
         $results = $response->results;
         $songs = $response->parsed;
 
-        if (empty($songs) === null) {
+        if (empty($songs)) {
             return [];
         }
 
@@ -276,7 +268,7 @@ trait Library
                 $error = nav($content, join('musicNotifierShelfRenderer', TITLE), true);
                 throw new YTMusicServerError($error ?? "Error reading history");
             }
-            $menu_entries = [join("-1", MENU_SERVICE, FEEDBACK_TOKEN)];
+            $menu_entries = [join(MENU_SERVICE, FEEDBACK_TOKEN)];
             $songlist = parse_playlist_items($data, $menu_entries);
             foreach ($songlist as &$song) {
                 $song->played = nav($content->musicShelfRenderer, TITLE_TEXT);
@@ -332,16 +324,28 @@ trait Library
 
     /**
      * Add an item to the account's history using the playbackTracking URI
-     * obtained from `get_song`.
+     * obtained from `get_song`. A ``204`` return code indicates success.
+     * Requires authentication.
      *
+     * Usage:
+     * 
+     *     $song = $yt_auth->get_song($videoId);
+     *     $reponse = $yt_auth->add_history_item($song);
+     * 
+     * Note:
+     * 
+     *     You need to use the same YTMusic instance as you used for `get_song`.
+     * 
      * Known differences from Python version:
-     *   - Can pass in a video id instead of a Song object
+     *   - Can pass in a video id in addition to a Song object
      *
      * @param Song|string $song Song as returned by `get_song` or videoId
      * @return object Full response. response.status_code is 204 if successful
      */
     public function add_history_item($song)
     {
+        $this->_check_auth();
+
         if (is_string($song)) {
             $song = $this->get_song($song);
         }
@@ -358,7 +362,8 @@ trait Library
     }
 
     /**
-     * Removes an item from the account's history. This method does not currently work with brand accounts
+     * Removes an item from the account's history. This method does not currently work with brand accounts.
+     * Requires authentication.
      *
      * Known differences from Python version:
      *   - Can pass in a single feedback token in addition to an array of tokens.
@@ -382,16 +387,18 @@ trait Library
      * Rates a song ("thumbs up"/"thumbs down" interactions on YouTube Music)
      *
      * @param string $videoId Video id
-     * @param string $rating One of 'LIKE', 'DISLIKE', 'INDIFFERENT'
+     * @param LikeStatus $rating One of 'LIKE', 'DISLIKE', 'INDIFFERENT'
      *  'INDIFFERENT' removes the previous rating and assigns no rating
      * @return object Full response from YouTube Music
+     * 
+     * @throws YtMusicUserError if the rating is invalid
      */
-    public function rate_song($videoId, $rating = "INDIFFERENT")
+    public function rate_song($videoId, $rating = LikeStatus::INDIFFERENT)
     {
         $this->_check_auth();
         $body = ['target' => ['videoId' => $videoId]];
         $endpoint = prepare_like_endpoint($rating);
-        return $endpoint ? $this->_send_request($endpoint, $body) : null;
+        return $this->_send_request($endpoint, $body);
     }
 
     /**
@@ -421,16 +428,18 @@ trait Library
      * You can also dislike a playlist/album, which has an effect on your recommendations
      *
      * @param string $playlistId Playlist id
-     * @param string $rating One of 'LIKE', 'DISLIKE', 'INDIFFERENT'
+     * @param LikeStatus $rating One of 'LIKE', 'DISLIKE', 'INDIFFERENT'
      *   'INDIFFERENT' removes the playlist/album from the library
      * @return object Full response from YouTube Music
+     * 
+     * @throws YtMusicUserError if the rating is invalid 
      */
-    public function rate_playlist($playlistId, $rating = "INDIFFERENT")
+    public function rate_playlist($playlistId, $rating = LikeStatus::INDIFFERENT)
     {
         $this->_check_auth();
         $body = ['target' => ['playlistId' => $playlistId]];
         $endpoint = prepare_like_endpoint($rating);
-        return $endpoint ? $this->_send_request($endpoint, $body) : null;
+        return $this->_send_request($endpoint, $body);
     }
 
     /**

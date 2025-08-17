@@ -32,7 +32,7 @@ function parse_artists($results, $uploaded = false, $from = "artists")
         }
         parse_menu_playlists($data, $artist);
         if ($uploaded) {
-            $artist->songs = explode(' ', get_item_text($data, 1))[0];
+            $artist->songs = explode(' ', get_item_text($data, 1) ?? "")[0];
         } else {
             $subtitle = get_item_text($data, 1);
             if ($subtitle) {
@@ -75,9 +75,7 @@ function parse_library_albums($response, $request_func, $limit)
     $albums = parse_albums($results->items);
 
     if (isset($results->continuations)) {
-        $parse_func = function ($contents) {
-            return parse_albums($contents);
-        };
+        $parse_func = fn ($contents) => parse_albums($contents);
         $remaining_limit = $limit === null ? null : ($limit - count($albums));
         $albums = array_merge(
             $albums,
@@ -106,6 +104,9 @@ function parse_library_albums($response, $request_func, $limit)
 function parse_library_podcasts($response, $request_func, $limit)
 {
     $results = get_library_contents($response, GRID);
+    if (empty($results)) {
+        return [];
+    }
     $parse_func = fn ($contents) => parse_content_list($contents, fn ($c) => parse_podcast($c));
     $podcasts = $parse_func(array_slice($results->items, 1));
 
@@ -238,7 +239,6 @@ function parse_library_songs($response)
 function get_library_contents($response, $renderer)
 {
     $section = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST), true);
-    $contents = null;
     if ($section === null) {
         // covers the case of non-premium subscribers - no downloads tab
         $num_tabs = count(nav($response, join(SINGLE_COLUMN, "tabs")));

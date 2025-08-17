@@ -2,6 +2,13 @@
 
 namespace Ytmusicapi;
 
+/**
+ * performs in-place replacement based on $data in $result
+ * 
+ * @param object $data
+ * @param object $result
+ * @return void
+ */
 function parse_menu_playlists($data, &$result)
 {
     $menu_items = nav($data, MENU_ITEMS, true);
@@ -36,9 +43,16 @@ function parse_menu_playlists($data, &$result)
     }
 }
 
+/**
+ * 
+ * @param object $item
+ * @param int $index
+ * @param int $run_index
+ * @param bool $null_if_absent
+ * @return string|null
+ */
 function get_item_text($item, $index, $run_index = 0, $null_if_absent = false)
 {
-
     $column = get_flex_column_item($item, $index);
 
     if (!$column) {
@@ -51,16 +65,21 @@ function get_item_text($item, $index, $run_index = 0, $null_if_absent = false)
         return null;
     }
 
-    return $column->text->runs[$run_index]->text;
+    return (string)$column->text->runs[$run_index]->text;
 }
 
+/**
+ * @param object $item
+ * @param int $index
+ * @return object|null
+ */
 function get_flex_column_item($item, $index)
 {
     if (count($item->flexColumns) <= $index ||
         !isset($item->flexColumns[$index]->musicResponsiveListItemFlexColumnRenderer->text->runs)) {
         return null;
     }
-    return $item->flexColumns[$index]->musicResponsiveListItemFlexColumnRenderer;
+    return (object)$item->flexColumns[$index]->musicResponsiveListItemFlexColumnRenderer;
 }
 
 function get_fixed_column_item($item, $index)
@@ -113,33 +132,41 @@ function get_dot_separator_index($runs)
     return count($runs);
 }
 
+/**
+ * Parse duration to a value in seconds.
+ * Logic differs from Python version, but results are the same.
+ * 
+ * @param string $duration
+ * @return int|string Duration in seconds
+ */
 function parse_duration($duration)
 {
     if ($duration === null || (is_string($duration) && !trim($duration))) {
-        return $duration;
+        return null;
     }
 
     $seconds = 0;
     $parts = array_reverse(explode(":", $duration));
     if (isset($parts[2])) {
+        if (!is_numeric($parts[2])) { // For e.g: "2,343"
+            return null;
+        }
         $seconds = $parts[2] * 3600;
     }
     if (isset($parts[1])) {
+        if (!is_numeric($parts[1])) {
+            return null;
+        }
         $seconds += $parts[1] * 60;
     }
     if (isset($parts[0])) {
+        if (!is_numeric($parts[0])) {
+            return null;
+        }
         $seconds += $parts[0];
     }
 
     return $seconds;
-}
-
-function parse_id_name($sub_run)
-{
-    return [
-        "id" => nav($sub_run, NAVIGATION_BROWSE_ID, true),
-        "name" => nav($sub_run, "text", true),
-    ];
 }
 
 function i18n($method)
@@ -157,3 +184,17 @@ def i18n(method):
 
     return _impl
 */
+
+/**
+ * TODO: Why is this using an array instead of an object?
+ * 
+ * @param object $sub_run
+ * @return array
+ */
+function parse_id_name($sub_run)
+{
+    return [
+        "id" => nav($sub_run, NAVIGATION_BROWSE_ID, true),
+        "name" => nav($sub_run, "text", true),
+    ];
+}
