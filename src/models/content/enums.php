@@ -1,6 +1,6 @@
 <?php
 
-namespace Ytmusicapi\Models\Content;
+namespace Ytmusicapi;
 
 enum PrivacyStatus: string {
 	case PUBLIC = "PUBLIC";

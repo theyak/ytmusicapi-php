@@ -2,20 +2,34 @@
 
 namespace Ytmusicapi;
 
-function prepare_like_endpoint($rating)
+/**
+ * @param string|LikeStatus $rating
+ * @return string
+ */
+function prepare_like_endpoint($rating): string
 {
-    if ($rating === 'LIKE') {
+    if ($rating === LikeStatus::LIKE) {
         return 'like/like';
-    } elseif ($rating === 'DISLIKE') {
+    } elseif ($rating === LikeStatus::DISLIKE) {
         return 'like/dislike';
-    } elseif ($rating === 'INDIFFERENT') {
+    } elseif ($rating === LikeStatus::INDIFFERENT) {
         return 'like/removelike';
     } else {
-        return null;
+        throw new YtMusicUserError("Invalid rating provided. Use one of: "
+            . implode(', ', LikeStatus::cases())
+        );
     }
 }
 
-function validate_order_parameter($order)
+/**
+ * Validate the provided order, if any
+ * 
+ * @param string $order
+ * @return void
+ * 
+ * @throws YtMusicUserError if the provided order is invalid
+ */
+function validate_order_parameter($order): void
 {
     $orders = ['a_to_z', 'z_to_a', 'recently_added'];
     if ($order && !in_array($order, $orders)) {
@@ -26,16 +40,27 @@ function validate_order_parameter($order)
     }
 }
 
-function prepare_order_params($order)
+/**
+ * Returns request params belonging to a specific sorting order.
+ * 
+ * @param string $order
+ * @return string
+ */
+function prepare_order_params($order): string
 {
     $orders = ['a_to_z', 'z_to_a', 'recently_added'];
-    if ($order) {
-        // determine order_params via `.contents.singleColumnBrowseResultsRenderer.tabs[0].tabRenderer.content.sectionListRenderer.contents[1].itemSectionRenderer.header.itemSectionTabbedHeaderRenderer.endItems[1].dropdownRenderer.entries[].dropdownItemRenderer.onSelectCommand.browseEndpoint.params` of `/youtubei/v1/browse` response
-        $order_params = ['ggMGKgQIARAA', 'ggMGKgQIARAB', 'ggMGKgQIABAB'];
-        return $order_params[array_search($order, $orders)];
-    }
+    
+    // determine order_params via `.contents.singleColumnBrowseResultsRenderer.tabs[0].tabRenderer.content.sectionListRenderer.contents[1].itemSectionRenderer.header.itemSectionTabbedHeaderRenderer.endItems[1].dropdownRenderer.entries[].dropdownItemRenderer.onSelectCommand.browseEndpoint.params` of `/youtubei/v1/browse` response
+    $order_params = ['ggMGKgQIARAA', 'ggMGKgQIARAB', 'ggMGKgQIABAB'];
+    return $order_params[array_search($order, $orders)];
 }
 
+/**
+ * Sanitize tags from html
+ * 
+ * @param string $html_text Sanitize tags from html
+ * @return string
+ */
 function html_to_txt($html_text)
 {
     preg_match_all("/<[^>]+>/", $html_text, $matches);
@@ -46,9 +71,27 @@ function html_to_txt($html_text)
 }
 
 /**
- * Advanced approach with reflection and type casting
+ * Returns the number of days since January 1, 1970.
+ * Currently only used for the signature timestamp in `get_song`
  */
-function typingCast(string $className, $data) {
+function get_datestamp(): int
+{
+    $today = new \DateTimeImmutable('today');
+    $epoch = new \DateTimeImmutable('@0'); // Epoch timestamp
+    $interval = $today->diff($epoch);
+    return (int)$interval->days;
+}
+
+/**
+ * Advanced approach with reflection and type casting
+ * 
+ * @param string $className
+ * @param mixed $data
+ * @return object
+ * 
+ * @throws \InvalidArgumentException if the class does not exist
+ */
+function typingCast($className, $data) {
     if (!class_exists($className)) {
         throw new \InvalidArgumentException("Class {$className} does not exist");
     }
