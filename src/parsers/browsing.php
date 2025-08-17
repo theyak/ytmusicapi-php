@@ -110,7 +110,7 @@ function parse_album($result)
         'title' => nav($result, TITLE_TEXT),
         'artists' => $artists,
         'browseId' => nav($result, join(TITLE, NAVIGATION_BROWSE_ID)),
-        'audioPlaylistId' => nav($result, THUMBNAIL_OVERLAY, true),
+        'audioPlaylistId' => parse_album_playlistid_if_exists(nav($result, THUMBNAIL_OVERLAY_NAVIGATION, true)),
         'thumbnails' => nav($result, THUMBNAIL_RENDERER),
         'isExplicit' => nav($result, SUBTITLE_BADGE_LABEL, true) !== null,
     ];

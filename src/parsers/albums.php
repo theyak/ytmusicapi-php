@@ -81,3 +81,15 @@ function parse_album_header_2024($response) {
 
     return $album;
 }
+
+/**
+ * the content of the data changes based on whether the user is authenticated or not
+ */
+function parse_album_playlistid_if_exists($data): string | null
+{
+    if ($data) {
+        return nav($data, WATCH_PID, true) ||  nav($data, WATCH_PLAYLIST_ID, true);
+    }
+
+    return null;
+}

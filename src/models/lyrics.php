@@ -1,6 +1,6 @@
 <?php
 
-namespace Ytmusicapi\Models;
+namespace Ytmusicapi;
 
 /**
  * Represents a line of lyrics with timestamps (in milliseconds).
@@ -41,7 +41,7 @@ class LyricLine
      * @param object $raw_lyric The raw lyric-data returned by the mobile api.
      * @return LyricLine A LyricLine instance
      */
-    public static function fromRaw(object $raw_lyric): LyricLine
+    public static function from_raw(object $raw_lyric): LyricLine
     {
         $text = $raw_lyric->lyricLine;
         $cue_range = $raw_lyric->cueRange;

@@ -15,6 +15,7 @@ include "helpers.php";
 // outside of classes, so we are bypassing PSR-4 autoloading.
 // This is a quick and dirty way to load everything.
 include_once "types/type.Record.php";
+include_all("models");
 include_all("models/content");
 include_all("mixins");
 include_all("parsers");
@@ -204,6 +205,28 @@ class YTMusic
     }
 
     /**
+     * Sends a POST request to YouTube Music using the mobile context.
+     * 
+     * @param string $endpoint The main YouTube Music endpoint to use
+     * @param array $body The body of the request
+     * @return object Result from YouTube Music.
+     */
+    public function _send_mobile_request($endpoint, $body)
+    {
+        $copied_context_client = clone $this->context->client;
+        $this->context->client->clientName = "ANDROID_MUSIC";
+        $this->context->client->clientVersion = "7.21.50";
+
+        try {
+            $response = $this->_send_request($endpoint, $body);
+        } finally {
+            $this->context->client = $copied_context_client;
+        }
+
+        return $response;
+    }
+
+    /**
      * Sends a POST request to YouTube Music.
      *
      * @param string $endpoint The main YouTube Music endpoint to use
@@ -227,8 +250,6 @@ class YTMusic
             $header = $header->getAll();
         }
 
-        // print_r($header);
-        // exit;
         $response = $this->_session->post(
             YTM_BASE_API . $endpoint . $this->params . $additionalParams,
             $header,
