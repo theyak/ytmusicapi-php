@@ -3,10 +3,13 @@
 namespace Ytmusicapi;
 
 /**
+ * Known as parse_watch_playlist() in Python, but that conflicts with 
+ * function in parsers/browsing.php, so renamed here.
+ * 
  * @param array $results
  * @return array
  */
-function parse_watch_playlist($results)
+function watch_playlist_parser($results)
 {
     $tracks = [];
     $PPVWR = 'playlistPanelVideoWrapperRenderer';

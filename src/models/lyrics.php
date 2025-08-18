@@ -58,11 +58,11 @@ class LyricLine
  */
 class Lyrics
 {
-    public string $lyrics;
+    public array $lyrics;
     public ?string $source;
     public bool $hasTimestamps = false;
 
-    public function __construct(string $lyrics, ?string $source = null)
+    public function __construct(array $lyrics, ?string $source = null)
     {
         $this->lyrics = $lyrics;
         $this->source = $source;

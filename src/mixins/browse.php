@@ -598,6 +598,21 @@ trait Browse
                     }
                 }
             }
+        } else {
+            $playlist = $this->get_watch_playlist($videoId);
+            if (!empty($playlist->lyrics)) {
+                $lyrics = $this->get_lyrics($playlist->lyrics, true);
+                if (!empty($lyrics->lyrics)) {
+                    foreach ($lyrics->lyrics as $lyric) {
+                        $line = (object)[
+                            'start' => $lyric->start_time,
+                            'duration' => $lyric->end_time - $lyric->start_time,
+                            'text' => $lyric->text
+                        ];
+                        $transcript[] = $line;
+                    }
+                }
+            }
         }
 
         return $transcript;

@@ -95,7 +95,7 @@ trait Watch
         }
 
         // Note: Using different function than Python version due to naming collision
-        $tracks = parse_watch_playlist($results->contents);
+        $tracks = watch_playlist_parser($results->contents);
 
         if (isset($results->continuations)) {
             $request_func = function ($additionalParams) use ($endpoint, $body) {
@@ -103,7 +103,7 @@ trait Watch
             };
 
             $parse_func = function ($contents) {
-                return parse_watch_playlist($contents);
+                return watch_playlist_parser($contents);
             };
 
             $continuations = get_continuations($results, "playlistPanelContinuation", $limit - count($tracks), $request_func, $parse_func, $is_playlist ? "" : "Radio");
