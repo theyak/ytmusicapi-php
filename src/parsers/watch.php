@@ -2,7 +2,11 @@
 
 namespace Ytmusicapi;
 
-function watch_playlist_parser($results)
+/**
+ * @param array $results
+ * @return array
+ */
+function parse_watch_playlist($results)
 {
     $tracks = [];
     $PPVWR = 'playlistPanelVideoWrapperRenderer';
@@ -34,6 +38,10 @@ function watch_playlist_parser($results)
     return $tracks;
 }
 
+/**
+ * @param object $data
+ * @return object
+ */
 function parse_watch_track($data)
 {
     $feedback_tokens = null;
@@ -76,10 +84,15 @@ function parse_watch_track($data)
     return (object)$track;
 }
 
+/**
+ * @param object $watchNextRenderer
+ * @param int $tab_id
+ * @return string|null
+ */
 function get_tab_browse_id($watchNextRenderer, $tab_id)
 {
     if (!isset($watchNextRenderer->tabs[$tab_id]->tabRenderer->unselectable)) {
-        return $watchNextRenderer->tabs[$tab_id]->tabRenderer->endpoint->browseEndpoint->browseId;
+        return (string)$watchNextRenderer->tabs[$tab_id]->tabRenderer->endpoint->browseEndpoint->browseId;
     } else {
         return null;
     }
