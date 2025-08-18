@@ -31,7 +31,13 @@ trait Playlists
         $browseId = str_starts_with($playlistId, "VL") ? $playlistId : "VL" . $playlistId;
         $body = ["browseId" => $browseId, "params" => "wgYCCAE%3D"];
         $endpoint = "browse";
-        $response = $this->_send_request($endpoint, $body);
+        $request_func = fn ($additionalParams) => $this->_send_request($endpoint, $body, $additionalParams);
+        $response = $request_func("");
+
+        $request_func_continuations = fn ($body) => $this->_send_request($endpoint, $body);
+        if (str_starts_with($playlistId, "OLA") || str_starts_with($playlistId, "VLOLA")) {
+            return parse_audio_playlist($response, $limit, $request_func_continuations);
+        }
 
         $header_data = nav($response, join(TWO_COLUMN_RENDERER, TAB_CONTENT, SECTION_LIST_ITEM));
         $section_list = nav($response, join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION));
@@ -64,40 +70,16 @@ trait Playlists
             $playlist["author"] = null;
         }
 
-        // [PHP Only] Attempt at getting thumbnails
-        $playlist["thumbnails"] = nav($header_data, join(RESPONSIVE_HEADER, THUMBNAILS), true);
-
         $description_shelf = nav($header, join("description", DESCRIPTION_SHELF), true);
         $playlist["description"] = $description_shelf
             ? implode("", array_column($description_shelf->description->runs, "text"))
             : null;
-        $playlist["thumbnails"] = nav($header, THUMBNAILS);
-        $playlist["title"] = nav($header, TITLE_TEXT);
-        $playlist = array_merge($playlist, parse_song_runs(array_slice(nav($header, SUBTITLE_RUNS), 2 + ($playlist["owned"] ? 2 : 0))));
 
-        $playlist["views"] = null;
-        $playlist["duration"] = null;
-        if (isset($header->secondSubtitle->runs)) {
-            $second_subtitle_runs = $header->secondSubtitle->runs;
-            $has_views = (count($second_subtitle_runs) > 3) * 2;
-            $playlist["views"] = !$has_views ? null : (int)($second_subtitle_runs[0]->text);
-            $has_duration = (count($second_subtitle_runs) > 1) * 2;
-            $playlist["duration"] = !$has_duration ? null : $second_subtitle_runs[$has_views + $has_duration]->text;
+        $playlist = array_merge($playlist, parse_playlist_header_meta($header));
 
-            $song_count_text = $second_subtitle_runs[$has_views + 0]->text;
-
-            $matches = [];
-            if (preg_match("/\d+/", $song_count_text, $matches)) {
-                $song_count_search = $matches[0];
-                $song_count = (int)$song_count_search;
-            } else {
-                $song_count = 0;
-            }
-        } else {
-            $song_count = count($section_list->contents);
-        }
-
-        $playlist["trackCount"] = $song_count;
+        $slice_index = 2 + (int)$playlist["owned"] * 2;
+        $runs = array_slice(nav($header, SUBTITLE_RUNS), $slice_index);
+        $playlist = array_merge($playlist, parse_song_runs($runs));
 
         $request_func = function($additionalParams) use ($endpoint, $body) {
             return $this->_send_request($endpoint, $body, $additionalParams);
@@ -106,10 +88,9 @@ trait Playlists
         $playlist["related"] = [];
         if (isset($section_list->continuations) && $get_continuations) {
             $additionalParams = get_continuation_params($section_list);
+            
             if ($playlist["owned"] && ($suggestions_limit > 0 || $related)) {
-                $parse_func = function($results) {
-                    return parse_playlist_items($results);
-                };
+                $parse_func = fn ($results) => parse_playlist_items($results);
                 $suggested = $request_func($additionalParams);
                 $continuation = nav($suggested, SECTION_LIST_CONTINUATION);
                 $additionalParams = get_continuation_params($continuation);
@@ -118,13 +99,12 @@ trait Playlists
 
                 $playlist["suggestions"] = array_merge(
                     $playlist["suggestions"],
-                    get_continuations(
+                    get_reloadable_continuations(
                         $suggestions_shelf,
                         "musicShelfContinuation",
                         $suggestions_limit - count($playlist["suggestions"]),
                         $request_func,
                         $parse_func,
-                        true
                     )
                 );
             }
@@ -151,22 +131,10 @@ trait Playlists
 
             $parse_func = fn ($content) => parse_playlist_items($content_data->contents);
 
-            if (isset($content_data->continuations)) {
-                if ($get_continuations) {
-                    $playlist["tracks"] = array_merge(
-                        $playlist["tracks"],
-                        get_continuations(
-                            $content_data,
-                            "musicPlaylistShelfContinuation",
-                            $limit,
-                            $request_func,
-                            $parse_func
-                        )
-                    );
-                } else {
-                    $playlist["continuation"] = nav($content_data, "continuations.0.nextContinuationData.continuation", true);
-                }
-            }
+            $playlist["tracks"] = array_merge(
+                $playlist["tracks"],
+                get_continuations_2025($content_data, $limit, $request_func_continuations, $parse_func)
+            );
         }
 
         if ($playlistId === "LM") {
@@ -250,6 +218,12 @@ trait Playlists
 
         if (!in_array($privacy_status, ["PUBLIC", "PRIVATE", "UNLISTED"])) {
             throw new \Exception("Invalid privacy status, must be one of PUBLIC, PRIVATE, or UNLISTED");
+        }
+
+        $invalid_characters = ["<", ">"]; // ytmusic will crash if these are part of the title
+        if (array_filter($invalid_characters, fn ($invalid) => str_contains($title, $invalid))) {
+            $msg = sprintf("%s contains invalid characters: %s", $title, implode(", ", $invalid_characters));
+            throw new YTMusicUserError($msg);
         }
 
         $body = [

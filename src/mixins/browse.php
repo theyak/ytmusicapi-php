@@ -561,10 +561,9 @@ trait Browse
 
     /**
      * Returns transcript of song or video, which includes start time and duration.
-     * Not all songs have a transcript, and those will return an empty array
+     * Not all videos have a transcript, and I think most songs have moved their
+     * data to lyrics, removing the need for this function in most cases.
      *
-     * @deprecated Use `get_lyrics` instead.
-     * 
      * @param string $videoId Video ID
      * @return object[] Transcript of the song or video
      */
@@ -574,6 +573,7 @@ trait Browse
         $endpoint = "player";
         $body = ["videoId" => $videoId];
         $response = $this->_send_request($endpoint, $body);
+
         $url = nav($response, "captions.playerCaptionsTracklistRenderer.captionTracks.0.baseUrl", true);
         if ($url) {
             $response = $this->_session->post(
@@ -581,6 +581,8 @@ trait Browse
                 null,
                 json_encode($body),
             );
+            var_dump($response);
+            exit;
 
             if ($response->body && str_starts_with($response->body, "<?xml")) {
                 $xml = simplexml_load_string($response->body);
@@ -616,10 +618,8 @@ trait Browse
      *  $lyrics = $yt->get_lyrics($playlist->lyrics);
      *
      * Returns:
-     * 	(object)[
-     * 		"lyrics" => "Today is gonna be the day\\nThat they're gonna throw it back to you\\n",
-     * 		"source" => "Source: LyricFind"
-     * 	]
+     *  - Lyrics[]
+     *  - null if no lyrics are found
      */
     public function get_lyrics($browseId, $timestamps = false)
     {
@@ -628,7 +628,6 @@ trait Browse
         if (!is_string($browseId)) {
             throw new YTMusicUserError("Invalid browseId provided. This song might not have lyrics.");
         }
-
         
         if ($timestamps) {
             // Custom: This function seems to fail when authenticated. Use non-authenticated request instead.

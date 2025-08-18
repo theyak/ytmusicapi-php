@@ -2,14 +2,11 @@
 
 namespace Ytmusicapi;
 
-$CONTINUATION_TOKENS = "continuation.ItemRenderer.continuationEndpoint.continuationCommand.token";
-$CONTINUATION_ITEMS = "onResponseReceivedActions.0.appendContinuationItemsAction.continuationItems";
 
-function get_continuation_token($results): string
+function get_continuation_token($results): ?string
 {
-    global $CONTINUATION_TOKENS;
-
-    return nav($results, $CONTINUATION_TOKENS, true);
+    $CONTINUATION_TOKENS = "continuationItemRenderer.continuationEndpoint.continuationCommand.token";
+    return nav(end($results), $CONTINUATION_TOKENS, true);   
 }
 
 /**
@@ -21,10 +18,11 @@ function get_continuation_token($results): string
  */
 function get_continuations_2025($results, $limit, $request_func, $parse_func)
 {
-    global $CONTINUATION_ITEMS;
+    $CONTINUATION_ITEMS = "onResponseReceivedActions.0.appendContinuationItemsAction.continuationItems";
 
     $items = [];
     $continuation_token = get_continuation_token($results->contents);
+    
     while ($continuation_token && ($limit === null || count($items) < $limit)) {
         $response = $request_func(["continuation" => $continuation_token]);
         $continuation_items = nav($response, $CONTINUATION_ITEMS, true);
