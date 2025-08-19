@@ -47,6 +47,9 @@ function parse_album_header($response)
     return $album;
 }
 
+/**
+ * Note: Schema for artist has changed as of 1.11.0
+ */
 function parse_album_header_2024($response) {
     $header = nav($response, join(TWO_COLUMN_RENDERER, TAB_CONTENT, SECTION_LIST_ITEM, RESPONSIVE_HEADER));
     $album = new Album();
