@@ -193,7 +193,7 @@ function parse_episode_header($header)
  * Parses a single episode under "Episodes" on a channel page or on a podcast page
  *
  * @param object $results
- * @return Episode[]
+ * @return Episode
  */
 function parse_episode($data)
 {
