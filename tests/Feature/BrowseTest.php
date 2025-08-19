@@ -25,7 +25,7 @@ test('get_account() - error condition', function () {
 test('get_home()', function () {
     $credentials = new YtmusicApi\OAuthCredentials(
         getenv("GOOGLE_CLIENT_ID"),
-        getenv("GOOGLE_CLIENT_SECRET")
+        getenv("GOOGLE_SECRET_ID")
     );
 
     $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
@@ -136,7 +136,7 @@ test('get_artist() shows', function () {
     // Requires authentication
     $credentials = new YtmusicApi\OAuthCredentials(
         getenv("GOOGLE_CLIENT_ID"),
-        getenv("GOOGLE_CLIENT_SECRET")
+        getenv("GOOGLE_SECRET_ID")
     );
 
     $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
@@ -150,7 +150,7 @@ test('get_artist() shows', function () {
 test('get_artist() and get_artist_albums()', function () {
     $credentials = new YtmusicApi\OAuthCredentials(
         getenv("GOOGLE_CLIENT_ID"),
-        getenv("GOOGLE_CLIENT_SECRET")
+        getenv("GOOGLE_SECRET_ID")
     );
 
     $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
@@ -231,7 +231,7 @@ test('get_artist_albums() - singles', function () {
 test('get_artist_albums() - Without prefix', function () {
     $credentials = new YtmusicApi\OAuthCredentials(
         getenv("GOOGLE_CLIENT_ID"),
-        getenv("GOOGLE_CLIENT_SECRET")
+        getenv("GOOGLE_SECRET_ID")
     );
 
     $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
@@ -286,7 +286,7 @@ test("get_user() and get_user_playlists()", function () {
     // time on this.
     $credentials = new YtmusicApi\OAuthCredentials(
         getenv("GOOGLE_CLIENT_ID"),
-        getenv("GOOGLE_CLIENT_SECRET")
+        getenv("GOOGLE_SECRET_ID")
     );
 
     $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
@@ -320,7 +320,7 @@ test("get_user() and get_user_playlists()", function () {
 test("get_tasteprofile() and set_tasteprofile()", function () {
     $credentials = new YtmusicApi\OAuthCredentials(
         getenv("GOOGLE_CLIENT_ID"),
-        getenv("GOOGLE_CLIENT_SECRET")
+        getenv("GOOGLE_SECRET_ID")
     );
 
     $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
@@ -342,7 +342,7 @@ test("get_tasteprofile() and set_tasteprofile()", function () {
 test("set_tasteprofile() - without sending in tasteprofile", function () {
     $credentials = new YtmusicApi\OAuthCredentials(
         getenv("GOOGLE_CLIENT_ID"),
-        getenv("GOOGLE_CLIENT_SECRET")
+        getenv("GOOGLE_SECRET_ID")
     );
 
     $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
@@ -355,7 +355,7 @@ test("set_tasteprofile() - without sending in tasteprofile", function () {
 test("set_tasteprofile() - invalid artist", function () {
     $credentials = new YtmusicApi\OAuthCredentials(
         getenv("GOOGLE_CLIENT_ID"),
-        getenv("GOOGLE_CLIENT_SECRET")
+        getenv("GOOGLE_SECRET_ID")
     );
 
     $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);

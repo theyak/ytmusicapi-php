@@ -130,8 +130,6 @@ class OAuthCredentials extends Credentials
             } else {
                 print_r($data);
             }
-
-            exit;
         }
 
         return $response;
@@ -174,6 +172,7 @@ class OAuthCredentials extends Credentials
                 "refresh_token" => $refresh_token
             ]
         );
+
         return typingCast(BaseTokenDict::class, json_decode($response->body));
     }
 }

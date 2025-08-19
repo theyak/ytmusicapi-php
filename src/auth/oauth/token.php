@@ -58,14 +58,14 @@ class OAuthToken extends Token
 {
     /**
      * Check if all keys in Token members exist in headers.
-     * 
+     *
      * @param CaseInsensitiveDict $headers
      * @return bool
      */
     public static function is_oauth($headers)
     {
         $members = Token::members();
-        
+
         foreach ($members as $key) {
             if (!isset($headers[$key])) {
                 return false;
@@ -79,7 +79,7 @@ class OAuthToken extends Token
      * Update access_token and expiration attributes with a BaseTokenDict inplace.
      * expires_at attribute set using current epoch, avoid expiration desync
      * by passing only recently requested tokens dicts or updating values to compensate.
-     * 
+     *
      * @param BaseTokenDict $fresh_access
      */
     public function update($fresh_access): void
@@ -164,7 +164,7 @@ class RefreshingToken extends OAuthToken
 
     /**
      * Method for CLI token creation via user inputs.
-     * 
+     *
      * @param OAuthCredentials $credentials: Client credentials
      * @param bool $open_browser: Not supported
      * @param ?string $to_file: Optional. Path to store/sync json version of resulting token. (Default = None).
@@ -200,7 +200,7 @@ class RefreshingToken extends OAuthToken
      * Write token values to json file at specified path, defaulting to $this->local_cache.
      * Operation does not update instance local_cache attribute.
      * Automatically called when local_cache is set post init.
-     * 
+     *
      * @param ?string $path
      */
     public function store_token($path = null): void
