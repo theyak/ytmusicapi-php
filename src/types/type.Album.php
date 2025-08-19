@@ -79,4 +79,9 @@ class Album extends Record
      * @var \stdclass[]
      */
     public $other_versions = [];
+
+    /**
+     * @var \stdclass[]
+     */
+    public $related_recommendations = [];
 }

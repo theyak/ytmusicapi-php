@@ -283,9 +283,10 @@ trait Browse
         $album = parse_album_header_2024($response);
         $results = nav($response, join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION_LIST_ITEM, MUSIC_SHELF), true);
 
+        $album->id = $browseId;
         $album->tracks = parse_playlist_items($results->contents, null, true);
 
-        $secondary_carousels = nav($response, array_merge(TWO_COLUMN_RENDERER, "secondaryContents", SECTION_LIST), true) ?? [];
+        $secondary_carousels = nav($response, join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION_LIST), true) ?? [];
     
         foreach (array_slice($secondary_carousels, 1) as $section) {
             $carousel = nav($section, CAROUSEL);
@@ -293,8 +294,8 @@ trait Browse
                 "COLLECTION_STYLE_ITEM_SIZE_SMALL" => "related_recommendations",
                 "COLLECTION_STYLE_ITEM_SIZE_MEDIUM" => "other_versions"
             ];
-            $key = $key_map[$carousel["itemSize"]];
-            $album[$key] = parse_content_list($carousel["contents"], 'parse_album');
+            $key = $key_map[$carousel->itemSize];
+            $album->$key = parse_content_list($carousel->contents, 'Ytmusicapi\\parse_album');
         }
 
         $album->duration_seconds = sum_total_duration($album);
@@ -302,6 +303,7 @@ trait Browse
             $album->tracks[$i]->album = $album->title;
             $album->tracks[$i]->artists = $album->tracks[$i]->artists ?: $album->artists;
         }
+
         return $album;
     }
 
@@ -310,7 +312,7 @@ trait Browse
      * Each album has a browseId that can used to get more information.
      * You can find the $audioPlaylistId by clicking on an album
      * title in YouTube Music and looking at the URL. The
-     * $audoPlaylistId will show in the `list` parameter.
+     * $audioPlaylistId will show in the `list` parameter.
      *
      * @param string $audioPlaylistId id of the audio playlist  (starting with `OLAK5uy_`)
      * @return string|null browseId (starting with `MPREb_`)
@@ -581,8 +583,6 @@ trait Browse
                 null,
                 json_encode($body),
             );
-            var_dump($response);
-            exit;
 
             if ($response->body && str_starts_with($response->body, "<?xml")) {
                 $xml = simplexml_load_string($response->body);
@@ -626,7 +626,7 @@ trait Browse
      * @param string $browseId Lyrics browse id obtained from `get_watch_playlist`.
      *   This is not the same as the videoId.
      * @param bool $timestamps Whether to return bare lyrics or lyrics with timestamps, if available. (Default: `False`)
-     * @return Lyrics
+     * @return Lyrics|TimedLyrics
      *
      * Example:
      *  $playlist = $yt->get_watch_playlist($playlistId);
@@ -671,9 +671,14 @@ trait Browse
                 return null;
             }
 
+            $source = nav($response, join("contents", SECTION_LIST_ITEM, DESCRIPTION_SHELF, RUN_TEXT), true);
+            if (!$source) {
+                $source = nav($response, join("contents", SECTION_LIST_ITEM, DESCRIPTION_SHELF, "footer", RUN_TEXT), true);
+            }
+
             $lyrics = new Lyrics(
                 $lyrics_str,
-                nav($response, ["contents", SECTION_LIST_ITEM, DESCRIPTION_SHELF, RUN_TEXT], True),
+                $source
             );
         }
 

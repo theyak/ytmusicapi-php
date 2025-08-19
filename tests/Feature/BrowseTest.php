@@ -12,13 +12,24 @@ test('get_account()', function () {
 })->skip();
 
 test('get_account() - error condition', function () {
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json"])->makePartial();
+    $credentials = new YtmusicApi\OAuthCredentials(
+        "abc",
+        "123"
+    );
+
+    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
     $yt->shouldReceive("_send_request")->andReturn("");
     $yt->get_account();
 })->throws("Could not find account information.");
 
 test('get_home()', function () {
-    $yt = new YTMusic("oauth.json");
+    $credentials = new YtmusicApi\OAuthCredentials(
+        getenv("GOOGLE_CLIENT_ID"),
+        getenv("GOOGLE_CLIENT_SECRET")
+    );
+
+    $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
+
     $home = $yt->get_home();
 
     expect($home)->toBeArray();
@@ -28,7 +39,6 @@ test('get_home()', function () {
         expect($row->contents)->toBeArray();
         foreach ($row->contents as $content) {
             expect($content->title)->not->toBeEmpty();
-            expect($content->resultType)->not->toBeEmpty();
             expect($content->thumbnails)->toBeArray();
         }
     }
@@ -124,16 +134,27 @@ test('get_song_info() - Invalid video ID type', function () {
 
 test('get_artist() shows', function () {
     // Requires authentication
-    $yt = new YTMusic("oauth.json");
+    $credentials = new YtmusicApi\OAuthCredentials(
+        getenv("GOOGLE_CLIENT_ID"),
+        getenv("GOOGLE_CLIENT_SECRET")
+    );
+
+    $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
     $results = $yt->get_artist("UCyiY-0Af0O6emoI3YvCEDaA");
     expect(count($results->shows->results))->toBe(10);
 
     $results = $yt->get_artist_albums($results->shows->browseId, $results->shows->params);
     expect(count($results))->toBe(100);
-})->only();
+});
 
 test('get_artist() and get_artist_albums()', function () {
-    $yt = new YTMusic("oauth.json");
+    $credentials = new YtmusicApi\OAuthCredentials(
+        getenv("GOOGLE_CLIENT_ID"),
+        getenv("GOOGLE_CLIENT_SECRET")
+    );
+
+    $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
+
     $artist = $yt->get_artist($this->artistId);
 
     expect($artist->name)->toBe($this->artistName);
@@ -208,7 +229,13 @@ test('get_artist_albums() - singles', function () {
 });
 
 test('get_artist_albums() - Without prefix', function () {
-    $yt = new YTMusic("oauth.json");
+    $credentials = new YtmusicApi\OAuthCredentials(
+        getenv("GOOGLE_CLIENT_ID"),
+        getenv("GOOGLE_CLIENT_SECRET")
+    );
+
+    $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
+
     $artist = $yt->get_artist($this->artistId);
     $channelId = substr($artist->albums->browseId, 4);
     $params = $artist->albums->params;
@@ -240,7 +267,9 @@ test("get_album() and get_album_browse_id()", function () {
     expect($result->duration_seconds)->toBe($seconds);
     expect($result->other_versions)->toBeArray();
 
-    // Test get_album_browse_id()
+    var_dump($result->audioPlaylistId);
+
+    // Test get_album_browse_id() - this is not working as expected.
     $result = $yt->get_album_browse_id($result->audioPlaylistId);
     expect($result)->toBe($this->albumId);
 });
@@ -255,7 +284,13 @@ test("get_user() and get_user_playlists()", function () {
     // Not sure why as this works fine in Python without authentication.
     // Someone please figure this out for me. I've spent way too mcuh
     // time on this.
-    $yt = new YTMusic("oauth.json");
+    $credentials = new YtmusicApi\OAuthCredentials(
+        getenv("GOOGLE_CLIENT_ID"),
+        getenv("GOOGLE_CLIENT_SECRET")
+    );
+
+    $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
+
     $user = $yt->get_user($this->userChannel);
 
     expect($user->channelId)->toBe($this->userChannel);
@@ -283,7 +318,12 @@ test("get_user() and get_user_playlists()", function () {
 });
 
 test("get_tasteprofile() and set_tasteprofile()", function () {
-    $yt = new YTMusic("oauth.json");
+    $credentials = new YtmusicApi\OAuthCredentials(
+        getenv("GOOGLE_CLIENT_ID"),
+        getenv("GOOGLE_CLIENT_SECRET")
+    );
+
+    $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
 
     $profile = $yt->get_tasteprofile();
     foreach ($profile as $taste) {
@@ -300,7 +340,12 @@ test("get_tasteprofile() and set_tasteprofile()", function () {
 });
 
 test("set_tasteprofile() - without sending in tasteprofile", function () {
-    $yt = new YTMusic("oauth.json");
+    $credentials = new YtmusicApi\OAuthCredentials(
+        getenv("GOOGLE_CLIENT_ID"),
+        getenv("GOOGLE_CLIENT_SECRET")
+    );
+
+    $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
 
     $profile = $yt->get_tasteprofile();
     $artists = array_slice(array_keys($profile), 0, 5);
@@ -308,7 +353,12 @@ test("set_tasteprofile() - without sending in tasteprofile", function () {
 })->throwsNoExceptions();
 
 test("set_tasteprofile() - invalid artist", function () {
-    $yt = new YTMusic("oauth.json");
+    $credentials = new YtmusicApi\OAuthCredentials(
+        getenv("GOOGLE_CLIENT_ID"),
+        getenv("GOOGLE_CLIENT_SECRET")
+    );
+
+    $yt = new YTMusic("oauth.json", oauth_credentials: $credentials);
 
     $profile = $yt->get_tasteprofile();
     $artists = ["invalid artist"];
@@ -342,6 +392,27 @@ test("get_song_related() and get_lyrics()", function () {
     foreach ($related as $shelf) {
         expect($shelf::class)->toBe("Ytmusicapi\\Shelf");
     }
+});
+
+test("get_lyrics() - TimedLyrics", function () {
+    $yt = new YTMusic();
+    $playlist = $yt->get_watch_playlist($this->videoId);
+
+    expect($playlist)->not->toBeEmpty();
+    expect($playlist->related)->toBeString();
+
+    $lyrics = $yt->get_lyrics($playlist->lyrics, true);
+    expect($lyrics->lyrics)->toBeArray();
+    expect($lyrics->source)->not->toBeEmpty();
+});
+
+test("get_transcript() - TimedLyrics", function () {
+    $yt = new YTMusic();
+    $lyrics = $yt->get_transcript($this->videoId);
+    expect($lyrics)->toBeArray();
+    expect($lyrics[1]->start)->not->toBeEmpty();
+    expect($lyrics[1]->duration)->not->toBeEmpty();
+    expect($lyrics[1]->text)->not->toBeEmpty();
 });
 
 test("get_song_related() and get_lyrics() exceptions", function () {

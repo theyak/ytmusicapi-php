@@ -43,7 +43,6 @@ class YTMusic
     use Podcasts;
     use I18n;
 
-    public $_base_headers;
     public $_headers;
     public $_token;
     public $_session;
@@ -118,7 +117,8 @@ class YTMusic
         if ($auth) {
             // Custom, pass in cookie string directly. A bit easier for Chrome users.
             // A valid cookie must contain both __Secure-3PAPISID, SAPISID, and SID
-            if (is_string($auth) && strpos($auth, "__Secure-3PAPISID") >= 0 && strpos($auth, "SAPISID=") >= 0) {    
+            
+            if (is_string($auth) && strpos($auth, "__Secure-3PAPISID") !== false && strpos($auth, "SAPISID=") !== false) {    
                 $this->auth_type = AuthType::BROWSER;
                 $this->_auth_headers = [
                     "cookie" => $auth,
@@ -294,6 +294,9 @@ class YTMusic
         }
 
         $headers =  $use_base_headers ? initialize_headers() : $this->_headers;
+        if (!$headers) {
+            $headers = initialize_headers();
+        }
 
         $response = $this->_session->get($url, $headers, $options);
         return $response->body;
