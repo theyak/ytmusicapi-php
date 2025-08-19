@@ -36,6 +36,7 @@ class YTMusic
     use Search;
     use Watch;
     use Explore;
+    use Charts;
     use Library;
     use Playlists;
     use Uploads;

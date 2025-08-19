@@ -120,6 +120,3 @@ trait Explore
         return $explore;
     }
 }
-     
-
-
