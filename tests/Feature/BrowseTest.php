@@ -267,8 +267,6 @@ test("get_album() and get_album_browse_id()", function () {
     expect($result->duration_seconds)->toBe($seconds);
     expect($result->other_versions)->toBeArray();
 
-    var_dump($result->audioPlaylistId);
-
     // Test get_album_browse_id() - this is not working as expected.
     $result = $yt->get_album_browse_id($result->audioPlaylistId);
     expect($result)->toBe($this->albumId);
