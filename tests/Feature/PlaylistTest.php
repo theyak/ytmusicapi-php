@@ -90,8 +90,10 @@ test("get_playlist() - skip continuations", function () {
     // We'll just check that it's not empty.
     expect($playlist->duration)->not->toBeEmpty();
 
-    expect(count($playlist->tracks))->toBeGreaterThan(0);
-    expect(count($playlist->tracks))->toBeLessThanOrEqual(100);
+    $track_count = sizeof($playlist->tracks);
+    
+    expect($track_count)->toBeGreaterThan(0);
+    expect($track_count)->toBeLessThanOrEqual(100);
 
     foreach ($playlist->tracks as $track) {
         expect($track::class)->toBe("Ytmusicapi\\Track");

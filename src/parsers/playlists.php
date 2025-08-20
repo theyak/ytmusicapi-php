@@ -29,6 +29,7 @@ function parse_playlist_header($response)
     }
     $playlist->description = nav($header, DESCRIPTION, true);
     $run_count = count(nav($header, SUBTITLE_RUNS));
+
     if ($run_count > 1) {
         $playlist->author = (object)[
             "name" => nav($header, SUBTITLE2),

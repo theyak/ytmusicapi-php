@@ -60,11 +60,11 @@ trait Playlists
         }
 
         // [PHP Only] Attempt at getting author
-        $author = nav($header_data, join(RESPONSIVE_HEADER, "straplineTextOne.runs.0"), true);
+        $author = nav($header_data, join(RESPONSIVE_HEADER, "facepile.avatarStackViewModel.rendererContext"), true);
         if ($author) {
             $playlist["author"] = (object)[
-                "name" => $author->text,
-                "id" => nav($author, "navigationEndpoint.browseEndpoint.browseId", true),
+                "name" => nav($author, "accessibilityContext.label", true),
+                "id" => nav($author, "commandContext.onTap.innertubeCommand.browseEndpoint.browseId", true),
             ];
         } else {
             $playlist["author"] = null;
@@ -88,7 +88,7 @@ trait Playlists
         $playlist["related"] = [];
         if (isset($section_list->continuations) && $get_continuations) {
             $additionalParams = get_continuation_params($section_list);
-            
+
             if ($playlist["owned"] && ($suggestions_limit > 0 || $related)) {
                 $parse_func = fn ($results) => parse_playlist_items($results);
                 $suggested = $request_func($additionalParams);
@@ -131,10 +131,15 @@ trait Playlists
 
             $parse_func = fn ($content) => parse_playlist_items($content_data->contents);
 
-            $playlist["tracks"] = array_merge(
-                $playlist["tracks"],
-                get_continuations_2025($content_data, $limit, $request_func_continuations, $parse_func)
-            );
+            if ($get_continuations) {
+                $playlist["tracks"] = array_merge(
+                    $playlist["tracks"],
+                    get_continuations_2025($content_data, $limit, $request_func_continuations, $parse_func)
+                );
+            } else {
+                $continuation_token = get_continuation_token($content_data->contents);
+                $playlist["continuation"] = $continuation_token;
+            }
         }
 
         if ($playlistId === "LM") {
@@ -162,8 +167,8 @@ trait Playlists
         $additional = "&ctoken={$token}&continuation={$token}&type=next";
         $results = $this->_send_request("browse", [], $additional);
 
-        $continuation = nav($results, 'continuationContents.musicPlaylistShelfContinuation.continuations.0.nextContinuationData.continuation', true);
-        $contents = nav($results, 'continuationContents.musicPlaylistShelfContinuation.contents', true);
+        $contents = nav($results, 'onResponseReceivedActions.0.appendContinuationItemsAction.continuationItems', true);
+        $continuation = get_continuation_token($contents);
         $tracks = parse_playlist_items($contents);
 
         return (object)[
