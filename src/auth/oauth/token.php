@@ -11,7 +11,7 @@ class Token
 {
     public string $scope;
     public string $token_type = "Bearer";
-    public string $_access_token;
+    public string $access_token;
     public string $refresh_token;
     public ?int $expires_at = 0;
     public ?int $expires_in = 0;
@@ -42,6 +42,7 @@ class Token
      */
     public function as_auth()
     {
+        $this->refresh_token();
         return "{$this->token_type} {$this->access_token}";
     }
 
@@ -50,11 +51,8 @@ class Token
         return $this->expires_in < 60;
     }
 
-    public function __get($item)
+    public function refresh_token()
     {
-        if ($item === "access_token") {
-            return $this->_access_token;
-        }
     }
 }
 
@@ -91,7 +89,7 @@ class OAuthToken extends Token
      */
     public function update($fresh_access): void
     {
-        $this->_access_token = $fresh_access->access_token;
+        $this->access_token = $fresh_access->access_token;
         $this->expires_at = time() + $fresh_access->expires_in;
     }
 
@@ -124,7 +122,6 @@ class RefreshingToken extends OAuthToken
     public Credentials $credentials;
 
     /**
-     * @var string
      * filename to store token json
      */
     public ?string $_local_cache = null;
@@ -135,32 +132,6 @@ class RefreshingToken extends OAuthToken
         $this->_local_cache = $local_cache;
         foreach ($headers as $key => $value) {
             $this->$key = $value;
-        }
-    }
-
-    public function __get($item)
-    {
-        // Known differences from Python version:
-        // This is convoluted because $access_token is accessed
-        // in a parent class which already had the $access_token
-        // attribute defined and used. We had to change things
-        // up to use $_access_token instead to make this trigger.
-        if ($item === "access_token") {
-            if ($this->is_expiring()) {
-                $fresh = $this->refresh_token();
-                $this->update($fresh);
-                $this->store_token();
-            }
-            return $this->_access_token;
-        }
-
-        return $this->$item;
-    }
-
-    public function __set($item, $value)
-    {
-        if ($item === "access_token") {
-            $this->_access_token = $value;
         }
     }
 
@@ -222,6 +193,8 @@ class RefreshingToken extends OAuthToken
      * Write token values to json file at specified path, defaulting to $this->local_cache.
      * Operation does not update instance local_cache attribute.
      * Automatically called when local_cache is set post init.
+     * 
+     * Custom logic to specify exact key/value pairs for json file.
      *
      * @param ?string $path
      */
@@ -230,9 +203,14 @@ class RefreshingToken extends OAuthToken
         $file_path = $path ? $path : $this->_local_cache;
 
         if ($file_path) {
-            $dict = $this->as_dict();
-            unset($dict->credentials);
-            unset($dict->_local_cache);
+            $dict = (object)[
+                "scope" => $this->scope,
+                "token_type" => $this->token_type,
+                "access_token" => $this->access_token,
+                "refresh_token" => $this->refresh_token,
+                "expires_at" => $this->expires_at,
+                "expires_in" => $this->expires_in,
+            ];
             $json = json_encode($dict, JSON_PRETTY_PRINT);
             file_put_contents($file_path, $json);
         }
