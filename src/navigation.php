@@ -66,7 +66,7 @@ define("Ytmusicapi\CATEGORY_PARAMS", "musicNavigationButtonRenderer.clickCommand
 define("Ytmusicapi\MMRIR", "musicMultiRowListItemRenderer");
 define("Ytmusicapi\MRLIR", "musicResponsiveListItemRenderer");
 define("Ytmusicapi\MTRIR", "musicTwoRowItemRenderer");
-define("Ytmusicapi\MNIR", ["menuNavigationItemRenderer"]);
+define("Ytmusicapi\MNIR", "menuNavigationItemRenderer");
 define("Ytmusicapi\TASTE_PROFILE_ITEMS", "contents.tastebuilderRenderer.contents");
 define("Ytmusicapi\TASTE_PROFILE_ARTIST", "title.runs");
 define("Ytmusicapi\SECTION_LIST_CONTINUATION", "continuationContents.sectionListContinuation");

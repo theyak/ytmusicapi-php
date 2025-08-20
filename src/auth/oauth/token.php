@@ -11,7 +11,7 @@ class Token
 {
     public string $scope;
     public string $token_type = "Bearer";
-    public string $access_token;
+    public string $_access_token;
     public string $refresh_token;
     public ?int $expires_at = 0;
     public ?int $expires_in = 0;
@@ -49,6 +49,13 @@ class Token
     {
         return $this->expires_in < 60;
     }
+
+    public function __get($item)
+    {
+        if ($item === "access_token") {
+            return $this->_access_token;
+        }
+    }
 }
 
 /**
@@ -84,7 +91,7 @@ class OAuthToken extends Token
      */
     public function update($fresh_access): void
     {
-        $this->access_token = $fresh_access->access_token;
+        $this->_access_token = $fresh_access->access_token;
         $this->expires_at = time() + $fresh_access->expires_in;
     }
 
@@ -133,13 +140,28 @@ class RefreshingToken extends OAuthToken
 
     public function __get($item)
     {
-        if ($item === "access_token" && $this->is_expiring()) {
-            $fresh = $this->refresh_token();
-            $this->update($fresh);
-            $this->store_token();
+        // Known differences from Python version:
+        // This is convoluted because $access_token is accessed
+        // in a parent class which already had the $access_token
+        // attribute defined and used. We had to change things
+        // up to use $_access_token instead to make this trigger.
+        if ($item === "access_token") {
+            if ($this->is_expiring()) {
+                $fresh = $this->refresh_token();
+                $this->update($fresh);
+                $this->store_token();
+            }
+            return $this->_access_token;
         }
 
         return $this->$item;
+    }
+
+    public function __set($item, $value)
+    {
+        if ($item === "access_token") {
+            $this->_access_token = $value;
+        }
     }
 
     public function refresh_token()

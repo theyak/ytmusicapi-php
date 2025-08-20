@@ -338,18 +338,22 @@ function parse_playlist_item($data, $menu_entries = null, $is_album = false)
         $track->feedbackTokens = $feedback_tokens;
     }
 
-    // TODO: Complicated Python, is this correct?
+    // Custom: Completly rewritten to work with PHP's syntax
     if ($menu_entries) {
-        // sets the feedbackToken for get_history
         $menu_items = nav($data, MENU_ITEMS);
         foreach ($menu_entries as $menu_entry) {
+            $menu_entry = explode('.', $menu_entry);
             $items = find_objects_by_key($menu_items, $menu_entry[0]);
-
-            if (is_string($menu_entry)) {
-                $menu_entry = explode('.', $menu_entry);
+            
+            if ($items) {
+                foreach ($items as $itm) {
+                    $x = nav($itm, $menu_entry, true);
+                    if ($x) {
+                        $track->feedbackToken = $x;
+                        break;
+                    }
+                }
             }
-            $pos = end($menu_entry);
-            $track->{$pos} = nav($data, join(MENU_ITEMS, join($menu_entry)));
         }
     }
 
@@ -364,3 +368,11 @@ function validate_playlist_id($playlistId)
 
     return substr($playlistId, 2);
 }
+
+
+
+
+
+        // song[menu_entry[-1]] = next(
+        //     filter(lambda x: x is not None, (nav(itm, menu_entry, True) for itm in items)), None
+        // )

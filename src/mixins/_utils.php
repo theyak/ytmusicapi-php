@@ -8,15 +8,15 @@ namespace Ytmusicapi;
  */
 function prepare_like_endpoint($rating): string
 {
-    if ($rating === LikeStatus::LIKE) {
+    if ($rating === LikeStatus::LIKE || $rating === "LIKE") {
         return 'like/like';
-    } elseif ($rating === LikeStatus::DISLIKE) {
+    } elseif ($rating === LikeStatus::DISLIKE || $rating === "DISLIKE") {
         return 'like/dislike';
-    } elseif ($rating === LikeStatus::INDIFFERENT) {
+    } elseif ($rating === LikeStatus::INDIFFERENT || $rating === "INDIFFERENT") {
         return 'like/removelike';
     } else {
         throw new YtMusicUserError("Invalid rating provided. Use one of: "
-            . implode(', ', LikeStatus::cases())
+            . "LIKE, DISLIKE, INDIFFERENT"
         );
     }
 }

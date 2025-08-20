@@ -41,7 +41,7 @@ test('get_charts - authed', function () {
     // When logged in with premium account: countries, songs, videos, artists
     // When not logged in or no premium account: countries, videos, artists
 
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $charts = $yt->get_charts();
 
     if (count($charts) === 3) {
@@ -67,7 +67,7 @@ test('get_charts_us', function () {
 });
 
 test('get_charts_us - authed', function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $charts = $yt->get_charts(country: "US");
     if (count($charts) === 4) {
         $this->expect(array_keys($charts))->toContain("countries", "videos", "artists", "genres");
@@ -93,7 +93,7 @@ test('get_charts_outside_us', function () {
 });
 
 test('get_charts_outside_us - authed', function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $charts = $yt->get_charts(country: "BE");
 
     if (count($charts) === 3) {

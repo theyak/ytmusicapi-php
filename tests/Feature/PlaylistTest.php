@@ -112,7 +112,7 @@ test("get_playlist() - skip continuations", function () {
 });
 
 test("Get own playlist + suggestions + related", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
 
     $playlist = $yt->get_playlist(getenv("OWN_PLAYLIST_ID"), related: true, suggestions_limit: 30);
 
@@ -138,7 +138,7 @@ test("Get own playlist + suggestions + related", function () {
 })->skip(getenv("OWN_PLAYLIST_ID") === false, "OWN_PLAYLIST_ID not set in environment variables");
 
 test("Get liked music", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $playlist = $yt->get_playlist("LM");
 
     expect($playlist)->toHaveProperty('id');
@@ -176,7 +176,7 @@ test("Get liked music", function () {
 });
 
 test("Edit playlist", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
 
     $playlist = $yt->get_playlist(getenv("OWN_PLAYLIST_ID"));
 
@@ -213,7 +213,7 @@ test("Edit playlist", function () {
 })->skip(getenv("OWN_PLAYLIST_ID") === false, "OWN_PLAYLIST_ID not set in environment variables");
 
 test("What happens if I send in an invalid privacy status?", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $yt->edit_playlist(
         $this->playlistId,
         privacyStatus: "INVALID",
@@ -221,7 +221,7 @@ test("What happens if I send in an invalid privacy status?", function () {
 })->throws(\Exception::class);
 
 test("Big create, add to, and delete test of library", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
 
     // Carin Leon - Colmillo de Leche, 16 tracks
     $colmillo = "OLAK5uy_lhHr2ATl41N4kOuCcPc3wo1nRYtakCqFc";
@@ -286,7 +286,8 @@ test("Big create, add to, and delete test of library", function () {
 })->skip();
 
 test("create_playlist() - Using video ids", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
+    
     $playlistId = $yt->create_playlist("test", "test description", "PRIVATE", [$this->videoId]);
 
     sleep(2);
@@ -301,7 +302,7 @@ test("create_playlist() - Using video ids", function () {
 });
 
 test("Bad remove_playlist_items() parameter - no setVideoId", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $bad_delete = [
         (object)["videoId" => "aaaaaaaaaaa", "setVideoId" => ""],
     ];
@@ -309,33 +310,38 @@ test("Bad remove_playlist_items() parameter - no setVideoId", function () {
 })->throws(\Exception::class);
 
 test("create_playlist() - fail", function () {
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json"])->makePartial();
+    $credentials = new YtmusicApi\OAuthCredentials(
+        "abc",
+        "123"
+    );
+    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
+
     $yt->shouldReceive("_send_request")->andReturn("");
     $yt->create_playlist("test", "", source_playlist: "aaaaaaaaaaa");
 })->throws(\Exception::class, "Failed to create playlist");
 
 test("create_playlist() - should fail sending in both video_ids and source_playlist", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $yt->create_playlist("test", "", source_playlist: "aaaaaaaaaaa", video_ids: ["aaaaaaaaaaa"]);
 })->throws(\Exception::class, "You can't specify both video_ids and source_playlist");
 
 test("create_playlist() - should fail sending in invalid privacy status", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $yt->create_playlist("test", "", "BLAH");
 })->throws(\Exception::class, "Invalid privacy status, must be one of PUBLIC, PRIVATE, or UNLISTED");
 
 test("add_playlist_items() - should fail when not sending in video_ids or source_playlist", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $yt->add_playlist_items($this->playlistId, []);
 })->throws(\Exception::class, "You must provide either videoIds or a source_playlist to add to the playlist");
 
 test("remove_playlist_items() - Provide empty list of videos", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $yt->remove_playlist_items($this->playlistId, []);
 })->throws(\Exception::class, "Cannot remove songs, because setVideoId is missing. Do you own this playlist?");
 
 test("remove_playlist_items() - Provide playlist no owned by user", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
 
     $playlist = $yt->get_playlist($this->playlistId);
     $yt->remove_playlist_items($this->albumPlaylistId, $playlist->tracks);
@@ -345,7 +351,13 @@ test("remove_playlist_items() - Invalid status response", function () {
     $videos = [
         (object)["videoId" => "aaaaaaaaaaa", "setVideoId" => "aaaaaaaaaaa"],
     ];
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json"])->makePartial();
+
+    $credentials = new YtmusicApi\OAuthCredentials(
+        "abc",
+        "123"
+    );    
+    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
+
     $yt->shouldReceive("_send_request")->andReturn((object)["context" => "test"]);
     $response = $yt->remove_playlist_items($this->playlistId, $videos);
 
@@ -353,14 +365,24 @@ test("remove_playlist_items() - Invalid status response", function () {
 });
 
 test("add_playlist_items() - Invalid response", function () {
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json"])->makePartial();
+    $credentials = new YtmusicApi\OAuthCredentials(
+        "abc",
+        "123"
+    );
+    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
+
     $yt->shouldReceive("_send_request")->andReturn((object)["context" => "test"]);
     $response = $yt->add_playlist_items($this->playlistId, [$this->videoId]);
     expect($response->context)->toBe("test");
 });
 
 test("create_playlist() - Invalid response", function () {
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json"])->makePartial();
+    $credentials = new YtmusicApi\OAuthCredentials(
+        "abc",
+        "123"
+    );
+    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
+
     $yt->shouldReceive("_send_request")->andReturn((object)["context" => "test"]);
     $response = $yt->create_playlist("test", "", "PRIVATE", [$this->videoId]);
     expect($response->context)->toBe("test");

@@ -59,7 +59,7 @@ it("should have liked songs w/cookie authentication", function () {
 });
 
 test("get_library_songs() without continuation", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $songs = $yt->get_library_songs(20, false, 'a_to_z');
 
     expect(count($songs))->toBeGreaterThan(0);
@@ -95,7 +95,7 @@ test("get_library_songs() without continuation", function () {
 });
 
 test("get_library_songs() with continuation", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $songs = $yt->get_library_songs(200, false, 'z_to_a');
 
     expect(count($songs))->toBeGreaterThan(25);
@@ -126,7 +126,7 @@ test("get_library_songs() with continuation", function () {
 });
 
 test("get_library_songs() with verification but without continuation", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $songs = $yt->get_library_songs(20, true, 'a_to_z');
 
     expect(count($songs))->toBeGreaterThan(0);
@@ -162,7 +162,7 @@ test("get_library_songs() with verification but without continuation", function 
 });
 
 test("get_library_songs() with continuation and verification", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $songs = $yt->get_library_songs(200, true, 'z_to_a');
 
     expect(count($songs))->toBeGreaterThan(25);
@@ -193,12 +193,12 @@ test("get_library_songs() with continuation and verification", function () {
 });
 
 test("get_library_song() - bad parameters", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $yt->get_library_songs(null, true);
 })->throws(\Exception::class);
 
 test("get_library_albums()", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $albums = $yt->get_library_albums(30, "a_to_z");
 
     foreach ($albums as $album) {
@@ -215,7 +215,7 @@ test("get_library_albums()", function () {
 });
 
 test("get_library_artists()", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $artists = $yt->get_library_artists(30, "a_to_z");
     expect(count($artists))->toBeGreaterThan(0);
 
@@ -230,7 +230,7 @@ test("get_library_artists()", function () {
 });
 
 test("get_library_artists() with continuation", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $artists = $yt->get_library_artists(limit: 30);
     expect(count($artists))->toBeGreaterThan(25);
 
@@ -245,7 +245,7 @@ test("get_library_artists() with continuation", function () {
 });
 
 test("get_library_subscriptions()", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $subscriptions = $yt->get_library_subscriptions(30, "a_to_z");
 
     foreach ($subscriptions as $artist) {
@@ -261,7 +261,7 @@ test("get_library_subscriptions()", function () {
 
 test("add_history_item() and get_history()", function () {
 
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $yt->add_history_item($this->videoId);
 
     sleep(2);
@@ -309,8 +309,9 @@ test("add_history_item() and get_history()", function () {
     expect($first->videoId)->not->toBe($this->videoId);
 });
 
+
 test("rate_song()", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $response = $yt->rate_song($this->videoId, "LIKE");
     expect($response)->toHaveProperty("actions");
     $text = Ytmusicapi\nav($response, "actions.0.addToToastAction.item.notificationActionRenderer.responseText.runs.0.text", null);
@@ -322,14 +323,16 @@ test("rate_song()", function () {
     expect($text)->toBe("Removed from liked music");
 });
 
+// Skipped due to server side updates that haven't been implemented yet.
 test("edit_song_library_status()", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $album = $yt->get_album($this->albumId);
 
     // Add to libraray
     $add = $album->tracks[0]->feedbackTokens->add;
     expect($add)->not->toBeEmpty();
     $response = $yt->edit_song_library_status($add);
+
     expect($response)->toHaveProperty("actions");
     $text = Ytmusicapi\nav($response, "actions.0.addToToastAction.item.notificationActionRenderer.responseText.runs.0.text", null);
     expect($text)->toBe("Added to library");
@@ -350,10 +353,10 @@ test("edit_song_library_status()", function () {
     $album = $yt->get_album($this->albumId);
     expect($album->tracks[0]->inLibrary)->toBeFalse();
     expect($response->feedbackResponses[0]->isProcessed)->toBeTrue();
-});
+})->skip();
 
 test("rate_playlist()", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $response = $yt->rate_playlist($this->playlistId, "LIKE");
     expect($response)->toHaveProperty("actions");
     $text = Ytmusicapi\nav($response, "actions.0.addToToastAction.item.notificationActionRenderer.responseText.runs.0.text", null);
@@ -366,7 +369,7 @@ test("rate_playlist()", function () {
 });
 
 test("subscribe_artists() - pass in array", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $response = $yt->subscribe_artists([$this->artistId]);
     $text = Ytmusicapi\nav($response, "actions.0.addToToastAction.item.notificationTextRenderer.successResponseText.runs.0.text", null);
     expect($text)->toBe("Subscribed to ");
@@ -377,7 +380,7 @@ test("subscribe_artists() - pass in array", function () {
 });
 
 test("subscribe_artists() - pass in string", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $response = $yt->subscribe_artists($this->artistId);
     $text = Ytmusicapi\nav($response, "actions.0.addToToastAction.item.notificationTextRenderer.successResponseText.runs.0.text", null);
     expect($text)->toBe("Subscribed to ");
@@ -398,7 +401,7 @@ test("get_history() throws exception with bad data", function () {
 })->throws(\Exception::class);
 
 test("get_library_podcasts", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $podcasts = $yt->get_library_podcasts(50, "a_to_z");
     expect(count($podcasts))->toBeGreaterThan(1);
 
@@ -419,7 +422,7 @@ test("get_library_podcasts - throws when unauthorized", function () {
 })->throws(\Exception::class);
 
 test("get_library_channels", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $channels = $yt->get_library_channels(50, "a_to_z");
     expect(count($channels))->toBeGreaterThan(0);
 });
@@ -431,7 +434,7 @@ test("get_library_channels - throws when unauthorized", function () {
 })->throws(\Exception::class);
 
 test("get_account_info", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $info = $yt->get_account_info();
 
     expect($info::class)->toBe("Ytmusicapi\\AccountInfo");

@@ -49,6 +49,7 @@ trait Library
     public function get_library_songs($limit = 25, $validate_responses = false, $order = null)
     {
         $this->_check_auth();
+
         $body = ['browseId' => 'FEmusic_liked_videos'];
         validate_order_parameter($order);
         if ($order !== null) {
@@ -57,7 +58,7 @@ trait Library
         $endpoint = 'browse';
         $per_page = 25;
 
-        $request_func = fn ($additionalParams) =>$this->_send_request($endpoint, $body);
+        $request_func = fn ($additionalParams) => $this->_send_request($endpoint, $body);
         $parse_func = fn ($raw_response) => parse_library_songs($raw_response);
 
         if ($validate_responses && $limit === null) {
@@ -345,10 +346,11 @@ trait Library
     public function add_history_item($song)
     {
         $this->_check_auth();
-
+        
         if (is_string($song)) {
             $song = $this->get_song($song);
         }
+
         $url = $song->playbackTracking->videostatsPlaybackUrl->baseUrl;
 
         $cpn = "";
@@ -358,6 +360,7 @@ trait Library
         }
 
         $params = ['ver' => 2, 'c' => 'WEB_REMIX', 'cpn' => $cpn];
+        
         return $this->_send_get_request($url, $params);
     }
 
@@ -413,6 +416,8 @@ trait Library
      */
     public function edit_song_library_status($feedbackTokens)
     {
+        throw new YTMusicUserError("Not implemented - Google changed the API on us.");
+        
         if (is_string($feedbackTokens)) {
             $feedbackTokens = [$feedbackTokens];
         }

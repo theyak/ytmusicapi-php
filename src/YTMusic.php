@@ -43,11 +43,11 @@ class YTMusic
     use Podcasts;
     use I18n;
 
-    public $_headers;
     public $_token;
     public $_session;
     public $_input_dict;
     public $_auth_headers;
+    public $_base_headers;
     public $auth_type;
     public $oauth_credentials;
     public $proxies;
@@ -108,7 +108,7 @@ class YTMusic
         $this->proxies = $proxies;
 
         // see google cookie docs: https://policies.google.com/technologies/cookies
-        //value from https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/extractor/youtube.py#L502
+        // value from https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/extractor/youtube.py#L502
         $this->cookies = ["SOCS" => "CAI"];
 
         $this->_auth_headers = new CaseInsensitiveDict([]);
@@ -140,7 +140,10 @@ class YTMusic
                         $message .= "Please provide oauth_credentials as specified in the OAuth setup documentation.\n";
                         throw new YTMusicUserError($message);
                     }
-                    $this->_token = new RefreshingToken($oauth_credentials, $auth_path, $this->_auth_headers);
+                    
+                    $this->_token = new RefreshingToken(
+                        $oauth_credentials, $auth_path, $this->_auth_headers
+                    );
                 }
             }
         }
@@ -166,7 +169,6 @@ class YTMusic
 
             $headers = $this->base_headers();
             $cookie = $headers["cookie"] ?: "";
-
             $this->sapisid = sapisid_from_cookie($cookie);
             $this->origin = $headers["origin"] ?? $headers["x-origin"];
 
@@ -176,21 +178,39 @@ class YTMusic
         }
     }
 
+    /**
+     * Base headers are static. Once set, they are not changed.
+     */
     public function base_headers()
     {
+        static $base_headers;
+
+        if ($base_headers) {
+            return $base_headers;
+        }
+
         if ($this->auth_type === AuthType::BROWSER || $this->auth_type === AuthType::OAUTH_CUSTOM_FULL) {
-            $headers = $this->_auth_headers;
+            $base_headers = $this->_auth_headers;
         } else {
-            $headers = initialize_headers();
+            $base_headers = initialize_headers();
         }
 
-        if (empty($headers["X-Goog-Visitor-Id"])) {
-            $headers["X-Goog-Visitor-Id"] = get_visitor_id(fn ($url) => $this->_send_get_request($url));
+        if ($base_headers instanceof CaseInsensitiveDict) {
+            $base_headers = $base_headers->getAll();
         }
 
-        return $headers;
+        $keys = array_map(fn ($key) => strtolower($key), array_keys($base_headers));
+        if (!in_array("x-goog-visitor-id", $keys)) {
+            $base_headers["X-Goog-Visitor-Id"] = get_visitor_id(fn ($url) => $this->_send_get_request($url));
+        }
+
+        return $base_headers;
     }
 
+    /**
+     * Headers can change between requests, for instance if the oauth token
+     * is expired and needs to be refreshed.
+     */
     public function headers()
     {
         $headers = $this->base_headers();
@@ -293,10 +313,7 @@ class YTMusic
             $options["proxy"] = $this->proxies;
         }
 
-        $headers =  $use_base_headers ? initialize_headers() : $this->_headers;
-        if (!$headers) {
-            $headers = initialize_headers();
-        }
+        $headers =  $use_base_headers ? initialize_headers() : $this->headers();
 
         $response = $this->_session->get($url, $headers, $options);
         return $response->body;

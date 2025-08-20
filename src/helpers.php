@@ -64,6 +64,7 @@ function get_visitor_id(callable $request_func): string
 {
     $response = $request_func(YTM_DOMAIN);
     preg_match('/ytcfg\\.set\\s*\\(\\s*({.+?})\\s*\\)\\s*;/', $response, $matches);
+
     if (count($matches) > 0) {
         $ytcfg = json_decode($matches[1]);
         return $ytcfg->VISITOR_DATA;
