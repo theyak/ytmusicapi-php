@@ -34,7 +34,7 @@ test('Search with filter playlists has special handling', function () {
 });
 
 test('Search uploads', function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $songs = $yt->search("Almost There", null, "uploads");
 
     // Probably empty, but at least it's an array
@@ -43,7 +43,7 @@ test('Search uploads', function () {
 
 // This function doesn't really work for library search.
 test('Search library', function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $songs = $yt->search("Almost There", null, "library");
     expect($songs)->toBeArray();
 });

@@ -237,7 +237,16 @@
             }
 
             // ignore the first run if it is a type specifier (like "Single" or "Album")
-            $runs_offset = (count($runs[0]) && isset($api_search_result_types[strtolower($runs[0]->text)])) * 2;
+            // $runs_offset = (count($runs[0]) && isset($api_search_result_types[strtolower($runs[0]->text)])) * 2;
+
+            $runs_offset = 0;
+            if (count($runs) > 0 && isset($runs[0]->text)) {
+                $key = strtolower($runs[0]->text);
+                if (isset($api_search_result_types[$key])) {
+                    $runs_offset = 2;
+                }
+            }
+           
             $song_info = parse_song_runs(array_slice($runs, $runs_offset));
             $search_result = array_merge($search_result, $song_info);
         }
