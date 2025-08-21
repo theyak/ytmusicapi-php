@@ -55,19 +55,43 @@ function something()
 
 function ytmusic() 
 {
-    return new Ytmusicapi\YTMusic();
+    static $yt;
+
+    if ($yt) {
+        return $yt;
+    }
+
+    $yt = new Ytmusicapi\YTMusic();
+    
+    return $yt;
 }
 
 function ytbrowser()
 {
-    return new Ytmusicapi\YTMusic("browser.json");
+    static $yt;
+
+    if ($yt) {
+        return $yt;
+    }
+
+    $yt = new Ytmusicapi\YTMusic("browser.json");
+
+    return $yt;
 }
 
 function ytauth()
 {
+    static $yt;
+
+    if ($yt) {
+        return $yt;
+    }
+
     $client_id = getenv("GOOGLE_CLIENT_ID");
     $client_secret = getenv("GOOGLE_SECRET_ID");
 
     $credentials = new Ytmusicapi\OAuthCredentials($client_id, $client_secret);
-    return new Ytmusicapi\YTMusic("oauth.json", oauth_credentials: $credentials);
+    $yt = new Ytmusicapi\YTMusic("oauth.json", oauth_credentials: $credentials);
+
+    return $yt;
 }

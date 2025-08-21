@@ -75,7 +75,6 @@ trait Explore
         $response = $this->_send_request("browse", $body);
         $results = nav($response, [SINGLE_COLUMN_TAB, SECTION_LIST]);
 
-
         $explore = [];
         foreach ($results as $result) {
             $browse_id = nav($result, [CAROUSEL, CAROUSEL_TITLE, NAVIGATION_BROWSE_ID], true);
@@ -86,7 +85,7 @@ trait Explore
             $contents = nav($result, [CAROUSEL_CONTENTS]);
             switch ($browse_id) {
                 case "FEmusic_new_releases_albums":
-                    $explore["new_releases"] = parse_content_list($contents, fn ($item) => parse_album($item));
+                    $explore["new_releases"] = parse_content_list($contents, "Ytmusicapi\\parse_album");
                     break;
                 case "FEmusic_moods_and_genres":
                     $explore["moods_and_genres"] = array_map(function($genre) {

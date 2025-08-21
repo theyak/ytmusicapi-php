@@ -5,7 +5,7 @@ use Ytmusicapi\YTMusic;
 //   public function get_playlist($playlistId, $limit = 100, $related = false, $suggestions_limit = 0, $get_continuations = true)
 
 test("get_playlist() - Playlist only", function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $playlist = $yt->get_playlist($this->playlistId, limit: 1);
 
     expect($playlist)->not()->toBeEmpty();
@@ -40,13 +40,13 @@ test("get_playlist() - Playlist only", function () {
 });
 
 test("get_playlist() - radio", function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $playlist = $yt->get_playlist("RDCLAK5uy_kVfoKrYSsJaHx3SLO8mp3WYuRHMrS8U_Q");
     expect($playlist->title)->toBe("Classic Country");
 });
 
 test("get_playlist() - large playlist", function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $playlist = $yt->get_playlist($this->playlistId, limit: 250);
 
     expect($playlist)->not()->toBeEmpty();
@@ -75,7 +75,7 @@ test("get_playlist() - large playlist", function () {
 });
 
 test("get_playlist() - skip continuations", function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $playlist = $yt->get_playlist($this->playlistId, limit: 1, get_continuations: false);
 
     expect($playlist)->not()->toBeEmpty();

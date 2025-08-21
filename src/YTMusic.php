@@ -168,8 +168,7 @@ class YTMusic
             $this->params .= YTM_PARAMS_KEY;
 
             $headers = $this->base_headers();
-            $cookie = $headers["cookie"] ?: "";
-            $this->sapisid = sapisid_from_cookie($cookie);
+            $this->sapisid = sapisid_from_cookie($this->_auth_headers["cookie"]);
             $this->origin = $headers["origin"] ?? $headers["x-origin"];
 
             if (!$this->sapisid) {
@@ -183,28 +182,32 @@ class YTMusic
      */
     public function base_headers()
     {
-        static $base_headers;
-
-        if ($base_headers) {
-            return $base_headers;
+        if ($this->_base_headers) {
+            return $this->_base_headers;
         }
 
         if ($this->auth_type === AuthType::BROWSER || $this->auth_type === AuthType::OAUTH_CUSTOM_FULL) {
-            $base_headers = $this->_auth_headers;
+            $this->_base_headers = $this->_auth_headers;
         } else {
-            $base_headers = initialize_headers();
+            $this->_base_headers = initialize_headers();
         }
 
-        if ($base_headers instanceof CaseInsensitiveDict) {
-            $base_headers = $base_headers->getAll();
+        if ($this->_base_headers instanceof CaseInsensitiveDict) {
+            $this->_base_headers = $this->_base_headers->getAll();
         }
 
-        $keys = array_map(fn ($key) => strtolower($key), array_keys($base_headers));
+        // Custom
+        // The python version gets the visitor ID here. 
+        // However, it seems to only be needed when getting a user's videos.
+        // To get a user's videos, you must first call get_user().
+        // Therefore, the visitor ID is only grabbed when get_user() is called.
+        // This prevents this from loading all the time, especially during testing.
+        $keys = array_map(fn ($key) => strtolower($key), array_keys($this->_base_headers));
         if (!in_array("x-goog-visitor-id", $keys)) {
-            $base_headers["X-Goog-Visitor-Id"] = get_visitor_id(fn ($url) => $this->_send_get_request($url));
+            $this->_base_headers["X-Goog-Visitor-Id"] = get_visitor_id(fn ($url) => $this->_send_get_request($url));
         }
-
-        return $base_headers;
+        
+        return $this->_base_headers;
     }
 
     /**
@@ -314,6 +317,7 @@ class YTMusic
         }
 
         $headers =  $use_base_headers ? initialize_headers() : $this->headers();
+        $headers["cookie"] = "SOCS=CAI;";
 
         $response = $this->_session->get($url, $headers, $options);
         return $response->body;

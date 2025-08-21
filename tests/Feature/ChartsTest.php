@@ -3,7 +3,8 @@
 use Ytmusicapi\YTMusic;
 
 test('get_charts()', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
+    
     $charts = $yt->get_charts();
     expect(count($charts))->toBeGreaterThan(2);
 
@@ -15,7 +16,8 @@ test('get_charts()', function () {
 });
 
 test('get_charts() with browser.json', function () {
-    $yt = new YTMusic("browser.json");
+    $yt = ytbrowser();
+
     $charts = $yt->get_charts();
     expect(count($charts))->toBeGreaterThan(2);
 

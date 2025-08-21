@@ -416,7 +416,7 @@ test("get_library_podcasts", function () {
 });
 
 test("get_library_podcasts - throws when unauthorized", function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $podcasts = $yt->get_library_podcasts(50, "a_to_z");
     expect(count($podcasts))->toBe(1);
 })->throws(\Exception::class);
@@ -428,7 +428,7 @@ test("get_library_channels", function () {
 });
 
 test("get_library_channels - throws when unauthorized", function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $channels = $yt->get_library_channels(50, "a_to_z");
     expect(count($channels))->toBe(0);
 })->throws(\Exception::class);

@@ -159,8 +159,7 @@ function nav($root, $items, $null_if_absent = false)
                 if ($null_if_absent) {
                     return null;
                 } else {
-                    print_r($root);
-                    print_r(array_slice(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), 0, 2));
+                    // print_r(array_slice(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), 0, 5));
                     throw new \Exception("Key not found: $k");
                 }
             }
