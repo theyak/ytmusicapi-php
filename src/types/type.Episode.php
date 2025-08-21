@@ -68,4 +68,9 @@ class Episode
      * @var string
      */
     public $podcast;
+
+    /**
+     * @var int
+     */
+    public $progressPercentage;
 }

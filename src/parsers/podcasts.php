@@ -84,11 +84,6 @@ class Description
         return $this->getItem($item);
     }
 
-    public function __toString1()
-    {
-        return $this->getText();
-    }
-
     /**
      * parse the description runs into a usable format
      *

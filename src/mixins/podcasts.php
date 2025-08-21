@@ -113,7 +113,8 @@ trait Podcasts
 
         $description_runs = nav(
             $two_columns,
-            join("secondaryContents", SECTION_LIST_ITEM, DESCRIPTION_SHELF, "description", "runs", true)
+            join("secondaryContents", SECTION_LIST_ITEM, DESCRIPTION_SHELF, "description", "runs"),
+            true
         );
 
         if ($description_runs) {
@@ -121,7 +122,6 @@ trait Podcasts
         }
 
         $episode = object_merge(new Episode(), $episode);
-
         return $episode;
     }
 

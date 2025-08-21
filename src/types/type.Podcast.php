@@ -32,4 +32,9 @@ class Podcast
      * @var Episode[]
      */
     public $episodes;
+
+    /**
+     * @var Thumbnail[]
+     */
+    public $thumbnails;
 }
