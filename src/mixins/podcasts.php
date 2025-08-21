@@ -109,15 +109,19 @@ trait Podcasts
         $header = nav($two_columns, join(TAB_CONTENT, SECTION_LIST_ITEM, RESPONSIVE_HEADER));
 
         $episode = parse_episode_header($header);
+        $episode->description = null;
 
         $description_runs = nav(
             $two_columns,
-            join("secondaryContents", SECTION_LIST_ITEM, DESCRIPTION_SHELF, "description", "runs")
+            join("secondaryContents", SECTION_LIST_ITEM, DESCRIPTION_SHELF, "description", "runs"),
+            true
         );
-        $episode->description = Description::from_runs($description_runs);
+
+        if ($description_runs) {
+            $episode->description = Description::from_runs($description_runs);
+        }
 
         $episode = object_merge(new Episode(), $episode);
-
         return $episode;
     }
 

@@ -47,6 +47,9 @@ function parse_album_header($response)
     return $album;
 }
 
+/**
+ * Note: Schema for artist has changed as of 1.11.0
+ */
 function parse_album_header_2024($response) {
     $header = nav($response, join(TWO_COLUMN_RENDERER, TAB_CONTENT, SECTION_LIST_ITEM, RESPONSIVE_HEADER));
     $album = new Album();
@@ -58,7 +61,7 @@ function parse_album_header_2024($response) {
     $album->description = nav($header, join("description", DESCRIPTION_SHELF, DESCRIPTION), true);
 
     $album_info = parse_song_runs(array_slice($header->subtitle->runs, 2));
-    $album_info['artists'] = [parse_base_header($header)->author];
+    $album_info['artists'] = [parse_base_header($header)->author ?? null];
     object_merge($album, $album_info);
 
     if (count($header->secondSubtitle->runs) > 1) {
@@ -71,13 +74,41 @@ function parse_album_header_2024($response) {
     // add to library/uploaded
     $buttons = $header->buttons;
     $album->audioPlaylistId = nav(
-        $buttons, join("1.musicPlayButtonRenderer.playNavigationEndpoint", WATCH_PLAYLIST_ID), true
+        find_object_by_key($buttons, "musicPlayButtonRenderer"),
+        join("musicPlayButtonRenderer", "playNavigationEndpoint", WATCH_PID),
+        true
     );
 
-    $service = nav($buttons, join("0.toggleButtonRenderer.defaultServiceEndpoint"), true);
+    # remove this once A/B testing is finished and it is no longer covered
+    if (empty($album->audioPlaylistId)) {
+        $album->audioPlaylistId = nav(
+            find_object_by_key($buttons, "musicPlayButtonRenderer"),
+            join("musicPlayButtonRenderer", "playNavigationEndpoint", WATCH_PLAYLIST_ID),
+            true
+        );
+    }
+
+    $service = nav(
+        find_object_by_key($buttons, "toggleButtonRenderer"),
+        join("toggleButtonRenderer", "defaultServiceEndpoint"),
+        true
+    );
+    $album->likeStatus = "INDIFFERENT";
     if ($service) {
         $album->likeStatus = parse_like_status($service);
     }
 
     return $album;
+}
+
+/**
+ * the content of the data changes based on whether the user is authenticated or not
+ */
+function parse_album_playlistid_if_exists($data): string | null
+{
+    if ($data) {
+        return nav($data, WATCH_PID, true) ?? nav($data, WATCH_PLAYLIST_ID, true);
+    }
+
+    return null;
 }

@@ -63,4 +63,14 @@ class Episode
      * @var string
      */
     public $videoType;
+
+    /**
+     * @var string
+     */
+    public $podcast;
+
+    /**
+     * @var int
+     */
+    public $progressPercentage;
 }

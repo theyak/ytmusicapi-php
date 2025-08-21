@@ -11,14 +11,14 @@ use Ytmusicapi\YTMusic;
  */
 
 test('upload_song()', function () {
-    $yt = new YTMusic('browser.json');
+    $yt = ytbrowser();
 
     $result = $yt->upload_song('tests/the-shortest-song.mp3');
     expect($result)->toBe("STATUS_SUCCEEDED");
 })->skip("Run manually.");
 
 test('delete_upload_entity()', function () {
-    $yt = new YTMusic('browser.json');
+    $yt = ytbrowser();
 
     $results = $yt->get_library_upload_songs();
     $response = $yt->delete_upload_entity($results[0]->entityId);
@@ -26,7 +26,7 @@ test('delete_upload_entity()', function () {
 })->skip("Run manually after upload_song() test.");
 
 test('get_library_upload_albums', function () {
-    $yt = new YTMusic('browser.json');
+    $yt = ytbrowser();
 
     $results = $yt->get_library_upload_albums();
     expect($results)->toBeArray();
@@ -53,7 +53,7 @@ test('get_library_upload_albums', function () {
 });
 
 test('get_libraray_upload_artists', function () {
-    $yt = new YTMusic('browser.json');
+    $yt = ytbrowser();
 
     $results = $yt->get_library_upload_artists();
     expect($results)->toBeArray();

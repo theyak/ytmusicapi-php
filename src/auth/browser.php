@@ -15,6 +15,11 @@ function is_browser($headers)
     return !empty($headers['cookie']);
 }
 
+/**
+ * @param string|null $filepath
+ * @param string|null $headers_raw
+ * @return string
+ */
 function setup_browser($filepath = null, $headers_raw = null)
 {
     $contents = [];

@@ -3,7 +3,7 @@
 use Ytmusicapi\YTMusic;
 
 test('Search should throw exceptions ', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
 
     $query = "have fun storming the castle";
 
@@ -14,7 +14,7 @@ test('Search should throw exceptions ', function () {
 });
 
 test('Search should allow filter', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
 
     $songs = $yt->search("Let It Be", "songs", limit: 50);
     expect($songs)->toBeArray();
@@ -24,7 +24,7 @@ test('Search should allow filter', function () {
 });
 
 test('Search with filter playlists has special handling', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
 
     $playlists = $yt->search("Toy Story", "playlists");
     expect($playlists)->toBeArray();
@@ -34,7 +34,7 @@ test('Search with filter playlists has special handling', function () {
 });
 
 test('Search uploads', function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $songs = $yt->search("Almost There", null, "uploads");
 
     // Probably empty, but at least it's an array
@@ -43,7 +43,7 @@ test('Search uploads', function () {
 
 // This function doesn't really work for library search.
 test('Search library', function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $songs = $yt->search("Almost There", null, "library");
     expect($songs)->toBeArray();
 });
@@ -59,7 +59,7 @@ test('No search results should return empty array', function () {
 });
 
 test('get_search_suggestions()', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
 
     $suggestions = $yt->get_search_suggestions("Monekes");
     expect($suggestions)->toBeArray();

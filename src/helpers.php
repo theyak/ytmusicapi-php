@@ -17,34 +17,6 @@ function include_all($dir)
 }
 // @codeCoverageIgnoreEnd
 
-/**
- * @return object
- */
-function initialize_context()
-{
-    return (object)[
-        "client" => (object)[
-            "clientName" => "WEB_REMIX",
-            "clientVersion" => "1." . gmdate("Ymd") . ".01.00"
-        ],
-        "user" => (object)[]
-    ];
-}
-
-// This is currently unused
-// @codeCoverageIgnoreStart
-function get_visitor_id($request_func)
-{
-    $response = $request_func(YTM_DOMAIN);
-    preg_match('/ytcfg\\.set\\s*\\(\\s*({.+?})\\s*\\)\\s*;/', $response, $matches);
-    if (count($matches) > 0) {
-        $ytcfg = json_decode($matches[1]);
-        return $ytcfg->VISITOR_DATA;
-    }
-    return "";
-}
-// @codeCoverageIgnoreEnd
-
 function sum_total_duration($item)
 {
     if (!isset($item->tracks)) {
@@ -61,7 +33,7 @@ function sum_total_duration($item)
     return $sum;
 }
 
-function initialize_headers()
+function initialize_headers(): array
 {
     return [
         "user-agent" => USER_AGENT,
@@ -72,6 +44,35 @@ function initialize_headers()
         "origin" => YTM_DOMAIN,
     ];
 }
+
+/**
+ * @return object
+ */
+function initialize_context()
+{
+    return (object)[
+        "client" => (object)[
+            "clientName" => "WEB_REMIX",
+            "clientVersion" => "1." . gmdate("Ymd") . ".01.00"
+        ],
+        "user" => (object)[]
+    ];
+}
+
+// @codeCoverageIgnoreStart
+function get_visitor_id(callable $request_func): string
+{
+    $response = $request_func(YTM_DOMAIN);
+    preg_match('/ytcfg\\.set\\s*\\(\\s*({.+?})\\s*\\)\\s*;/', $response, $matches);
+
+    if (count($matches) > 0) {
+        $ytcfg = json_decode($matches[1]);
+        return $ytcfg->VISITOR_DATA;
+    }
+    return "";
+}
+// @codeCoverageIgnoreEnd
+
 
 /**
  * Convert key => value headers to a form that can be used by PHP external requests.
@@ -159,26 +160,33 @@ function convert_string_to_cookies($cookiesStr)
     return $cookies;
 }
 
-function json_dump($object)
+/**
+ * @param mixed $object
+ */
+function json_dump($object): void
 {
     file_put_contents("dump.json", json_encode($object, JSON_PRETTY_PRINT));
 }
 
-function sapisid_from_cookie($raw_cookie)
+/**
+ * @param string $raw_cookie
+ */
+function sapisid_from_cookie($raw_cookie): string
 {
     $cookies = convert_string_to_cookies($raw_cookie);
     return $cookies["__Secure-3PAPISID"];
 }
 
 /**
+ * Get authorization header for YouTube Music.
+ * 
  * @param string $sapisid
- * @param string $origin
  * @return string
  */
-function get_authorization(string $sapisid, string $origin = "https://music.youtube.com"): string
+function get_authorization($sapisid): string
 {
     $timestamp = time();
-    $sha1 = sha1("{$timestamp} {$sapisid} {$origin}");
+    $sha1 = sha1("{$timestamp} {$sapisid}");
     $authorization = "SAPISIDHASH {$timestamp}_{$sha1}";
     return $authorization;
 }

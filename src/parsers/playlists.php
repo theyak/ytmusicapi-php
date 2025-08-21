@@ -19,13 +19,17 @@ function parse_playlist_header($response)
         }
     }
 
-    $playlist->title = nav($header, TITLE_TEXT);
-    $playlist->thumbnails = nav($header, THUMBNAIL_CROPPED, true);
+    $metadata = parse_playlist_header_meta($header);
+    foreach ($metadata as $key => $value) {
+        $playlist->{$key} = $value;
+    }
+
     if (empty($playlist->thumbnails)) {
-        $playlist->thumbnails = nav($header, THUMBNAILS, true);
+        $playlist->thumbnails = nav($header, THUMBNAIL_CROPPED, true);
     }
     $playlist->description = nav($header, DESCRIPTION, true);
     $run_count = count(nav($header, SUBTITLE_RUNS));
+
     if ($run_count > 1) {
         $playlist->author = (object)[
             "name" => nav($header, SUBTITLE2),
@@ -36,9 +40,6 @@ function parse_playlist_header($response)
         }
     }
 
-    $playlist->views = null;
-    $playlist->duration = null;
-    $playlist->trackCount = null;
     if (isset($header->secondSubtitle->runs)) {
         $second_subtitle_runs = $header->secondSubtitle->runs;
         $has_views = (count($second_subtitle_runs) > 3) * 2;
@@ -61,6 +62,75 @@ function parse_playlist_header($response)
         $playlist->trackCount = $song_count;
     }
 
+    return $playlist;
+}
+
+function parse_playlist_header_meta($header): array {
+    $playlist_meta = [
+        "views" => null,
+        "duration" => null,
+        "trackCount" => null,
+        "title" => implode("", array_map(function($run) {
+            return $run->text;
+        }, $header->title->runs ?? [])),
+        "thumbnails" => nav($header, THUMBNAILS),
+    ];
+    
+    if (isset($header->secondSubtitle->runs)) {
+        $second_subtitle_runs = $header->secondSubtitle->runs;
+        $has_views = (count($second_subtitle_runs) > 3) ? 2 : 0;
+        $playlist_meta["views"] = !$has_views ? null : (int)($second_subtitle_runs[0]->text);
+        $has_duration = (count($second_subtitle_runs) > 1) ? 2 : 0;
+        $playlist_meta["duration"] = !$has_duration ? null : $second_subtitle_runs[$has_views + $has_duration]->text;
+        
+        $song_count_text = $second_subtitle_runs[$has_views + 0]->text;
+        preg_match_all('/\d+/', $song_count_text, $matches);
+        $song_count_search = $matches[0];
+        
+        // extract the digits from the text, return null if no match
+        $playlist_meta["trackCount"] = !empty($song_count_search) ? intval(implode("", $song_count_search)) : null;
+    }
+    
+    return $playlist_meta;
+}
+
+function parse_audio_playlist($response, ?int $limit, callable $request_func): array {
+    $playlist = [
+        "owned" => false,
+        "privacy" => "PUBLIC",
+        "description" => null,
+        "views" => null,
+        "duration" => null,
+        "tracks" => [],
+        "thumbnails" => [],
+        "related" => [],
+    ];
+    
+    $section_list = nav($response, join(TWO_COLUMN_RENDERER, ["secondaryContents"], SECTION));
+    $content_data = nav($section_list, join(CONTENT, ["musicPlaylistShelfRenderer"]));
+    
+    $playlist["id"] = nav(
+        $content_data, 
+        join(CONTENT, MRLIR, PLAY_BUTTON, "playNavigationEndpoint", WATCH_PLAYLIST_ID)
+    );
+    
+    $playlist["trackCount"] = nav($content_data, "collapsedItemCount");
+    $playlist["tracks"] = [];
+    
+    if (isset($content_data["contents"])) {
+        $playlist["tracks"] = parse_playlist_items($content_data["contents"]);
+        
+        $parse_func = function($contents) {
+            return parse_playlist_items($contents);
+        };
+        
+        $continuation_tracks = get_continuations_2025($content_data, $limit, $request_func, $parse_func);
+        $playlist["tracks"] = array_merge($playlist["tracks"], $continuation_tracks);
+    }
+    
+    $playlist["title"] = $playlist["tracks"][0]->album->name;
+    $playlist["duration_seconds"] = sum_total_duration($playlist);
+    
     return $playlist;
 }
 
@@ -269,14 +339,22 @@ function parse_playlist_item($data, $menu_entries = null, $is_album = false)
         $track->feedbackTokens = $feedback_tokens;
     }
 
+    // Custom: Completly rewritten to work with PHP's syntax
     if ($menu_entries) {
-        // Generally feedbackToken and used for history items
+        $menu_items = nav($data, MENU_ITEMS);
         foreach ($menu_entries as $menu_entry) {
-            if (is_string($menu_entry)) {
-                $menu_entry = explode('.', $menu_entry);
+            $menu_entry = explode('.', $menu_entry);
+            $items = find_objects_by_key($menu_items, $menu_entry[0]);
+            
+            if ($items) {
+                foreach ($items as $itm) {
+                    $x = nav($itm, $menu_entry, true);
+                    if ($x) {
+                        $track->feedbackToken = $x;
+                        break;
+                    }
+                }
             }
-            $pos = end($menu_entry);
-            $track->{$pos} = nav($data, join(MENU_ITEMS, join($menu_entry)));
         }
     }
 
@@ -291,3 +369,11 @@ function validate_playlist_id($playlistId)
 
     return substr($playlistId, 2);
 }
+
+
+
+
+
+        // song[menu_entry[-1]] = next(
+        //     filter(lambda x: x is not None, (nav(itm, menu_entry, True) for itm in items)), None
+        // )

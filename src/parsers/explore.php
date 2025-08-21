@@ -16,9 +16,34 @@ define(
  */
 function parse_chart_song($data)
 {
-    $parsed = parse_song_flat($data);
+    $parsed = parse_trending_song($data);
     $parsed = (object)array_merge((array)$parsed, (array)parse_ranking($data));
     return $parsed;
+}
+
+/**
+ * @return Object
+ */
+function parse_chart_playlist($data)
+{
+    return (object)[
+        "title" => nav($data, TITLE_TEXT),
+        "playlistId" => substr(nav($data, [TITLE, NAVIGATION_BROWSE_ID]), 2),
+        "thumbnails" => nav($data, THUMBNAIL_RENDERER),
+    ];
+}
+
+
+/**
+ * @return Episode
+ */
+function parse_chart_episode($data)
+{
+    $episode = parse_episode($data);
+    unset($episode->index);
+    $episode->podcast = parse_id_name(nav($data, ["secondTitle", "runs", 0]));
+    $episode->duration = nav($data, SUBTITLE2, true);
+    return $episode;
 }
 
 /**
@@ -42,30 +67,22 @@ function parse_chart_artist($data)
 }
 
 /**
- * 1.5.2 removed this function but I think it will still be needed.
- *
  * @return array
  */
-function parse_chart_trending($data)
+function parse_trending_song($data)
 {
     $flex_0 = get_flex_column_item($data, 0);
-    $artists = parse_song_artists($data, 1);
-
-    // last item is views
-    $views = null;
-    $last = end($artists);
-    if (!$last->id) {
-        $views = explode(" ", array_pop($artists)->name)[0];
-    }
-
+    $flex_1 = get_flex_column_item($data, 1);
+    
     $parsed = [
         "title" => nav($flex_0, TEXT_RUN_TEXT),
         "videoId" => nav($flex_0, join(TEXT_RUN, NAVIGATION_VIDEO_ID), true),
+        ...parse_song_runs(nav($flex_1, TEXT_RUNS)), // Gets artists and views
         "playlistId" => nav($flex_0, join(TEXT_RUN, NAVIGATION_PLAYLIST_ID), true),
-        "artists" => $artists,
         "thumbnails" => nav($data, THUMBNAILS),
-        "views" => $views
+        "isExplicit" => !!nav($data, BADGE_LABEL, true),
     ];
+
     return $parsed;
 }
 

@@ -84,11 +84,6 @@ class Description
         return $this->getItem($item);
     }
 
-    public function __toString1()
-    {
-        return $this->getText();
-    }
-
     /**
      * parse the description runs into a usable format
      *
@@ -127,6 +122,7 @@ namespace Ytmusicapi;
 
 /**
  * parse common left hand side (header) items of an episode or podcast page
+ * Note: Schema for author has changed as of 1.11.0
  *
  * @param object $header
  * @return object
@@ -134,12 +130,16 @@ namespace Ytmusicapi;
 function parse_base_header($header)
 {
     $strapline = nav($header, "straplineTextOne");
+
+    $author = (object)[
+        "name" => nav($strapline, RUN_TEXT, true),
+        "id" => nav($strapline, join("runs.0", NAVIGATION_BROWSE_ID), true),
+    ];
+
     return (object)[
-        "author" => (object)[
-            "name" => nav($strapline, RUN_TEXT),
-            "id" => nav($strapline, join("runs.0", NAVIGATION_BROWSE_ID), true),
-        ],
+        "author" => !empty($author->name) ? $author : null,
         "title" => nav($header, TITLE_TEXT),
+        "thumbnails" => nav($header, THUMBNAILS),
     ];
 }
 
@@ -193,7 +193,7 @@ function parse_episode_header($header)
  * Parses a single episode under "Episodes" on a channel page or on a podcast page
  *
  * @param object $results
- * @return Episode[]
+ * @return Episode
  */
 function parse_episode($data)
 {

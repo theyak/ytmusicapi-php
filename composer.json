@@ -29,10 +29,10 @@
 		}
 	},
 	"require-dev": {
-		"pestphp/pest": "^2.26",
 		"pestphp/pest-plugin": "^2.1",
 		"pestphp/pest-plugin-type-coverage": "^2.5",
 		"laravel/pint": "^1.13",
-		"mockery/mockery": "^1.6"
+		"mockery/mockery": "^1.6",
+		"pestphp/pest": "^2.36"
 	}
 }

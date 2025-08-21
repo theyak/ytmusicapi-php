@@ -36,7 +36,7 @@ function parse_uploaded_items($results)
         $thumbnails = isset($data->thumbnail) ? nav($data, THUMBNAILS) : null;
         $duration = null;
         if (isset($data->fixedColumns)) {
-            $duration = get_fixed_column_item($data, 0)->text->runs[0]->text;
+            $duration = nav(get_fixed_column_item($data, 0), TEXT_RUN_TEXT);
         }
         $song = new UploadTrack();
         $song->entityId = $entityId;

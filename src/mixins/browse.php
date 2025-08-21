@@ -68,9 +68,7 @@ trait Browse
                 return $this->_send_request($endpoint, $body, $additionalParams);
             };
 
-            $parse_func = function ($contents) {
-                return parse_mixed_content($contents);
-            };
+            $parse_func = fn ($contents) => parse_mixed_content($contents);
 
             $continuations = get_continuations($section_list, "sectionListContinuation", $limit - count($home), $request_func, $parse_func);
             $home = array_merge($home, $continuations);
@@ -200,9 +198,7 @@ trait Browse
             return $this->_send_request($endpoint, $body, $additionalParams);
         };
 
-        $parse_func = function ($contents) {
-            return parse_albums($contents);
-        };
+        $parse_func = fn ($contents) => parse_albums($contents);
 
         if ($order) {
             $sort_options = nav(
@@ -287,25 +283,27 @@ trait Browse
         $album = parse_album_header_2024($response);
         $results = nav($response, join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION_LIST_ITEM, MUSIC_SHELF), true);
 
+        $album->id = $browseId;
         $album->tracks = parse_playlist_items($results->contents, null, true);
 
-        $other_versions = nav(
-            $response,
-            join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION_LIST, 1, CAROUSEL)
-        );
-        if ($other_versions) {
-            $album->other_versions = parse_content_list($other_versions->contents, "Ytmusicapi\\parse_album");
+        $secondary_carousels = nav($response, join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION_LIST), true) ?? [];
+    
+        foreach (array_slice($secondary_carousels, 1) as $section) {
+            $carousel = nav($section, CAROUSEL);
+            $key_map = [
+                "COLLECTION_STYLE_ITEM_SIZE_SMALL" => "related_recommendations",
+                "COLLECTION_STYLE_ITEM_SIZE_MEDIUM" => "other_versions"
+            ];
+            $key = $key_map[$carousel->itemSize];
+            $album->$key = parse_content_list($carousel->contents, 'Ytmusicapi\\parse_album');
         }
 
-        $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST, 1, CAROUSEL), true);
-        if ($results) {
-            $album->other_versions = parse_content_list($results->contents, "Ytmusicapi\\parse_album"); // Probably need a function to parse album
-        }
         $album->duration_seconds = sum_total_duration($album);
         foreach ($album->tracks as $i => $track) {
             $album->tracks[$i]->album = $album->title;
             $album->tracks[$i]->artists = $album->tracks[$i]->artists ?: $album->artists;
         }
+
         return $album;
     }
 
@@ -314,7 +312,7 @@ trait Browse
      * Each album has a browseId that can used to get more information.
      * You can find the $audioPlaylistId by clicking on an album
      * title in YouTube Music and looking at the URL. The
-     * $audoPlaylistId will show in the `list` parameter.
+     * $audioPlaylistId will show in the `list` parameter.
      *
      * @param string $audioPlaylistId id of the audio playlist  (starting with `OLAK5uy_`)
      * @return string|null browseId (starting with `MPREb_`)
@@ -565,7 +563,8 @@ trait Browse
 
     /**
      * Returns transcript of song or video, which includes start time and duration.
-     * Not all songs have a transcript, and those will return an empty array
+     * Not all videos have a transcript, and I think most songs have moved their
+     * data to lyrics, removing the need for this function in most cases.
      *
      * @param string $videoId Video ID
      * @return object[] Transcript of the song or video
@@ -576,6 +575,7 @@ trait Browse
         $endpoint = "player";
         $body = ["videoId" => $videoId];
         $response = $this->_send_request($endpoint, $body);
+
         $url = nav($response, "captions.playerCaptionsTracklistRenderer.captionTracks.0.baseUrl", true);
         if ($url) {
             $response = $this->_session->post(
@@ -598,6 +598,21 @@ trait Browse
                     }
                 }
             }
+        } else {
+            $playlist = $this->get_watch_playlist($videoId);
+            if (!empty($playlist->lyrics)) {
+                $lyrics = $this->get_lyrics($playlist->lyrics, true);
+                if (!empty($lyrics->lyrics)) {
+                    foreach ($lyrics->lyrics as $lyric) {
+                        $line = (object)[
+                            'start' => $lyric->start_time,
+                            'duration' => $lyric->end_time - $lyric->start_time,
+                            'text' => $lyric->text
+                        ];
+                        $transcript[] = $line;
+                    }
+                }
+            }
         }
 
         return $transcript;
@@ -605,41 +620,73 @@ trait Browse
 
 
     /**
-     * Returns lyrics of a song or video. Note that not all songs have lyrics.
-     * You may have an empty result if there are no lyrics.
+     * Returns lyrics of a song or video. When `$timestamps` is set, lyrics are returned with
+     * timestamps, if available.
      *
      * @param string $browseId Lyrics browse id obtained from `get_watch_playlist`.
      *   This is not the same as the videoId.
-     * @return Lyrics
+     * @param bool $timestamps Whether to return bare lyrics or lyrics with timestamps, if available. (Default: `False`)
+     * @return Lyrics|TimedLyrics
      *
      * Example:
      *  $playlist = $yt->get_watch_playlist($playlistId);
      *  $lyrics = $yt->get_lyrics($playlist->lyrics);
      *
      * Returns:
-     * 	(object)[
-     * 		"lyrics" => "Today is gonna be the day\\nThat they're gonna throw it back to you\\n",
-     * 		"source" => "Source: LyricFind"
-     * 	]
+     *  - Lyrics[]
+     *  - null if no lyrics are found
      */
-    public function get_lyrics($browseId)
+    public function get_lyrics($browseId, $timestamps = false)
     {
         $lyrics = (object)[];
 
         if (!is_string($browseId)) {
             throw new YTMusicUserError("Invalid browseId provided. This song might not have lyrics.");
         }
+        
+        if ($timestamps) {
+            // Custom: This function seems to fail when authenticated. Use non-authenticated request instead.
+            // Also failed in Python version when authenticated.
+            $client = new YTMusic();
+            $response = $client->_send_mobile_request("browse", ["browseId" => $browseId]);
+        } else {
+            $response = $this->_send_request("browse", ["browseId" => $browseId]);
+        }
 
-        $response = $this->_send_request("browse", ["browseId" => $browseId]);
+        $data = nav($response, TIMESTAMPED_LYRICS, true);
 
-        $lyrics->lyrics = nav($response, join("contents", SECTION_LIST_ITEM, DESCRIPTION_SHELF, DESCRIPTION), true);
-        $lyrics->source = nav($response, join("contents", SECTION_LIST_ITEM, DESCRIPTION_SHELF, "footer", RUN_TEXT), true);
+        if ($timestamps && $data) {
+            if (empty($data->timedLyricsData)) {
+                return null;
+            }
+
+            $lyrics = new TimedLyrics(
+                array_map(fn ($item) => LyricLine::from_raw($item), $data->timedLyricsData),
+                $data->sourceMessage,
+            );
+        } else {
+            $lyrics_str = nav($response, join("contents", SECTION_LIST_ITEM, DESCRIPTION_SHELF, DESCRIPTION), true);
+
+            if (empty($lyrics_str)) {
+                return null;
+            }
+
+            $source = nav($response, join("contents", SECTION_LIST_ITEM, DESCRIPTION_SHELF, RUN_TEXT), true);
+            if (!$source) {
+                $source = nav($response, join("contents", SECTION_LIST_ITEM, DESCRIPTION_SHELF, "footer", RUN_TEXT), true);
+            }
+
+            $lyrics = new Lyrics(
+                $lyrics_str,
+                $source
+            );
+        }
 
         return $lyrics;
     }
 
     /**
-     * Fetches suggested artists from taste profile (music.youtube.com/tasteprofile).
+     * Fetches suggested artists from taste profile (music.youtube.com/tasteprofile). Must be authenticated.
      * Tasteprofile allows users to pick artists to update their recommendations.
      * Only returns a list of suggested artists, not the actual list of selected entries.
      * Same results appear whether authenticated or not.
@@ -666,6 +713,8 @@ trait Browse
      */
     public function get_tasteprofile()
     {
+        $this->_check_auth();
+        
         $response = $this->_send_request("browse", ["browseId" => "FEmusic_tastebuilder"]);
         $profiles = nav($response, TASTE_PROFILE_ITEMS);
 

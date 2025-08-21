@@ -2,6 +2,73 @@
 
 namespace Ytmusicapi;
 
+
+function get_continuation_token($results): ?string
+{
+    $CONTINUATION_TOKENS = "continuationItemRenderer.continuationEndpoint.continuationCommand.token";
+    return nav(end($results), $CONTINUATION_TOKENS, true);   
+}
+
+/**
+ * @param object $results
+ * @param int|null $limit
+ * @param callable $request_func
+ * @param callable $parse_func
+ * @return array
+ */
+function get_continuations_2025($results, $limit, $request_func, $parse_func)
+{
+    $CONTINUATION_ITEMS = "onResponseReceivedActions.0.appendContinuationItemsAction.continuationItems";
+
+    $items = [];
+    $continuation_token = get_continuation_token($results->contents);
+    
+    while ($continuation_token && ($limit === null || count($items) < $limit)) {
+        $response = $request_func(["continuation" => $continuation_token]);
+        $continuation_items = nav($response, $CONTINUATION_ITEMS, true);
+        if (!$continuation_items) {
+            break;
+        }
+
+        $contents = $parse_func($continuation_items);
+        if (count($contents) <= 0) {
+            break;
+        }
+        $items = array_merge($items, $contents);
+        $continuation_token = get_continuation_token($continuation_items);
+    }
+
+    return $items;
+}
+
+/**
+ * Reloadable continuations are a special case that only exists on the playlists page (suggestions).
+ * 
+ * @param object $results
+ * @param string $continuation_type
+ * @param int|null $limit
+ * @param callable $request_func
+ * @param callable $parse_func
+ * @return array
+ */
+function get_reloadable_continuations($results, $continuation_type, $limit, $request_func, $parse_func)
+{
+    $additionalParams = get_reloadable_continuation_params($results);
+    return get_continuations($results, $continuation_type, $limit, $request_func, $parse_func, $additionalParams);
+}
+
+/**
+ * @param object $results result list from request data
+ * @param string $continuation_type type of continuation,
+ *    determines which subkey will be used to navigate the continuation return data
+ * @param int|null $limit determines minimum of how many items to retrieve in total.
+ *    Null to retrieve all items until no more continuations are returned
+ * @param callable $request_func the request func to use to get the continuations
+ * @param callable $parse_func the parse func to apply on the returned continuations
+ * @param string $ctoken_path rarely used specifier applied to retrieve the ctoken ("next<ctoken_path>ContinuationData").
+ * @param string $additionalParams additional params to pass to the request func. Default: use get_continuation_params
+ * @return array list of parsed continuation results
+ */
 function get_continuations(
     $results,
     $continuation_type,
@@ -9,15 +76,13 @@ function get_continuations(
     $request_func,
     $parse_func,
     $ctoken_path = "",
-    $reloadable = false
+    $additionalParams = ""
 ) {
     $items = [];
 
     while (isset($results->continuations) && ($limit === null || count($items) < $limit)) {
-        $additionalParams = $reloadable
-            ? get_reloadable_continuation_params($results)
-            : get_continuation_params($results, $ctoken_path);
-        $response = $request_func($additionalParams);
+        $additional_params = $additionalParams ?: get_continuation_params($results, $ctoken_path);
+        $response = $request_func($additional_params);
 
         if (isset($response->continuationContents)) {
             $results = $response->continuationContents->$continuation_type;
@@ -34,6 +99,15 @@ function get_continuations(
     return $items;
 }
 
+/**
+ * @param object $results
+ * @param string $continuation_type
+ * @param int $limit
+ * @param int $per_page
+ * @param callable $request_func
+ * @param callable $parse_func
+ * @param string $ctoken_path
+ */
 function get_validated_continuations(
     $results,
     $continuation_type,
@@ -67,23 +141,23 @@ function get_validated_continuations(
     return $items;
 }
 
+/**
+ * @param object $response
+ * @param callable $parse_func
+ * @param string $continuation_type
+ * @return array
+ */
 function get_parsed_continuation_items($response, $parse_func, $continuation_type)
 {
     $results = $response->continuationContents->$continuation_type;
     return ['results' => $results, 'parsed' => get_continuation_contents($results, $parse_func)];
 }
 
-function get_reloadable_continuation_params($results)
-{
-    $ctoken = nav($results, ['continuations', 0, 'reloadContinuationData', 'continuation']);
-    return get_continuation_string($ctoken);
-}
-
-function get_continuation_string($ctoken)
-{
-    return "&ctoken=" . $ctoken . "&continuation=" . $ctoken;
-}
-
+/**
+ * @param object $results
+ * @param string $ctoken_path
+ * @return string
+ */
 function get_continuation_params($results, $ctoken_path = '')
 {
     $continuations = nav($results, 'continuations');
@@ -94,6 +168,30 @@ function get_continuation_params($results, $ctoken_path = '')
     }
 }
 
+/**
+ * @param object $results
+ * @return string
+ */
+function get_reloadable_continuation_params($results)
+{
+    $ctoken = nav($results, ['continuations', 0, 'reloadContinuationData', 'continuation']);
+    return get_continuation_string($ctoken);
+}
+
+/**
+ * @param string $ctoken
+ * @return string
+ */
+function get_continuation_string($ctoken)
+{
+    return "&ctoken=" . $ctoken . "&continuation=" . $ctoken;
+}
+
+/**
+ * @param object $continuation
+ * @param callable $parse_func
+ * @return array
+ */
 function get_continuation_contents($continuation, $parse_func)
 {
     foreach (['contents', 'items'] as $term) {
@@ -104,6 +202,14 @@ function get_continuation_contents($continuation, $parse_func)
     return [];
 }
 
+/**
+ * @param callable $request_func
+ * @param string $request_additional_params
+ * @param callable $parse_func
+ * @param callable $validate_func
+ * @param int $max_retries
+ * @return object
+ */
 function resend_request_until_parsed_response_is_valid(
     $request_func,
     $request_additional_params,
@@ -125,6 +231,13 @@ function resend_request_until_parsed_response_is_valid(
     return (object)$parsed_object;
 }
 
+/**
+ * @param object $response
+ * @param int $per_page
+ * @param int $limit
+ * @param int $current_count
+ * @return bool
+ */
 function validate_response($response, $per_page, $limit, $current_count)
 {
     $response = (object)$response;

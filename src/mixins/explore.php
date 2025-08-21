@@ -63,89 +63,59 @@ trait Explore
     }
 
     /**
-     * Get the latest data from YouTube Music: Top songs, top videos, top artists and top trending videos.
-     * Global charts have no Trending section, US charts have an extra Genres section with some Genre charts.
+     * Get latest explore data from YouTube Music.
+     * The Top Songs chart is only returned when authenticated with a premium account.
      *
-     * @param string $country ISO 3166-1 Alpha-2 country code. Default: ZZ = Global
-     * @return array Dictionary containing chart songs (only if authenticated with premium account), chart videos, chart artists and
+     * @return array Array containing new album releases, top songs (if authenticated with a premium account), moods & genres, popular episodes, trending tracks, and new music videos.
      */
-    public function get_charts($country = "ZZ")
+    public function get_explore()
     {
-        $body = ['browseId' => 'FEmusic_charts'];
-        if ($country) {
-            $body['formData'] = ['selectedValues' => [$country]];
-        }
-        $endpoint = 'browse';
-        $response = $this->_send_request($endpoint, $body);
-        $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST));
+        $body = ['browseId' => 'FEmusic_explore'];
+        
+        $response = $this->_send_request("browse", $body);
+        $results = nav($response, [SINGLE_COLUMN_TAB, SECTION_LIST]);
 
-        $charts = ['countries' => []];
-        $menu = nav(
-            $results[0],
-            join(MUSIC_SHELF, 'subheaders.0.musicSideAlignedItemRenderer.startItems.0.musicSortFilterButtonRenderer')
-        );
-        $charts['countries']['selected'] = nav($menu, TITLE);
-        $charts['countries']['options'] = [];
+        $explore = [];
+        foreach ($results as $result) {
+            $browse_id = nav($result, [CAROUSEL, CAROUSEL_TITLE, NAVIGATION_BROWSE_ID], true);
+            if ($browse_id === null) {
+                continue;
+            }
 
-        $mutations = nav($response, FRAMEWORK_MUTATIONS);
-        foreach ($mutations as $m) {
-            $token = nav($m, 'payload.musicFormBooleanChoice.opaqueToken', true);
-            if ($token) {
-                $charts['countries']['options'][] = $token;
+            $contents = nav($result, [CAROUSEL_CONTENTS]);
+            switch ($browse_id) {
+                case "FEmusic_new_releases_albums":
+                    $explore["new_releases"] = parse_content_list($contents, "Ytmusicapi\\parse_album");
+                    break;
+                case "FEmusic_moods_and_genres":
+                    $explore["moods_and_genres"] = array_map(function($genre) {
+                        return [
+                            "title" => nav($genre, CATEGORY_TITLE),
+                            "params" => nav($genre, CATEGORY_PARAMS)
+                        ];
+                    }, nav($result, [CAROUSEL_CONTENTS]));
+                    break;
+                case "FEmusic_top_non_music_audio_episodes":
+                    $explore["top_episodes"] = parse_content_list($contents, fn ($item) => parse_chart_episode($item), MMRIR);
+                    break;
+                case "FEmusic_new_releases_videos":
+                    $explore["new_videos"] = parse_content_list($contents, fn ($item) => parse_video($item), MTRIR);
+                    break;
+                default:
+                    if (str_starts_with($browse_id, "VLPL")) {
+                        $explore["top_songs"] = [
+                            "playlist" => $browse_id,
+                            "items" => parse_content_list($contents, fn ($item) => parse_chart_song($item), MRLIR)
+                        ];
+                    } else if (str_starts_with($browse_id, "VLOLA")) {
+                        $explore["trending"] = [
+                            "playlist" => $browse_id,
+                            "items" => parse_content_list($contents, fn ($item) => parse_trending_song($item), MRLIR)
+                        ];
+                    }
             }
         }
 
-        $charts_categories = ['videos', 'artists'];
-
-        $has_genres = $country === 'US';
-        $has_trending = $country !== "ZZ";
-
-        // Either songs or videos will be in position 1.
-        // It seems like premium accounts have songs, free accounts don't.
-        // $has_songs = !!nav($results[1], join(CAROUSEL_CONTENTS, '0', MRLIR), true);
-
-        $has_songs = (count($results) - 1) > (count($charts_categories) + (int)$has_genres + (int)$has_trending);
-
-        if ($has_songs) {
-            array_unshift($charts_categories, 'songs');
-        }
-        if ($has_genres) {
-            $charts_categories[] = 'genres';
-        }
-        if ($has_trending) {
-            $charts_categories[] = 'trending';
-        }
-
-        $parse_chart = function ($i, $parse_func, $key) use ($results, $has_songs) {
-            return parse_content_list(
-                nav($results[$i + (int)$has_songs], CAROUSEL_CONTENTS),
-                $parse_func,
-                $key
-            );
-        };
-
-        foreach ($charts_categories as $i => $c) {
-            $charts[$c] = [
-                'playlist' => nav($results[1 + $i], join(CAROUSEL, CAROUSEL_TITLE, NAVIGATION_BROWSE_ID), true),
-                'title' => nav($results[1 + $i], join(CAROUSEL, CAROUSEL_TITLE, "text"), true),
-            ];
-        }
-
-        if ($has_songs) {
-            $charts['songs'] = ['items' => $parse_chart(0, 'Ytmusicapi\\parse_chart_song', MRLIR)];
-        }
-
-        $charts['videos'] = ['items' => $parse_chart(1, 'Ytmusicapi\\parse_video', MTRIR)];
-        $charts['artists'] = ['items' => $parse_chart(2, 'Ytmusicapi\\parse_chart_artist', MRLIR)];
-
-        if ($has_genres) {
-            $charts['genres'] = $parse_chart(3, 'Ytmusicapi\\parse_playlist', MTRIR);
-        }
-
-        if ($has_trending) {
-            $charts['trending'] = ['items' => $parse_chart(3 + (int)$has_genres, 'Ytmusicapi\\parse_chart_trending', MRLIR)];
-        }
-
-        return $charts;
+        return $explore;
     }
 }

@@ -7,6 +7,7 @@ trait I18n
     public function get_search_result_types()
     {
         return [
+            $this->_('album'),
             $this->_('artist'),
             $this->_('playlist'),
             $this->_('song'),
@@ -18,6 +19,15 @@ trait I18n
         ];
     }
 
+    function get_api_result_types() 
+    {
+        return [
+            $this->_("single"),
+            $this->_("ep"),
+            ...$this->get_search_result_types()
+        ];
+    }
+
     /**
      * Get data related to various categories of an artists.
      */
@@ -25,7 +35,7 @@ trait I18n
     {
         $categories = [
             ["albums", $this->_("albums"), "Ytmusicapi\parse_album", MTRIR],
-            ["singles", $this->_("singles"), "Ytmusicapi\parse_single", MTRIR],
+            ["singles", $this->_("singles & eps"), "Ytmusicapi\parse_single", MTRIR],
             ["shows", $this->_("Audiobooks and shows"), "Ytmusicapi\parse_album", MTRIR],
             ["videos", $this->_("videos"), "Ytmusicapi\parse_video", MTRIR],
             ["playlists", $this->_("playlists"), "Ytmusicapi\parse_playlist", MTRIR],

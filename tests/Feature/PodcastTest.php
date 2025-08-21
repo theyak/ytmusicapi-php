@@ -3,7 +3,7 @@
 use Ytmusicapi\YTMusic;
 
 test('get_podcast', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $podcast_id = $this->podcast_id;
     $podcast = $yt->get_podcast($podcast_id);
     expect(count($podcast->episodes))->toBeLessThanOrEqual(100);
@@ -11,13 +11,13 @@ test('get_podcast', function () {
 });
 
 test('many_podcasts', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $podcast = $yt->search("podcast", filter: "podcasts");
     expect(count($podcast))->toBeGreaterThan(0);
 });
 
 test('get_episode', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $episode_id = $this->episode_id;
     $result = $yt->get_episode($episode_id);
     expect(strlen($result->description->text))->toBeGreaterThan(50);
@@ -26,7 +26,7 @@ test('get_episode', function () {
 });
 
 test('many_episodes', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $results = $yt->search("episode", filter: "episodes");
     expect(count($results))->toBeGreaterThan(0);
     foreach ($results as $result) {
@@ -38,7 +38,7 @@ test('many_episodes', function () {
 test("get_channel", function () {
     $channel_id = "UCGwuxdEeCf0TIA2RbPOj-8g"; // Stanford Graduate School of Business
 
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $channel = $yt->get_channel($channel_id);
     expect(count($channel->episodes->results))->toBe(10);
     expect(count($channel->podcasts->results))->toBeGreaterThan(4);
@@ -47,7 +47,7 @@ test("get_channel", function () {
 test("get_channel_episodes", function () {
     $channel_id = "UCGwuxdEeCf0TIA2RbPOj-8g"; // Stanford Graduate School of Business
 
-    $yt = new YTMusic("oauth.yaml");
+    $yt = ytauth();
     $channel = $yt->get_channel($channel_id);
     $channel_episodes = $yt->get_channel_episodes($channel_id, $channel->episodes->params);
     expect(count($channel_episodes))->toBeGreaterThan(150);
@@ -56,13 +56,13 @@ test("get_channel_episodes", function () {
 
 // Requires new episodes of subscribed podcasts.
 test("get_episodes_playlist", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $playlist = $yt->get_episodes_playlist();
     expect(count($playlist->episodes))->toBeGreaterThan(1);
 })->skip("Not working - response format seems to have changed.");
 
 test("get_episodes_playlist - unauthorized", function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $playlist = $yt->get_episodes_playlist();
     expect(count($playlist->episodes))->toBeGreaterThan(1);
 })->throws(\Exception::class);

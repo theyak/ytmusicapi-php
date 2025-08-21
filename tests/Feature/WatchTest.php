@@ -3,35 +3,35 @@
 use Ytmusicapi\YTMusic;
 
 test('get_watch_playlist() - radio, standard number of tracks', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
 
     $playlist = $yt->get_watch_playlist(playlistId: $this->watchPlaylistId, radio: true);
     expect(count($playlist->tracks))->toBe(50);
 });
 
 test('get_watch_playlist() - based on track', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
 
     $playlist = $yt->get_watch_playlist($this->videoId, limit: 50);
     expect(count($playlist->tracks))->toBeGreaterThanOrEqual(45);
 });
 
 test("get_watch_playlist() - radio, lots of tracks", function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
 
     $playlist = $yt->get_watch_playlist(playlistId: $this->watchPlaylistId, radio: true, limit: 90);
     expect(count($playlist->tracks))->toBeGreaterThanOrEqual(90);
 });
 
 test("get_watch_playlist() - suffled album", function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
 
     $playlist = $yt->get_watch_playlist(playlistId: "OLAK5uy_lCl8VFn-xBO9PlDF2E0FXSjhaU0dLJP9I", shuffle: true);
     expect(count($playlist->tracks))->toBe(12);
 });
 
 test('get_track() - Unauthorized', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $track = $yt->get_track("JTvNVxk1WnU");
 
     expect($track::class)->toBe("Ytmusicapi\\WatchTrack");
@@ -57,7 +57,7 @@ test('get_track() - Unauthorized', function () {
 });
 
 test('get_track() - Authorized', function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
     $track = $yt->get_track("JTvNVxk1WnU");
 
     expect($track::class)->toBe("Ytmusicapi\\WatchTrack");

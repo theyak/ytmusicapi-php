@@ -8,7 +8,7 @@ trait Uploads
      * Returns a list of uploaded songs
      *
      * @param int $limit How many songs to return. `null` retrieves them all. Default: 25
-     * @param string $order Order of songs to return. Allowed values: 'a_to_z', 'z_to_a', 'recently_added'. Default: Default order.
+     * @param 'a_to_z'|'z_to_a'|'recently_added' $order Order of songs to return. Allowed values: 'a_to_z', 'z_to_a', 'recently_added'. Default: Default order.
      * @return array List of uploaded songs.
      */
     public function get_library_upload_songs($limit = 25, $order = null)
@@ -171,30 +171,36 @@ trait Uploads
             throw new YTMusicUserError("The provided file type is not supported by YouTube Music. Supported file types are " . implode(', ', $supported_filetypes));
         }
 
-        $headers = $this->headers;
+        $headers = $this->headers();
         $upload_url = "https://upload.youtube.com/upload/usermusic/http?authuser=" . $headers['x-goog-authuser'];
         $filesize = filesize($filepath);
+        if ($filesize > 314572800) { // 300MB in bytes
+            $msg = "File {$filepath} has size {$filesize} bytes, which is larger than the limit of 300MB";
+            throw new YTMusicUserError($msg);
+        }
+        
         $body = "filename=" . basename($filepath);
         unset($headers['content-encoding']);
         $headers['content-type'] = 'application/x-www-form-urlencoded;charset=utf-8';
         $headers['X-Goog-Upload-Command'] = 'start';
         $headers['X-Goog-Upload-Header-Content-Length'] = $filesize;
         $headers['X-Goog-Upload-Protocol'] = 'resumable';
+
         $options = [];
         if ($this->proxies) {
             $options['proxy'] = $this->proxies;
         }
-        $response = $this->session->post($upload_url, $headers, $body, $options);
+        $response = $this->_session->post($upload_url, $headers, $body, $options);
 
         $headers['X-Goog-Upload-Command'] = 'upload, finalize';
         $headers['X-Goog-Upload-Offset'] = '0';
         $upload_url = $response->headers['X-Goog-Upload-URL'];
-        $response = $this->session->post($upload_url, $headers, file_get_contents($filepath), $options);
+        $response = $this->_session->post($upload_url, $headers, file_get_contents($filepath), $options);  
 
         if ($response->status_code === 200) {
             return 'STATUS_SUCCEEDED';
         } else {
-            return $response;
+            return (string)$response->error;
         }
     }
 

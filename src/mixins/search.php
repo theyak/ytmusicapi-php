@@ -101,16 +101,16 @@ trait Search
         }
 
         // set filter for parser
+        $result_type = null;
         if ($filter && strpos($filter, "playlists") !== false) {
             $filter = "playlists";
         } elseif ($scope === "uploads") {
             $filter = "uploads";
+            $result_type = "upload";
         }
 
         foreach ($section_list as $res) {
-            $result_type = null;
             $category = null;
-            $search_result_types = $this->get_search_result_types();
 
             if (isset($res->musicCardShelfRenderer)) {
                 $top_result = parse_top_result(
@@ -142,9 +142,11 @@ trait Search
                 continue;
             }
 
+            $api_search_result_types = $this->get_api_result_types();
+
             $search_results = array_merge(
                 $search_results,
-                parse_search_results($shelf_contents, $search_result_types, $result_type, $category)
+                parse_search_results($shelf_contents, $api_search_result_types, $result_type, $category)
             );
 
             if ($filter) {  // if filter is set, there are continuations
@@ -152,8 +154,8 @@ trait Search
                     return $this->_send_request($endpoint, $body, $additionalParams);
                 };
 
-                $parse_func = function ($contents) use ($search_result_types, $result_type, $category) {
-                    return parse_search_results($contents, $search_result_types, $result_type, $category);
+                $parse_func = function ($contents) use ($api_search_result_types, $result_type, $category) {
+                    return parse_search_results($contents, $api_search_result_types, $result_type, $category);
                 };
 
                 $search_results = array_merge(
@@ -181,7 +183,8 @@ trait Search
      *   suggestion along with the complete text (like many search services
      *   usually bold the text typed by the user).
      *   Default: False, returns the list of search suggestions in plain text.
-     * @return array List of search suggestion results depending on $detailed_runs param.
+     * @return array A list of search suggestions. If ``detailed_runs`` is False, it returns plain text suggestions.
+     *   If $detailed_runs is true, it returns a list of dictionaries with detailed information.
      */
     public function get_search_suggestions($query, $detailed_runs = false)
     {
@@ -189,8 +192,69 @@ trait Search
         $endpoint = 'music/get_search_suggestions';
 
         $response = $this->_send_request($endpoint, $body);
-        $search_suggestions = parse_search_suggestions($response, $detailed_runs);
+        return parse_search_suggestions($response, $detailed_runs);
+    }
 
-        return $search_suggestions;
+    /**
+     * Remove search suggestion from the user search history.
+     * 
+     * Example usage:
+     *   $suggestions = $ytmusic->get_search_suggestions("fade", true);
+     *   $success = $ytmusic->remove_search_suggestions($suggestions, [0]);
+     *   if ($success) {
+     *       echo "Suggestion removed successfully";
+     *   } else {
+     *       echo "Failed to remove suggestion";
+     *   }
+     *
+     * @param array $suggestions The dictionary obtained from `get_search_suggestions()`
+     *   (with $detailed_runs=true)`
+     * @param array|null $indices Optional. The indices of the suggestions to be removed. Default: remove all suggestions.
+     * @return bool true if the operation was successful, false otherwise.
+     * 
+     * @throws YTMusicUserError If no search result from history is provided.
+     * @throws YTMusicUserError If the index is out of range.
+     */
+    public function remove_search_suggestions($suggestions, $indices = null)
+    {
+        $found = false;
+        foreach ($suggestions as $run) {
+            if (!empty($run->fromHistory)) {
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            throw new YTMusicUserError(
+                "No search result from history provided. " .
+                "Please run get_search_suggestions first to retrieve suggestions. " .
+                "Ensure that you have searched a similar term before."
+            );
+        }
+        
+        if (!$indices) {
+            $indices = range(0, count($suggestions) -  1);
+        }
+
+        foreach ($indices as $index) {
+            if ($index >= count($suggestions)) {
+                throw new YTMusicUserError("Index out of range. Index must be smaller than the length of suggestions");
+            }
+        }
+
+        $feedback_tokens = array_map(function ($index) use ($suggestions) {
+            return $suggestions[$index]->feedbackToken;
+        }, $indices);
+
+        $feedback_tokens = array_filter($feedback_tokens);
+        if (empty($feedback_tokens)) {
+            return false;
+        }
+
+        $body = ["feedbackTokens" => $feedback_tokens];
+        $endpoint = "feedback";
+        $response = $this->_send_request($endpoint, $body);
+        return (bool)(nav($response, "feedbackResponses.0.isProcessed", true));
     }
 }

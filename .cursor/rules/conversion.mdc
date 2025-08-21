@@ -1,0 +1,9 @@
+---
+description: Conversion from Python
+globs:
+alwaysApply: true
+---
+
+- Prefer objects over arrays.
+- Reference the Python code for variable and function names. Names should remain the same.
+- Make the PHP logic as close as possible to the original Python logic.

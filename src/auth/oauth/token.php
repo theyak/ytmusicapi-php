@@ -2,29 +2,22 @@
 
 namespace Ytmusicapi;
 
+use WpOrg\Requests\Utility\CaseInsensitiveDictionary as CaseInsensitiveDict;
+
 /**
  * Base class representation of the YouTubeMusicAPI OAuth token.
  */
 class Token
 {
-    /**
-     * @var string
-     */
-    public $scope;
-
-    /**
-     * @var string
-     */
-    public $token_type;
-
+    public string $scope;
+    public string $token_type = "Bearer";
     public string $access_token;
     public string $refresh_token;
-    public int $expires_at = 0;
-    public int $expires_in = 0;
+    public ?int $expires_at = 0;
+    public ?int $expires_in = 0;
+    public ?string $filepath = "";
 
-    public string $filepath = "";
-
-    public static function members()
+    public static function members(): array
     {
         return array_keys(get_class_vars("Ytmusicapi\Token"));
     }
@@ -49,12 +42,17 @@ class Token
      */
     public function as_auth()
     {
+        $this->refresh_token();
         return "{$this->token_type} {$this->access_token}";
     }
 
     public function is_expiring()
     {
         return $this->expires_in < 60;
+    }
+
+    public function refresh_token()
+    {
     }
 }
 
@@ -65,6 +63,9 @@ class OAuthToken extends Token
 {
     /**
      * Check if all keys in Token members exist in headers.
+     *
+     * @param CaseInsensitiveDict $headers
+     * @return bool
      */
     public static function is_oauth($headers)
     {
@@ -83,8 +84,10 @@ class OAuthToken extends Token
      * Update access_token and expiration attributes with a BaseTokenDict inplace.
      * expires_at attribute set using current epoch, avoid expiration desync
      * by passing only recently requested tokens dicts or updating values to compensate.
+     *
+     * @param BaseTokenDict $fresh_access
      */
-    public function update($fresh_access)
+    public function update($fresh_access): void
     {
         $this->access_token = $fresh_access->access_token;
         $this->expires_at = time() + $fresh_access->expires_in;
@@ -95,12 +98,14 @@ class OAuthToken extends Token
         return $this->expires_at - time() < 60;
     }
 
-    public static function from_json($file_path)
+    public static function from_json($file_path): ?self
     {
         if (file_exists($file_path)) {
             $file_pack = json_decode(file_get_contents($file_path), true);
             return new self($file_pack);
         }
+
+        return null;
     }
 }
 
@@ -114,13 +119,21 @@ class RefreshingToken extends OAuthToken
     /**
      * credentials used for access_token refreshing
      */
-    public $credentials = null;
+    public Credentials $credentials;
 
     /**
-     * @var string
      * filename to store token json
      */
-    public $_local_cache = null;
+    public ?string $_local_cache = null;
+
+    public function __construct($credentials, $local_cache = null, $headers = [])
+    {
+        $this->credentials = $credentials;
+        $this->_local_cache = $local_cache;
+        foreach ($headers as $key => $value) {
+            $this->$key = $value;
+        }
+    }
 
     public function refresh_token()
     {
@@ -136,19 +149,19 @@ class RefreshingToken extends OAuthToken
         $this->credentials = $credentials;
     }
 
-    public function set_local_cache($path, $store = true)
+    public function set_local_cache($path): void
     {
         $this->_local_cache = $path;
-        if ($store) {
-            $this->store_token();
-        }
+        $this->store_token();
     }
 
     /**
      * Method for CLI token creation via user inputs.
-     * @param Credentials $credentials: Client credentials
+     *
+     * @param OAuthCredentials $credentials: Client credentials
      * @param bool $open_browser: Not supported
-     * @param string $to_file: Optional. Path to store/sync json version of resulting token. (Default = None).
+     * @param ?string $to_file: Optional. Path to store/sync json version of resulting token. (Default = None).
+     * @return RefreshingToken
      */
     public static function prompt_for_token($credentials, $open_browser = false, $to_file = null)
     {
@@ -160,12 +173,14 @@ class RefreshingToken extends OAuthToken
 
         $raw_token = $credentials->token_from_code($code->device_code);
 
-        $ref_token = new self();
+        $ref_token = new self($credentials);
         $ref_token->credentials = $credentials;
+
         foreach ((array)$raw_token as $key => $value) {
             $ref_token->$key = $value;
         }
-        $ref_token->update($ref_token->as_dict());
+
+        $ref_token->update($ref_token);
 
         if ($to_file) {
             $ref_token->set_local_cache($to_file);
@@ -178,15 +193,24 @@ class RefreshingToken extends OAuthToken
      * Write token values to json file at specified path, defaulting to $this->local_cache.
      * Operation does not update instance local_cache attribute.
      * Automatically called when local_cache is set post init.
+     * 
+     * Custom logic to specify exact key/value pairs for json file.
+     *
+     * @param ?string $path
      */
-    public function store_token($path = null)
+    public function store_token($path = null): void
     {
         $file_path = $path ? $path : $this->_local_cache;
 
         if ($file_path) {
-            $dict = $this->as_dict();
-            unset($dict->credentials);
-            unset($dict->_local_cache);
+            $dict = (object)[
+                "scope" => $this->scope,
+                "token_type" => $this->token_type,
+                "access_token" => $this->access_token,
+                "refresh_token" => $this->refresh_token,
+                "expires_at" => $this->expires_at,
+                "expires_in" => $this->expires_in,
+            ];
             $json = json_encode($dict, JSON_PRETTY_PRINT);
             file_put_contents($file_path, $json);
         }

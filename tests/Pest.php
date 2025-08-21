@@ -14,6 +14,14 @@
 include "TestCase.php";
 uses(TestCase::class)->in('Feature');
 
+// Confirm environment variables are set
+$client_id = getenv("GOOGLE_CLIENT_ID");
+$client_secret = getenv("GOOGLE_SECRET_ID");
+
+
+// die(1);
+
+
 /*
 |--------------------------------------------------------------------------
 | Expectations
@@ -43,4 +51,47 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+function ytmusic() 
+{
+    static $yt;
+
+    if ($yt) {
+        return $yt;
+    }
+
+    $yt = new Ytmusicapi\YTMusic();
+    
+    return $yt;
+}
+
+function ytbrowser()
+{
+    static $yt;
+
+    if ($yt) {
+        return $yt;
+    }
+
+    $yt = new Ytmusicapi\YTMusic("browser.json");
+
+    return $yt;
+}
+
+function ytauth()
+{
+    static $yt;
+
+    if ($yt) {
+        return $yt;
+    }
+
+    $client_id = getenv("GOOGLE_CLIENT_ID");
+    $client_secret = getenv("GOOGLE_SECRET_ID");
+
+    $credentials = new Ytmusicapi\OAuthCredentials($client_id, $client_secret);
+    $yt = new Ytmusicapi\YTMusic("oauth.json", oauth_credentials: $credentials);
+
+    return $yt;
 }

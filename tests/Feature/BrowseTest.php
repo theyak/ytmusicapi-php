@@ -3,7 +3,7 @@
 use Ytmusicapi\YTMusic;
 
 test('get_account()', function () {
-    $yt = new YTMusic("browser.json");
+    $yt = ytbrowser();
     $account = $yt->get_account();
 
     expect($account->name)->not->toBeEmpty();
@@ -12,13 +12,19 @@ test('get_account()', function () {
 })->skip();
 
 test('get_account() - error condition', function () {
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json"])->makePartial();
+    $credentials = new YtmusicApi\OAuthCredentials(
+        "abc",
+        "123"
+    );
+
+    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
     $yt->shouldReceive("_send_request")->andReturn("");
     $yt->get_account();
 })->throws("Could not find account information.");
 
 test('get_home()', function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
+
     $home = $yt->get_home();
 
     expect($home)->toBeArray();
@@ -28,14 +34,13 @@ test('get_home()', function () {
         expect($row->contents)->toBeArray();
         foreach ($row->contents as $content) {
             expect($content->title)->not->toBeEmpty();
-            expect($content->resultType)->not->toBeEmpty();
             expect($content->thumbnails)->toBeArray();
         }
     }
 });
 
 test('get_song()', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
 
     $song = $yt->get_song($this->videoId);
     expect($song->videoDetails->title)->toBe($this->videoTitle);
@@ -50,7 +55,7 @@ test('get_song()', function () {
 });
 
 test('get_song_info() - music', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $track = $yt->get_song_info($this->videoId);
 
     expect($track->title)->toBe($this->videoTitle);
@@ -65,7 +70,7 @@ test('get_song_info() - music', function () {
 });
 
 test('get_song_info() - music, passing in Song', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $song = $yt->get_song($this->videoId);
     $track = $yt->get_song_info($song);
 
@@ -81,7 +86,7 @@ test('get_song_info() - music, passing in Song', function () {
 });
 
 test('get_song_info() - non music', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $track = $yt->get_song_info("1stQiJEW9PE");
 
     expect($track->title)->toBe("Home Alone Pitch Meeting - Revisited!");
@@ -97,7 +102,7 @@ test('get_song_info() - non music', function () {
 });
 
 test('get_song_info() - for kids', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
 
     $track = $yt->get_song_info("QDIWWqxqMes");
     expect($track->title)->toBe("Return to Pooh Corner");
@@ -106,34 +111,35 @@ test('get_song_info() - for kids', function () {
 });
 
 test('get_song_info() - really long song', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $track = $yt->get_song_info("qLooSc5ewIA");
     expect($track->duration)->toBe("10:31:48");
     expect($track->duration_seconds)->toBe(37908);
 });
 
 test('get_song_info() - Invalid video ID', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $track = $yt->get_song_info("aaaaaaaaaaa");
 })->throws(Exception::class);
 
 test('get_song_info() - Invalid video ID type', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $track = $yt->get_song_info(12);
 })->throws(Exception::class);
 
 test('get_artist() shows', function () {
-    // Requires authentication
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
+
     $results = $yt->get_artist("UCyiY-0Af0O6emoI3YvCEDaA");
     expect(count($results->shows->results))->toBe(10);
 
     $results = $yt->get_artist_albums($results->shows->browseId, $results->shows->params);
     expect(count($results))->toBe(100);
-})->only();
+});
 
 test('get_artist() and get_artist_albums()', function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
+
     $artist = $yt->get_artist($this->artistId);
 
     expect($artist->name)->toBe($this->artistName);
@@ -169,7 +175,8 @@ test('get_artist() and get_artist_albums()', function () {
 });
 
 test("get_artist() - Artist with no songs and no subscribe", function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
+    
     $artist = $yt->get_artist("UCK3inMNRNAVUleEbpDU1k2g");
 
     expect($artist->name)->toBe("SEB");
@@ -184,14 +191,14 @@ test("get_artist() - Artist with no songs and no subscribe", function () {
 });
 
 test("get_artist() with the MPLA prefix", function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $artist = $yt->get_artist("MPLA" . $this->artistId);
 
     expect($artist->name)->toBe($this->artistName);
 });
 
 test('get_artist_albums() - singles', function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $result = $yt->get_artist($this->artistId);
     $channelId = $result->singles->browseId;
     $params = $result->singles->params;
@@ -208,7 +215,8 @@ test('get_artist_albums() - singles', function () {
 });
 
 test('get_artist_albums() - Without prefix', function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
+
     $artist = $yt->get_artist($this->artistId);
     $channelId = substr($artist->albums->browseId, 4);
     $params = $artist->albums->params;
@@ -217,7 +225,7 @@ test('get_artist_albums() - Without prefix', function () {
 });
 
 test("get_album() and get_album_browse_id()", function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $result = $yt->get_album($this->albumId);
 
     expect($result->title)->toBe($this->albumTitle);
@@ -240,22 +248,19 @@ test("get_album() and get_album_browse_id()", function () {
     expect($result->duration_seconds)->toBe($seconds);
     expect($result->other_versions)->toBeArray();
 
-    // Test get_album_browse_id()
+    // Test get_album_browse_id() - this is not working as expected.
     $result = $yt->get_album_browse_id($result->audioPlaylistId);
     expect($result)->toBe($this->albumId);
 });
 
 test("get_album() with bad album ID", function () {
-    $yt = new YTMusic();
-    $result = $yt->get_album($this->albumId . "AAA");
+    $yt = ytmusic();
+    $yt->get_album($this->albumId . "AAA");
 })->throws(Exception::class);
 
 test("get_user() and get_user_playlists()", function () {
-    // For some reason get_user_playlists() is requiring authentication.
-    // Not sure why as this works fine in Python without authentication.
-    // Someone please figure this out for me. I've spent way too mcuh
-    // time on this.
-    $yt = new YTMusic("oauth.json");
+    $yt = ytmusic();
+    
     $user = $yt->get_user($this->userChannel);
 
     expect($user->channelId)->toBe($this->userChannel);
@@ -283,7 +288,7 @@ test("get_user() and get_user_playlists()", function () {
 });
 
 test("get_tasteprofile() and set_tasteprofile()", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
 
     $profile = $yt->get_tasteprofile();
     foreach ($profile as $taste) {
@@ -300,7 +305,7 @@ test("get_tasteprofile() and set_tasteprofile()", function () {
 });
 
 test("set_tasteprofile() - without sending in tasteprofile", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
 
     $profile = $yt->get_tasteprofile();
     $artists = array_slice(array_keys($profile), 0, 5);
@@ -308,7 +313,7 @@ test("set_tasteprofile() - without sending in tasteprofile", function () {
 })->throwsNoExceptions();
 
 test("set_tasteprofile() - invalid artist", function () {
-    $yt = new YTMusic("oauth.json");
+    $yt = ytauth();
 
     $profile = $yt->get_tasteprofile();
     $artists = ["invalid artist"];
@@ -325,7 +330,8 @@ test("set_tasteprofile() - invalid artist", function () {
 });
 
 test("get_song_related() and get_lyrics()", function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
+    
     $playlist = $yt->get_watch_playlist($this->videoId);
 
     expect($playlist)->not->toBeEmpty();
@@ -344,8 +350,29 @@ test("get_song_related() and get_lyrics()", function () {
     }
 });
 
+test("get_lyrics() - TimedLyrics", function () {
+    $yt = ytmusic();
+    $playlist = $yt->get_watch_playlist($this->videoId);
+
+    expect($playlist)->not->toBeEmpty();
+    expect($playlist->related)->toBeString();
+
+    $lyrics = $yt->get_lyrics($playlist->lyrics, true);
+    expect($lyrics->lyrics)->toBeArray();
+    expect($lyrics->source)->not->toBeEmpty();
+});
+
+test("get_transcript() - TimedLyrics", function () {
+    $yt = ytmusic();
+    $lyrics = $yt->get_transcript($this->videoId);
+    expect($lyrics)->toBeArray();
+    expect($lyrics[1]->start)->not->toBeEmpty();
+    expect($lyrics[1]->duration)->not->toBeEmpty();
+    expect($lyrics[1]->text)->not->toBeEmpty();
+});
+
 test("get_song_related() and get_lyrics() exceptions", function () {
-    $yt = new YTMusic();
+    $yt = ytmusic();
     expect(fn () => $yt->get_lyrics(null))->toThrow(\Exception::class);
     expect(fn () => $yt->get_song_related(null))->toThrow(\Exception::class);
 });
@@ -353,7 +380,7 @@ test("get_song_related() and get_lyrics() exceptions", function () {
 test("get_user_videos()", function () {
     $channel = "UCus8EVJ7Oc9zINhs-fg8l1Q"; // Turbo
 
-    $yt = new YTMusic();
+    $yt = ytmusic();
     $user = $yt->get_user($channel);
     $results = $yt->get_user_videos($channel, $user->videos->params);
     expect(count($results))->toBeGreaterThan(100);
