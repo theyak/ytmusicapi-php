@@ -171,7 +171,7 @@ trait Uploads
             throw new YTMusicUserError("The provided file type is not supported by YouTube Music. Supported file types are " . implode(', ', $supported_filetypes));
         }
 
-        $headers = $this->headers;
+        $headers = $this->headers();
         $upload_url = "https://upload.youtube.com/upload/usermusic/http?authuser=" . $headers['x-goog-authuser'];
         $filesize = filesize($filepath);
         if ($filesize > 314572800) { // 300MB in bytes
@@ -185,16 +185,17 @@ trait Uploads
         $headers['X-Goog-Upload-Command'] = 'start';
         $headers['X-Goog-Upload-Header-Content-Length'] = $filesize;
         $headers['X-Goog-Upload-Protocol'] = 'resumable';
+
         $options = [];
         if ($this->proxies) {
             $options['proxy'] = $this->proxies;
         }
-        $response = $this->session->post($upload_url, $headers, $body, $options);
+        $response = $this->_session->post($upload_url, $headers, $body, $options);
 
         $headers['X-Goog-Upload-Command'] = 'upload, finalize';
         $headers['X-Goog-Upload-Offset'] = '0';
         $upload_url = $response->headers['X-Goog-Upload-URL'];
-        $response = $this->session->post($upload_url, $headers, file_get_contents($filepath), $options);
+        $response = $this->_session->post($upload_url, $headers, file_get_contents($filepath), $options);  
 
         if ($response->status_code === 200) {
             return 'STATUS_SUCCEEDED';
