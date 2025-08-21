@@ -359,17 +359,6 @@ trait Browse
      */
     public function get_user($channelId)
     {
-        // if (!$this->_base_headers) {
-        //     $this->_base_headers = $this->base_headers();
-        // }
-        
-        // This seems to be the only endpoint that requires an x-visitor-id header
-        // so I moved it here from the main class. This prevents this loading all the time.
-        // $keys = array_map(fn ($key) => strtolower($key), array_keys($this->_base_headers));
-        // if (!in_array("x-goog-visitor-id", $keys)) {
-        //     $this->_base_headers["X-Goog-Visitor-Id"] = get_visitor_id(fn ($url) => $this->_send_get_request($url));
-        // }
-
         $endpoint = "browse";
         $body = ["browseId" => $channelId];
         $response = $this->_send_request($endpoint, $body);

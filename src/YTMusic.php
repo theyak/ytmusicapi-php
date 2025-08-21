@@ -196,12 +196,8 @@ class YTMusic
             $this->_base_headers = $this->_base_headers->getAll();
         }
 
-        // Custom
-        // The python version gets the visitor ID here. 
-        // However, it seems to only be needed when getting a user's videos.
-        // To get a user's videos, you must first call get_user().
-        // Therefore, the visitor ID is only grabbed when get_user() is called.
-        // This prevents this from loading all the time, especially during testing.
+        // The visitor ID only seems to be needed when calling get_user() followed
+        // by get_user_videos(). Why do they make this so complicated?
         $keys = array_map(fn ($key) => strtolower($key), array_keys($this->_base_headers));
         if (!in_array("x-goog-visitor-id", $keys)) {
             $this->_base_headers["X-Goog-Visitor-Id"] = get_visitor_id(fn ($url) => $this->_send_get_request($url));
