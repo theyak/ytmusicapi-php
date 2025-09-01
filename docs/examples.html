@@ -71,7 +71,7 @@
                     <div class="method-card">
                         <h3>Getting Song Information</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 require "vendor/autoload.php";
 
 $yt = new Ytmusicapi\YTMusic();
@@ -97,7 +97,7 @@ if ($info->music) {
                     <div class="method-card">
                         <h3>Basic Search</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 require "vendor/autoload.php";
 
 $yt = new Ytmusicapi\YTMusic();
@@ -125,7 +125,7 @@ foreach ($results as $result) {
                     <div class="method-card">
                         <h3>Filtered Search</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 require "vendor/autoload.php";
 
 $yt = new Ytmusicapi\YTMusic();
@@ -152,7 +152,7 @@ echo "Found " . count($playlists) . " playlists\n";</code></pre>
                     <div class="method-card">
                         <h3>Search Suggestions</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic();
 
 // Get simple suggestions
@@ -178,7 +178,7 @@ foreach ($detailed as $suggestion) {
                     <div class="method-card">
                         <h3>Artist Information</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic();
 
 // Get artist information
@@ -206,7 +206,7 @@ if ($artist->albums && $artist->albums->browseId) {
                     <div class="method-card">
                         <h3>Album Information</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic();
 
 // Get album information
@@ -232,7 +232,7 @@ foreach ($album->tracks as $track) {
                     <div class="method-card">
                         <h3>Accessing Your Library</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 require "vendor/autoload.php";
 
 // Initialize with authentication
@@ -265,7 +265,7 @@ try {
                     <div class="method-card">
                         <h3>Liked Songs with Ordering</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic("oauth.json");
 
 // Get liked songs ordered by recently added
@@ -285,7 +285,7 @@ foreach ($liked_songs as $index => $song) {
                     <div class="method-card">
                         <h3>Rating Songs</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic("browser.json");
 
 // Like a song
@@ -308,7 +308,7 @@ echo "Song disliked!\n";</code></pre>
                     <div class="method-card">
                         <h3>Creating and Managing Playlists</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic("browser.json");
 
 // Create a new playlist
@@ -340,7 +340,7 @@ echo "Playlist updated!\n";</code></pre>
                     <div class="method-card">
                         <h3>Copying Playlists</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic("browser.json");
 
 // Get a public playlist
@@ -365,7 +365,7 @@ echo "Copied " . $source_playlist->trackCount . " tracks\n";</code></pre>
                     <div class="method-card">
                         <h3>Loading Liked Music with Progress</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic("oauth.json");
 
 try {
@@ -410,7 +410,7 @@ try {
                     <div class="method-card">
                         <h3>Browsing Podcasts</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic();
 
 // Get podcast information
@@ -431,7 +431,7 @@ foreach (array_slice($podcast->episodes, 0, 5) as $episode) {
                     <div class="method-card">
                         <h3>Episode Details</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic();
 
 // Get detailed episode information
@@ -455,7 +455,7 @@ if ($episode->description) {
                     <div class="method-card">
                         <h3>Viewing Uploaded Songs</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic("browser.json");
 
 // Get uploaded songs
@@ -483,7 +483,7 @@ foreach ($uploaded_songs as $song) {
                     <div class="method-card">
                         <h3>Uploading Songs</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic("browser.json");
 
 try {
@@ -512,7 +512,7 @@ try {
                     <div class="method-card">
                         <h3>Comprehensive Error Handling</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 require "vendor/autoload.php";
 
 function searchWithErrorHandling($query) {
@@ -553,7 +553,7 @@ if (!empty($results)) {
                     <div class="method-card">
                         <h3>Authentication Error Handling</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 function getLibraryWithAuth($auth_file) {
     try {
         $yt = new Ytmusicapi\YTMusic($auth_file);
@@ -591,7 +591,7 @@ $playlists = getLibraryWithAuth("browser.json");</code></pre>
                     <div class="method-card">
                         <h3>Music Discovery Workflow</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic("browser.json");
 
 // Discover new music based on an artist
@@ -641,7 +641,7 @@ discoverSimilarMusic("Radiohead", $yt);</code></pre>
                     <div class="method-card">
                         <h3>Playlist Backup Tool</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic("browser.json");
 
 function backupPlaylist($playlist_id, $yt) {
@@ -690,7 +690,7 @@ backupPlaylist("PLfY7JYgRs-QJZP7zqsKPFMqKJ5qghLqm_", $yt);</code></pre>
                     <div class="method-card">
                         <h3>Charts Analysis</h3>
                         <div class="code-block">
-                            <pre><code class="language-php"><?php
+                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic();
 
 // Analyze global music trends
