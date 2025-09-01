@@ -58,10 +58,10 @@
                 <div class="content">
                     <h2 id="overview">Type System Overview</h2>
                     <p>
-                        YTMusicAPI PHP uses docblock-typed objects to represent data returned from the YouTube Music API.
+                        YTMusicAPI PHP uses docblock-typed objects to document the data returned from the YouTube Music API.
                         These types are defined as PHP classes with documented properties using PHPDoc annotations.
-                        NOTE: Most objects returned are actually a stdclass object, but they are cast to the appropriate
-                        type in DocBlocks so that your intellisense can provide you with the correct properties.
+                        Most objects returned are actually stdclass objects retrieved directly from YouTube's data,
+                        but the docblock annotations allow your intellisense to provide you with the correct properties.
                     </p>
 
                     <h2 id="core-types">Core Types</h2>

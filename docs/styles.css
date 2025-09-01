@@ -529,11 +529,13 @@ code[class*="language-"] {
     margin-bottom: 30px;
 }
 
-.method-title {
-    font-size: 1.3em;
+h3.method-title {
+    font-size: 1.1em;
     font-weight: 600;
     color: #333;
     margin-bottom: 10px;
+    margin-top: 0;
+    padding-top: 0;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
@@ -721,4 +723,8 @@ ol {
 
 .features-grid a {
     text-decoration: none;
+}
+
+.indent-param {
+    margin-left: 2.6rem;
 }

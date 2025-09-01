@@ -69,7 +69,13 @@
                     <p>Search for content on YouTube Music including songs, albums, artists, playlists, and more.</p>
 
                     <div class="method-card">
-                        <h3 class="method-title">search($query, $filter = null, $scope = null, $limit = 20, $ignore_spelling = false)</h3>
+                        <h3 class="method-title"">search(<br>
+                            <div class="indent-param">$query,</div>
+                            <div class="indent-param">$filter = null,</div>
+                            <div class="indent-param">$scope = null,</div>
+                            <div class="indent-param">$limit = 20,</div>
+                            <div class="indent-param">$ignore_spelling = false</div>
+                        )</h3>
                         <p class="method-description">Search YouTube Music and return results within the provided category.</p>
                         
                         <div class="method-params">
@@ -92,7 +98,7 @@
                             <div class="param">
                                 <span class="param-name">$limit</span>
                                 <span class="param-type">int</span>
-                                <p class="param-description">Number of search results to return (default: 20)</p>
+                                <p class="param-description">Number of search results to return (default: 20). The number of results may differ based on what YouTube Music returns.</p>
                             </div>
                             <div class="param">
                                 <span class="param-name">$ignore_spelling</span>
@@ -286,7 +292,7 @@ if ($info->music) {
                             <div class="param">
                                 <span class="param-name">$limit</span>
                                 <span class="param-type">int</span>
-                                <p class="param-description">Number of playlists to retrieve (default: 25)</p>
+                                <p class="param-description">Number of playlists to retrieve (default: 25). The number of playlists may differ based on what YouTube Music returns.</p>
                             </div>
                         </div>
 
@@ -307,7 +313,7 @@ if ($info->music) {
                             <div class="param">
                                 <span class="param-name">$limit</span>
                                 <span class="param-type">int</span>
-                                <p class="param-description">Number of songs to retrieve (default: 25)</p>
+                                <p class="param-description">Number of songs to retrieve (default: 25). The number of songs may differ based on what YouTube Music returns.</p>
                             </div>
                             <div class="param">
                                 <span class="param-name">$validate_responses</span>
@@ -338,7 +344,7 @@ if ($info->music) {
                             <div class="param">
                                 <span class="param-name">$limit</span>
                                 <span class="param-type">int</span>
-                                <p class="param-description">Number of albums to return (default: 25)</p>
+                                <p class="param-description">Number of albums to return (default: 25). The number of albums may differ based on what YouTube Music returns.</p>
                             </div>
                             <div class="param">
                                 <span class="param-name">$order</span>
@@ -391,7 +397,13 @@ if ($info->music) {
                     <p>Create, manage, and interact with playlists. Most operations require authentication.</p>
 
                     <div class="method-card">
-                        <h3 class="method-title">get_playlist($playlistId, $limit = 100, $related = false, $suggestions_limit = 0, $get_continuations = true)</h3>
+                        <h3 class="method-title">get_playlist(
+                            <div class="indent-param">$playlistId,</div>
+                            <div class="indent-param">$limit = 100,</div>
+                            <div class="indent-param">$related = false,</div> 
+                            <div class="indent-param">$suggestions_limit = 0,</div>
+                            <div class="indent-param">$get_continuations = true</div>
+                        )</h3>
                         <p class="method-description">Returns information and tracks of a playlist.</p>
                         
                         <div class="method-params">
@@ -472,7 +484,13 @@ while ($playlist->continuation) {
                     </div>
 
                     <div class="method-card">
-                        <h3 class="method-title">create_playlist($title, $description, $privacy_status = "PRIVATE", $video_ids = null, $source_playlist = null)</h3>
+                        <h3 class="method-title">create_playlist(
+                            <div class="indent-param">$title,</div>
+                            <div class="indent-param">$description,</div>
+                            <div class="indent-param">$privacy_status = "PRIVATE",</div>
+                            <div class="indent-param">$video_ids = null,</div>
+                            <div class="indent-param">$source_playlist = null</div>
+                        )</h3>
                         <p class="method-description">Create a new playlist.</p>
                         
                         <div class="method-params">
@@ -515,7 +533,15 @@ while ($playlist->continuation) {
                     </div>
 
                     <div class="method-card">
-                        <h3 class="method-title">edit_playlist($playlistId, $title = null, $description = null, $privacyStatus = null, $moveItem = null, $addPlaylistId = null, $addToTop = null)</h3>
+                        <h3 class="method-title">edit_playlist(
+                            <div class="indent-param">$playlistId,</div>
+                            <div class="indent-param">$title = null,</div>
+                            <div class="indent-param">$description = null,</div>
+                            <div class="indent-param">$privacyStatus = null,</div>
+                            <div class="indent-param">$moveItem = null,</div>
+                            <div class="indent-param">$addPlaylistId = null,</div>
+                            <div class="indent-param">$addToTop = null</div>
+                        )</h3>
                         <p class="method-description">Edit playlist properties or add content from another playlist.</p>
                     </div>
 
@@ -529,7 +555,12 @@ while ($playlist->continuation) {
                     </div>
 
                     <div class="method-card">
-                        <h3 class="method-title">add_playlist_items($playlistId, $videoIds = null, $source_playlist = null, $duplicates = false)</h3>
+                        <h3 class="method-title">add_playlist_items(
+                            <div class="indent-param">$playlistId,</div>
+                            <div class="indent-param">$videoIds = null,</div>
+                            <div class="indent-param">$source_playlist = null,</div>
+                            <div class="indent-param">$duplicates = false</div>
+                        )</h3>
                         <p class="method-description">Add songs to an existing playlist.</p>
                         
                         <div class="method-params">
@@ -587,7 +618,13 @@ while ($playlist->continuation) {
                     <p>Get watch playlists and track information for continuous playback.</p>
 
                     <div class="method-card">
-                        <h3 class="method-title">get_watch_playlist($videoId = null, $playlistId = null, $limit = 25, $radio = false, $shuffle = false)</h3>
+                        <h3 class="method-title">get_watch_playlist(
+                            <div class="indent-param">$videoId = null,</div>
+                            <div class="indent-param">$playlistId = null,</div>
+                            <div class="indent-param">$limit = 25,</div>
+                            <div class="indent-param">$radio = false,</div>
+                            <div class="indent-param">$shuffle = false</div>
+                        )</h3>
                         <p class="method-description">Get a watch list of tracks for continuous playback.</p>
                         
                         <div class="method-params">
@@ -605,7 +642,7 @@ while ($playlist->continuation) {
                             <div class="param">
                                 <span class="param-name">$limit</span>
                                 <span class="param-type">int</span>
-                                <p class="param-description">Minimum number of watch playlist items to return (default: 25)</p>
+                                <p class="param-description">Minimum number of watch playlist items to return (default: 25). Number of items may differ based on what YouTube Music returns.</p>
                             </div>
                             <div class="param">
                                 <span class="param-name">$radio</span>

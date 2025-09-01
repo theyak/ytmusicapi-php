@@ -405,14 +405,13 @@
         $raw_suggestions = $results->contents[0]->searchSuggestionsSectionRenderer->contents;
         $suggestions = [];
 
-
         foreach ($raw_suggestions as $raw_suggestion) {
+            $feedback_token = null;
             if (isset($raw_suggestion->historySuggestionRenderer)) {
                 $suggestion_content = $raw_suggestion->historySuggestionRenderer;
-                $from_history = true;
+                $feedback_token = nav($suggestion_content, 'serviceEndpoint.feedback.feedbackToken', true);
             } else {
                 $suggestion_content = $raw_suggestion->searchSuggestionRenderer;
-                $from_history = false;
             }
 
             $text = $suggestion_content->navigationEndpoint->searchEndpoint->query;
@@ -422,7 +421,7 @@
                 $suggestions[] = (object)[
                     "text" => $text,
                     "runs" => $runs,
-                    "fromHistroy" => !!$from_history,
+                    "fromHistroy" => !empty($feedback_token),
                     "feedbackToken" => $feedback_token,
                 ];
             } else {

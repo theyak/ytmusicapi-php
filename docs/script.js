@@ -1,14 +1,6 @@
 // Mobile navigation toggle
 document.addEventListener('DOMContentLoaded', function() {
-    const hamburger = document.querySelector('.hamburger');
-    const navMenu = document.querySelector('.nav-menu');
-    
-    if (hamburger) {
-        hamburger.addEventListener('click', function() {
-            navMenu.classList.toggle('active');
-        });
-    }
-    
+   
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
@@ -22,33 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
-    // Auto-generate table of contents for API pages
-    const content = document.querySelector('.content');
-    const sidebar = document.querySelector('.sidebar ul');
-    
-    if (content && sidebar) {
-        const headings = content.querySelectorAll('h2, h3');
-        
-        headings.forEach((heading, index) => {
-            // Add ID to heading if it doesn't have one
-            if (!heading.id) {
-                heading.id = heading.textContent.toLowerCase()
-                    .replace(/[^\w\s-]/g, '')
-                    .replace(/\s+/g, '-');
-            }
-            
-            // Create sidebar link
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = '#' + heading.id;
-            a.textContent = heading.textContent;
-            a.style.paddingLeft = heading.tagName === 'H3' ? '20px' : '8px';
-            li.appendChild(a);
-            sidebar.appendChild(li);
-        });
-    }
-
 });
 
 // Copy code functionality
@@ -100,16 +65,4 @@ document.addEventListener('DOMContentLoaded', function() {
             copyBtn.style.opacity = '0';
         });
     });
-});
-
-// Add active state to sidebar links
-document.addEventListener('DOMContentLoaded', function() {
-    const style = document.createElement('style');
-    style.textContent = `
-        .sidebar ul li a.active {
-            background: #FF0000 !important;
-            color: white !important;
-        }
-    `;
-    document.head.appendChild(style);
 });

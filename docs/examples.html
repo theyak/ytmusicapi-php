@@ -107,9 +107,16 @@ $results = $yt->search("Radiohead Creep");
 
 foreach ($results as $result) {
     echo "Type: " . $result->resultType . "\n";
-    echo "Title: " . $result->title . "\n";
+
+    if (!empty($result->title)) {
+        echo "Title: " . $result->title . "\n";
+    }
+
+    if (!empty($result->artist)) {
+        echo "Artist: " . $result->artist . "\n";
+    }
     
-    if ($result->artists) {
+    if (!empty($result->artists)) {
         $artists = array_map(fn($artist) => $artist->name, $result->artists);
         echo "Artists: " . implode(", ", $artists) . "\n";
     }
@@ -123,36 +130,11 @@ foreach ($results as $result) {
                     <p>Examples of different search filters and scopes.</p>
 
                     <div class="method-card">
-                        <h3>Filtered Search</h3>
+                        <h3>Search Suggestions</h3>
                         <div class="code-block">
                             <pre><code class="language-php">&lt;?php
 require "vendor/autoload.php";
 
-$yt = new Ytmusicapi\YTMusic();
-
-// Search for songs only
-$songs = $yt->search("Coldplay", filter: "songs", limit: 10);
-
-// Search for albums only
-$albums = $yt->search("Pink Floyd", filter: "albums", limit: 5);
-
-// Search for artists only
-$artists = $yt->search("The Beatles", filter: "artists", limit: 3);
-
-// Search for playlists
-$playlists = $yt->search("chill music", filter: "playlists", limit: 5);
-
-echo "Found " . count($songs) . " songs\n";
-echo "Found " . count($albums) . " albums\n";
-echo "Found " . count($artists) . " artists\n";
-echo "Found " . count($playlists) . " playlists\n";</code></pre>
-                        </div>
-                    </div>
-
-                    <div class="method-card">
-                        <h3>Search Suggestions</h3>
-                        <div class="code-block">
-                            <pre><code class="language-php">&lt;?php
 $yt = new Ytmusicapi\YTMusic();
 
 // Get simple suggestions
@@ -163,11 +145,12 @@ foreach ($suggestions as $suggestion) {
 
 // Get detailed suggestions with highlighting
 $detailed = $yt->get_search_suggestions("rad", detailed_runs: true);
+
 foreach ($detailed as $suggestion) {
-    echo "Query: " . $suggestion->query . "\n";
-    echo "Suggestion: " . $suggestion->suggestion . "\n";
-    echo "Complete: " . $suggestion->complete . "\n";
-    echo "---\n";
+    foreach ($suggestion->runs as $run) {
+        echo $run->text;
+    }
+    echo "\n";
 }</code></pre>
                         </div>
                     </div>
@@ -179,6 +162,8 @@ foreach ($detailed as $suggestion) {
                         <h3>Artist Information</h3>
                         <div class="code-block">
                             <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
 $yt = new Ytmusicapi\YTMusic();
 
 // Get artist information
@@ -207,13 +192,16 @@ if ($artist->albums && $artist->albums->browseId) {
                         <h3>Album Information</h3>
                         <div class="code-block">
                             <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
 $yt = new Ytmusicapi\YTMusic();
 
 // Get album information
-$album = $yt->get_album("MPREb_BQZvl0P6ern");
+$album = $yt->get_album("MPREb_pyQa1mky9hE");
+$artists = array_map(fn($artist) => $artist->name, $album->artists);
 
 echo "Album: " . $album->title . "\n";
-echo "Artist: " . $album->artist->name . "\n";
+echo "Artist: " . implode(", ", $artists) . "\n";
 echo "Year: " . $album->year . "\n";
 echo "Duration: " . $album->duration . "\n";
 echo "Track Count: " . $album->trackCount . "\n";
@@ -250,7 +238,7 @@ try {
     
     // Get your library songs
     $songs = $yt->get_library_songs(limit: 10);
-    echo "Library songs (first 10):\n";
+    echo "Library songs (first batch):\n";
     foreach ($songs as $song) {
         $artists = array_map(fn($artist) => $artist->name, $song->artists);
         echo "- " . $song->title . " by " . implode(", ", $artists) . "\n";
@@ -271,7 +259,7 @@ $yt = new Ytmusicapi\YTMusic("oauth.json");
 // Get liked songs ordered by recently added
 $liked_songs = $yt->get_library_songs(
     limit: 25, 
-    order: "recently_added"
+    order: "recently_added"  // 'a_to_z', 'z_to_a', 'recently_added'
 );
 
 echo "Your " . count($liked_songs) . " most recently liked songs:\n";
@@ -309,6 +297,8 @@ echo "Song disliked!\n";</code></pre>
                         <h3>Creating and Managing Playlists</h3>
                         <div class="code-block">
                             <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
 $yt = new Ytmusicapi\YTMusic("browser.json");
 
 // Create a new playlist
@@ -333,7 +323,12 @@ $yt->edit_playlist(
     privacyStatus: "PUBLIC"
 );
 
-echo "Playlist updated!\n";</code></pre>
+echo "Playlist updated!\n";
+
+// Delete playlist
+$yt->delete_playlist($playlist_id);
+
+echo "Playlist deleted!\n";</code></pre>
                         </div>
                     </div>
 
@@ -341,17 +336,19 @@ echo "Playlist updated!\n";</code></pre>
                         <h3>Copying Playlists</h3>
                         <div class="code-block">
                             <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
 $yt = new Ytmusicapi\YTMusic("browser.json");
 
 // Get a public playlist
-$source_playlist = $yt->get_playlist("PLfY7JYgRs-QJZP7zqsKPFMqKJ5qghLqm_");
+$source_playlist = $yt->get_playlist("PL4D51474AB7BE5595");
 
 // Create a copy in your library
 $new_playlist_id = $yt->create_playlist(
     title: "Copy of " . $source_playlist->title,
     description: "Copied from public playlist",
     privacy_status: "PRIVATE",
-    source_playlist: "PLfY7JYgRs-QJZP7zqsKPFMqKJ5qghLqm_"
+    source_playlist: "PL4D51474AB7BE5595"
 );
 
 echo "Created copy: " . $new_playlist_id . "\n";
@@ -366,13 +363,15 @@ echo "Copied " . $source_playlist->trackCount . " tracks\n";</code></pre>
                         <h3>Loading Liked Music with Progress</h3>
                         <div class="code-block">
                             <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
 $yt = new Ytmusicapi\YTMusic("oauth.json");
 
 try {
     // Get initial batch without continuations
     $playlist = $yt->get_playlist("LM", get_continuations: false);
     $tracks = $playlist->tracks;
-    $total_count = $playlist->track_count;
+    $total_count = $playlist->trackCount;
 
     echo "Loading liked music playlist...\n";
     echo "Expected tracks: approximately " . $total_count . "\n";
@@ -411,10 +410,12 @@ try {
                         <h3>Browsing Podcasts</h3>
                         <div class="code-block">
                             <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
 $yt = new Ytmusicapi\YTMusic();
 
 // Get podcast information
-$podcast = $yt->get_podcast("PLbpi6ZahtOH4DEWwsR4sSLYdFyTrRqoDM");
+$podcast = $yt->get_podcast("PL6NmnwdNzZJtKvy-7jRXLAPeen7O-wAoK");
 
 echo "Podcast: " . $podcast->title . "\n";
 echo "Author: " . $podcast->author->name . "\n";
@@ -432,6 +433,8 @@ foreach (array_slice($podcast->episodes, 0, 5) as $episode) {
                         <h3>Episode Details</h3>
                         <div class="code-block">
                             <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
 $yt = new Ytmusicapi\YTMusic();
 
 // Get detailed episode information
@@ -444,18 +447,23 @@ echo "Duration: " . $episode->duration . "\n";
 echo "Playlist ID: " . $episode->playlistId . "\n";
 
 if ($episode->description) {
-    echo "Description: " . substr($episode->description, 0, 200) . "...\n";
+    echo "Description: " . substr($episode->description->text, 0, 200) . "...\n";
 }</code></pre>
                         </div>
                     </div>
 
                     <h2 id="upload-management">Upload Management</h2>
                     <p>Managing your uploaded music content.</p>
+                    <div class="alert alert-warning">
+                        <strong>Requirements:</strong> Song upload requires browser authentication and supports mp3, m4a, wma, flac, or ogg files under 300MB.
+                    </div>
 
                     <div class="method-card">
                         <h3>Viewing Uploaded Songs</h3>
                         <div class="code-block">
                             <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
 $yt = new Ytmusicapi\YTMusic("browser.json");
 
 // Get uploaded songs
@@ -484,6 +492,63 @@ foreach ($uploaded_songs as $song) {
                         <h3>Uploading Songs</h3>
                         <div class="code-block">
                             <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
+$yt = new Ytmusicapi\YTMusic("browser.json");                                
+
+function discoverSimilarMusic($artist_name, $yt) {
+    echo "Discovering music similar to: " . $artist_name . "\n";
+    
+    // Search for the artist
+    $artists = $yt->search($artist_name, filter: "artists", limit: 1);
+    if (empty($artists)) {
+        echo "Artist not found\n";
+        return;
+    }
+    
+    $browseId = null;
+    foreach ($artists as $artist) {
+        if ($artist->artist !== $artist_name) {
+            $browseId = $artist->browseId;
+            break;
+        }
+    }
+    
+    if (!$browseId) {
+        echo "No related artists found\n";
+        return;
+    }
+
+    // Get artist information
+     $artist_info = $yt->get_artist($browseId);
+    echo "Found artist: " . $artist_info->name . "\n";
+    
+    // Get a popular song to create a radio playlist
+    if (!empty($artist_info->songs)) {
+
+        $song = $artist_info->songs->results[0];
+        echo "Using song: " . $song->title . "\n";
+        
+        // Get radio playlist
+        $radio = $yt->get_watch_playlist(
+            videoId: $song->videoId, 
+            radio: true, 
+            limit: 20
+        );
+        
+        echo "Generated radio playlist with " . count($radio->tracks) . " tracks:\n";
+        foreach (array_slice($radio->tracks, 0, 10) as $track) {
+            if ($track->artists) {
+                $artists = array_map(fn($a) => $a->name, $track->artists);
+                echo "- " . $track->title . " by " . implode(", ", $artists) . "\n";
+            }
+        }
+    }
+}
+
+// Usage
+discoverSimilarMusic("Radiohead", $yt);
+
 $yt = new Ytmusicapi\YTMusic("browser.json");
 
 try {
@@ -499,10 +564,6 @@ try {
 } catch (Exception $e) {
     echo "Upload error: " . $e->getMessage() . "\n";
 }</code></pre>
-                        </div>
-
-                        <div class="alert alert-warning">
-                            <strong>Requirements:</strong> Song upload requires browser authentication and supports mp3, m4a, wma, flac, or ogg files under 300MB.
                         </div>
                     </div>
 
@@ -605,15 +666,27 @@ function discoverSimilarMusic($artist_name, $yt) {
         return;
     }
     
-    $artist = $artists[0];
-    echo "Found artist: " . $artist->name . "\n";
+    $browseId = null;
+    foreach ($artists as $artist) {
+        if ($artist->artist !== $artist_name) {
+            $browseId = $artist->browseId;
+            break;
+        }
+    }
     
+    if (!$browseId) {
+        echo "No related artists found\n";
+        return;
+    }
+
     // Get artist information
-    $artist_info = $yt->get_artist($artist->browseId);
+     $artist_info = $yt->get_artist($browseId);
+    echo "Found artist: " . $artist_info->name . "\n";
     
     // Get a popular song to create a radio playlist
     if (!empty($artist_info->songs)) {
-        $song = $artist_info->songs[0];
+
+        $song = $artist_info->songs->results[0];
         echo "Using song: " . $song->title . "\n";
         
         // Get radio playlist
@@ -642,6 +715,8 @@ discoverSimilarMusic("Radiohead", $yt);</code></pre>
                         <h3>Playlist Backup Tool</h3>
                         <div class="code-block">
                             <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
 $yt = new Ytmusicapi\YTMusic("browser.json");
 
 function backupPlaylist($playlist_id, $yt) {
@@ -683,7 +758,7 @@ function backupPlaylist($playlist_id, $yt) {
 }
 
 // Usage
-backupPlaylist("PLfY7JYgRs-QJZP7zqsKPFMqKJ5qghLqm_", $yt);</code></pre>
+backupPlaylist("PL8vf41kYtI07auIsrEmx6tFDmIFbFBY0k", $yt);</code></pre>
                         </div>
                     </div>
 
@@ -691,6 +766,8 @@ backupPlaylist("PLfY7JYgRs-QJZP7zqsKPFMqKJ5qghLqm_", $yt);</code></pre>
                         <h3>Charts Analysis</h3>
                         <div class="code-block">
                             <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
 $yt = new Ytmusicapi\YTMusic();
 
 // Analyze global music trends
@@ -715,7 +792,7 @@ if (isset($charts['artists'])) {
 if (isset($charts['videos'])) {
     echo "\nChart Playlists:\n";
     foreach ($charts['videos'] as $chart) {
-        echo "- " . $chart['title'] . " (ID: " . $chart['playlistId'] . ")\n";
+        echo "- " . $chart->title . " (ID: " . $chart->playlistId . ")\n";
     }
 }
 
@@ -724,7 +801,7 @@ $us_charts = $yt->get_charts("US");
 if (isset($us_charts['genres'])) {
     echo "\nUS Genre Charts:\n";
     foreach ($us_charts['genres'] as $genre) {
-        echo "- " . $genre['title'] . "\n";
+        echo "- " . $genre->title . "\n";
     }
 }</code></pre>
                         </div>
