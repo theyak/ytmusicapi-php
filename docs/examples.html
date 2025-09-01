@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examples - YTMusicAPI PHP</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/youtubemusic.svg" alt="YouTube Music" class="brand-icon">
+                <span class="brand-text">YTMusicAPI PHP</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Overview</a>
+                <a href="installation.html" class="nav-link">Installation</a>
+                <a href="authentication.html" class="nav-link">Authentication</a>
+                <a href="api-reference.html" class="nav-link">API Reference</a>
+                <a href="examples.html" class="nav-link">Examples</a>
+                <a href="types.html" class="nav-link">Types</a>
+                <a href="https://github.com/sigma67/ytmusicapi-php" class="nav-link github-link" target="_blank">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <header class="page-header">
+        <div class="container">
+            <h1 class="page-title">Examples</h1>
+            <p class="page-subtitle">Practical examples and code samples</p>
+        </div>
+    </header>
+
+    <section class="content-section">
+        <div class="container">
+            <div class="content-grid">
+                <aside class="sidebar">
+                    <ul>
+                        <li><a href="#basic-usage">Basic Usage</a></li>
+                        <li><a href="#searching">Searching</a></li>
+                        <li><a href="#browsing">Browsing Content</a></li>
+                        <li><a href="#library-management">Library Management</a></li>
+                        <li><a href="#playlist-operations">Playlist Operations</a></li>
+                        <li><a href="#progression-loading">Progressive Loading</a></li>
+                        <li><a href="#podcast-examples">Podcast Examples</a></li>
+                        <li><a href="#upload-management">Upload Management</a></li>
+                        <li><a href="#error-handling">Error Handling</a></li>
+                    </ul>
+                </aside>
+                
+                <div class="content">
+                    <h2 id="basic-usage">Basic Usage</h2>
+                    <p>Simple examples to get you started with YTMusicAPI PHP.</p>
+
+                    <div class="method-card">
+                        <h3>Getting Song Information</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+require "vendor/autoload.php";
+
+$yt = new Ytmusicapi\YTMusic();
+
+// Get detailed song information
+$song = $yt->get_song('kJQP7kiw5Fk');
+
+echo "Title: " . $song->videoDetails->title . "\n";
+echo "Author: " . $song->videoDetails->author . "\n";
+echo "Duration: " . $song->videoDetails->lengthSeconds . " seconds\n";
+echo "View Count: " . number_format($song->videoDetails->viewCount) . "\n";
+
+// Check if it's actually music
+$info = $yt->get_song_info('kJQP7kiw5Fk');
+if ($info->music) {
+    echo "This is a music track\n";
+} else {
+    echo "This is a video, not music\n";
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3>Basic Search</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+require "vendor/autoload.php";
+
+$yt = new Ytmusicapi\YTMusic();
+
+// Search for music
+$results = $yt->search("Radiohead Creep");
+
+foreach ($results as $result) {
+    echo "Type: " . $result->resultType . "\n";
+    echo "Title: " . $result->title . "\n";
+    
+    if ($result->artists) {
+        $artists = array_map(fn($artist) => $artist->name, $result->artists);
+        echo "Artists: " . implode(", ", $artists) . "\n";
+    }
+    
+    echo "---\n";
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <h2 id="searching">Advanced Searching</h2>
+                    <p>Examples of different search filters and scopes.</p>
+
+                    <div class="method-card">
+                        <h3>Filtered Search</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+require "vendor/autoload.php";
+
+$yt = new Ytmusicapi\YTMusic();
+
+// Search for songs only
+$songs = $yt->search("Coldplay", filter: "songs", limit: 10);
+
+// Search for albums only
+$albums = $yt->search("Pink Floyd", filter: "albums", limit: 5);
+
+// Search for artists only
+$artists = $yt->search("The Beatles", filter: "artists", limit: 3);
+
+// Search for playlists
+$playlists = $yt->search("chill music", filter: "playlists", limit: 5);
+
+echo "Found " . count($songs) . " songs\n";
+echo "Found " . count($albums) . " albums\n";
+echo "Found " . count($artists) . " artists\n";
+echo "Found " . count($playlists) . " playlists\n";</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3>Search Suggestions</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic();
+
+// Get simple suggestions
+$suggestions = $yt->get_search_suggestions("rad");
+foreach ($suggestions as $suggestion) {
+    echo "- " . $suggestion . "\n";
+}
+
+// Get detailed suggestions with highlighting
+$detailed = $yt->get_search_suggestions("rad", detailed_runs: true);
+foreach ($detailed as $suggestion) {
+    echo "Query: " . $suggestion->query . "\n";
+    echo "Suggestion: " . $suggestion->suggestion . "\n";
+    echo "Complete: " . $suggestion->complete . "\n";
+    echo "---\n";
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <h2 id="browsing">Browsing Content</h2>
+                    <p>Examples for browsing artists, albums, and other content.</p>
+
+                    <div class="method-card">
+                        <h3>Artist Information</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic();
+
+// Get artist information
+$artist = $yt->get_artist("UCR28YDxjDE3ogQROaNdnRbQ");
+
+echo "Artist: " . $artist->name . "\n";
+echo "Subscribers: " . $artist->subscribers . "\n";
+echo "Description: " . $artist->description . "\n";
+
+// Browse artist's albums
+if ($artist->albums && $artist->albums->browseId) {
+    $albums = $yt->get_artist_albums(
+        $artist->albums->browseId, 
+        $artist->albums->params
+    );
+    
+    echo "\nAlbums:\n";
+    foreach ($albums as $album) {
+        echo "- " . $album->title . " (" . $album->year . ")\n";
+    }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3>Album Information</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic();
+
+// Get album information
+$album = $yt->get_album("MPREb_BQZvl0P6ern");
+
+echo "Album: " . $album->title . "\n";
+echo "Artist: " . $album->artist->name . "\n";
+echo "Year: " . $album->year . "\n";
+echo "Duration: " . $album->duration . "\n";
+echo "Track Count: " . $album->trackCount . "\n";
+
+echo "\nTracks:\n";
+foreach ($album->tracks as $track) {
+    $artists = array_map(fn($artist) => $artist->name, $track->artists);
+    echo ($track->index ?? '') . ". " . $track->title . " - " . implode(", ", $artists) . "\n";
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <h2 id="library-management">Library Management</h2>
+                    <p>Examples for managing your personal library. These require authentication.</p>
+
+                    <div class="method-card">
+                        <h3>Accessing Your Library</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+require "vendor/autoload.php";
+
+// Initialize with authentication
+$yt = new Ytmusicapi\YTMusic("browser.json");
+
+try {
+    // Get your account information
+    $account = $yt->get_account();
+    echo "Logged in as: " . $account->name . "\n";
+    echo "Premium: " . ($account->is_premium ? "Yes" : "No") . "\n";
+    
+    // Get your playlists
+    $playlists = $yt->get_library_playlists();
+    echo "You have " . count($playlists) . " playlists\n";
+    
+    // Get your library songs
+    $songs = $yt->get_library_songs(limit: 10);
+    echo "Library songs (first 10):\n";
+    foreach ($songs as $song) {
+        $artists = array_map(fn($artist) => $artist->name, $song->artists);
+        echo "- " . $song->title . " by " . implode(", ", $artists) . "\n";
+    }
+    
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage() . "\n";
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3>Liked Songs with Ordering</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic("oauth.json");
+
+// Get liked songs ordered by recently added
+$liked_songs = $yt->get_library_songs(
+    limit: 25, 
+    order: "recently_added"
+);
+
+echo "Your " . count($liked_songs) . " most recently liked songs:\n";
+foreach ($liked_songs as $index => $song) {
+    $artists = array_map(fn($artist) => $artist->name, $song->artists);
+    echo ($index + 1) . ". " . $song->title . " - " . implode(", ", $artists) . "\n";
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3>Rating Songs</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic("browser.json");
+
+// Like a song
+$yt->rate_song("kJQP7kiw5Fk", "LIKE");
+echo "Song liked!\n";
+
+// Remove rating (set to indifferent)
+$yt->rate_song("kJQP7kiw5Fk", "INDIFFERENT");
+echo "Rating removed!\n";
+
+// Dislike a song
+$yt->rate_song("kJQP7kiw5Fk", "DISLIKE");
+echo "Song disliked!\n";</code></pre>
+                        </div>
+                    </div>
+
+                    <h2 id="playlist-operations">Playlist Operations</h2>
+                    <p>Examples for creating and managing playlists.</p>
+
+                    <div class="method-card">
+                        <h3>Creating and Managing Playlists</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic("browser.json");
+
+// Create a new playlist
+$playlist_id = $yt->create_playlist(
+    title: "My PHP Playlist",
+    description: "Created with YTMusicAPI PHP",
+    privacy_status: "PRIVATE"
+);
+
+echo "Created playlist: " . $playlist_id . "\n";
+
+// Add songs to the playlist
+$video_ids = ["kJQP7kiw5Fk", "dQw4w9WgXcQ"];
+$result = $yt->add_playlist_items($playlist_id, $video_ids);
+echo "Added " . count($video_ids) . " songs to playlist\n";
+
+// Edit playlist details
+$yt->edit_playlist(
+    $playlist_id,
+    title: "My Updated Playlist",
+    description: "Updated description",
+    privacyStatus: "PUBLIC"
+);
+
+echo "Playlist updated!\n";</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3>Copying Playlists</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic("browser.json");
+
+// Get a public playlist
+$source_playlist = $yt->get_playlist("PLfY7JYgRs-QJZP7zqsKPFMqKJ5qghLqm_");
+
+// Create a copy in your library
+$new_playlist_id = $yt->create_playlist(
+    title: "Copy of " . $source_playlist->title,
+    description: "Copied from public playlist",
+    privacy_status: "PRIVATE",
+    source_playlist: "PLfY7JYgRs-QJZP7zqsKPFMqKJ5qghLqm_"
+);
+
+echo "Created copy: " . $new_playlist_id . "\n";
+echo "Copied " . $source_playlist->trackCount . " tracks\n";</code></pre>
+                        </div>
+                    </div>
+
+                    <h2 id="progression-loading">Progressive Loading</h2>
+                    <p>Examples for loading large playlists with progress indicators.</p>
+
+                    <div class="method-card">
+                        <h3>Loading Liked Music with Progress</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic("oauth.json");
+
+try {
+    // Get initial batch without continuations
+    $playlist = $yt->get_playlist("LM", get_continuations: false);
+    $tracks = $playlist->tracks;
+    $total_count = $playlist->track_count;
+
+    echo "Loading liked music playlist...\n";
+    echo "Expected tracks: approximately " . $total_count . "\n";
+
+    // Load remaining tracks with progress indicator
+    while ($playlist->continuation) {
+        $progress = round((count($tracks) / $total_count) * 100, 1);
+        echo "Progress: " . $progress . "% (" . count($tracks) . " loaded)\n";
+
+        $playlist = $yt->get_playlist_continuation("LM", $playlist->continuation);
+        $tracks = array_merge($tracks, $playlist->tracks);
+        
+        // Optional: Add delay to avoid rate limiting
+        usleep(100000); // 100ms delay
+    }
+
+    echo "Completed! Loaded " . count($tracks) . " tracks\n";
+
+    // Display some tracks
+    echo "\nFirst 5 tracks:\n";
+    foreach (array_slice($tracks, 0, 5) as $track) {
+        $artists = array_map(fn($artist) => $artist->name, $track->artists);
+        echo "- " . $track->title . " by " . implode(", ", $artists) . "\n";
+    }
+
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage() . "\n";
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <h2 id="podcast-examples">Podcast Examples</h2>
+                    <p>Working with podcasts and episodes.</p>
+
+                    <div class="method-card">
+                        <h3>Browsing Podcasts</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic();
+
+// Get podcast information
+$podcast = $yt->get_podcast("PLbpi6ZahtOH4DEWwsR4sSLYdFyTrRqoDM");
+
+echo "Podcast: " . $podcast->title . "\n";
+echo "Author: " . $podcast->author->name . "\n";
+echo "Episodes: " . count($podcast->episodes) . "\n";
+echo "Description: " . $podcast->description . "\n";
+
+echo "\nLatest episodes:\n";
+foreach (array_slice($podcast->episodes, 0, 5) as $episode) {
+    echo "- " . $episode->title . " (" . $episode->date . ")\n";
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3>Episode Details</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic();
+
+// Get detailed episode information
+$episode = $yt->get_episode("nDnLSYCOg7E");
+
+echo "Episode: " . $episode->title . "\n";
+echo "Podcast: " . $episode->author->name . "\n";
+echo "Published: " . $episode->date . "\n";
+echo "Duration: " . $episode->duration . "\n";
+echo "Playlist ID: " . $episode->playlistId . "\n";
+
+if ($episode->description) {
+    echo "Description: " . substr($episode->description, 0, 200) . "...\n";
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <h2 id="upload-management">Upload Management</h2>
+                    <p>Managing your uploaded music content.</p>
+
+                    <div class="method-card">
+                        <h3>Viewing Uploaded Songs</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic("browser.json");
+
+// Get uploaded songs
+$uploaded_songs = $yt->get_library_upload_songs();
+
+echo "You have " . count($uploaded_songs) . " uploaded songs\n";
+
+foreach ($uploaded_songs as $song) {
+    echo "- " . $song->title;
+    
+    if ($song->artists) {
+        $artists = array_map(fn($artist) => $artist->name, $song->artists);
+        echo " by " . implode(", ", $artists);
+    }
+    
+    if ($song->album) {
+        echo " (Album: " . $song->album->name . ")";
+    }
+    
+    echo "\n";
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3>Uploading Songs</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic("browser.json");
+
+try {
+    // Upload a song (requires browser authentication)
+    $result = $yt->upload_song("/path/to/my_song.mp3");
+    
+    if ($result === "STATUS_SUCCEEDED") {
+        echo "Song uploaded successfully!\n";
+    } else {
+        echo "Upload failed: " . $result . "\n";
+    }
+    
+} catch (Exception $e) {
+    echo "Upload error: " . $e->getMessage() . "\n";
+}</code></pre>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <strong>Requirements:</strong> Song upload requires browser authentication and supports mp3, m4a, wma, flac, or ogg files under 300MB.
+                        </div>
+                    </div>
+
+                    <h2 id="error-handling">Error Handling</h2>
+                    <p>Best practices for handling errors and edge cases.</p>
+
+                    <div class="method-card">
+                        <h3>Comprehensive Error Handling</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+require "vendor/autoload.php";
+
+function searchWithErrorHandling($query) {
+    try {
+        $yt = new Ytmusicapi\YTMusic();
+        $results = $yt->search($query);
+        
+        if (empty($results)) {
+            echo "No results found for: " . $query . "\n";
+            return [];
+        }
+        
+        return $results;
+        
+    } catch (Ytmusicapi\YTMusicUserError $e) {
+        echo "User error: " . $e->getMessage() . "\n";
+        return [];
+    } catch (Ytmusicapi\YTMusicServerError $e) {
+        echo "Server error: " . $e->getMessage() . "\n";
+        echo "This might be a temporary issue, try again later.\n";
+        return [];
+    } catch (Exception $e) {
+        echo "Unexpected error: " . $e->getMessage() . "\n";
+        return [];
+    }
+}
+
+// Usage
+$results = searchWithErrorHandling("Nonexistent Song XYZ123");
+if (!empty($results)) {
+    foreach ($results as $result) {
+        echo "Found: " . $result->title . "\n";
+    }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3>Authentication Error Handling</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+function getLibraryWithAuth($auth_file) {
+    try {
+        $yt = new Ytmusicapi\YTMusic($auth_file);
+        
+        // Test authentication
+        $account = $yt->get_account();
+        echo "Successfully authenticated as: " . $account->name . "\n";
+        
+        // Get library content
+        $playlists = $yt->get_library_playlists();
+        return $playlists;
+        
+    } catch (Ytmusicapi\YTMusicUserError $e) {
+        if (strpos($e->getMessage(), "authentication") !== false) {
+            echo "Authentication failed. Please check your auth file.\n";
+            echo "Run: php vendor/bin/setup-ytmusicapi browser\n";
+        } else {
+            echo "User error: " . $e->getMessage() . "\n";
+        }
+        return [];
+    } catch (Exception $e) {
+        echo "Error accessing library: " . $e->getMessage() . "\n";
+        return [];
+    }
+}
+
+// Usage
+$playlists = getLibraryWithAuth("browser.json");</code></pre>
+                        </div>
+                    </div>
+
+                    <h2 id="advanced-examples">Advanced Examples</h2>
+                    <p>Complex workflows and advanced usage patterns.</p>
+
+                    <div class="method-card">
+                        <h3>Music Discovery Workflow</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic("browser.json");
+
+// Discover new music based on an artist
+function discoverSimilarMusic($artist_name, $yt) {
+    echo "Discovering music similar to: " . $artist_name . "\n";
+    
+    // Search for the artist
+    $artists = $yt->search($artist_name, filter: "artists", limit: 1);
+    if (empty($artists)) {
+        echo "Artist not found\n";
+        return;
+    }
+    
+    $artist = $artists[0];
+    echo "Found artist: " . $artist->name . "\n";
+    
+    // Get artist information
+    $artist_info = $yt->get_artist($artist->browseId);
+    
+    // Get a popular song to create a radio playlist
+    if (!empty($artist_info->songs)) {
+        $song = $artist_info->songs[0];
+        echo "Using song: " . $song->title . "\n";
+        
+        // Get radio playlist
+        $radio = $yt->get_watch_playlist(
+            videoId: $song->videoId, 
+            radio: true, 
+            limit: 20
+        );
+        
+        echo "Generated radio playlist with " . count($radio->tracks) . " tracks:\n";
+        foreach (array_slice($radio->tracks, 0, 10) as $track) {
+            if ($track->artists) {
+                $artists = array_map(fn($a) => $a->name, $track->artists);
+                echo "- " . $track->title . " by " . implode(", ", $artists) . "\n";
+            }
+        }
+    }
+}
+
+// Usage
+discoverSimilarMusic("Radiohead", $yt);</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3>Playlist Backup Tool</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic("browser.json");
+
+function backupPlaylist($playlist_id, $yt) {
+    try {
+        $playlist = $yt->get_playlist($playlist_id);
+        
+        $backup = [
+            'metadata' => [
+                'title' => $playlist->title,
+                'description' => $playlist->description ?? '',
+                'track_count' => $playlist->trackCount,
+                'duration' => $playlist->duration,
+                'backed_up' => date('Y-m-d H:i:s')
+            ],
+            'tracks' => []
+        ];
+        
+        foreach ($playlist->tracks as $track) {
+            $artists = array_map(fn($artist) => $artist->name, $track->artists ?? []);
+            
+            $backup['tracks'][] = [
+                'title' => $track->title,
+                'artists' => $artists,
+                'videoId' => $track->videoId ?? null,
+                'duration' => $track->duration ?? null,
+                'album' => $track->album->name ?? null
+            ];
+        }
+        
+        $filename = "playlist_backup_" . $playlist_id . "_" . date('Y-m-d') . ".json";
+        file_put_contents($filename, json_encode($backup, JSON_PRETTY_PRINT));
+        
+        echo "Backup saved to: " . $filename . "\n";
+        echo "Backed up " . count($backup['tracks']) . " tracks\n";
+        
+    } catch (Exception $e) {
+        echo "Backup failed: " . $e->getMessage() . "\n";
+    }
+}
+
+// Usage
+backupPlaylist("PLfY7JYgRs-QJZP7zqsKPFMqKJ5qghLqm_", $yt);</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3>Charts Analysis</h3>
+                        <div class="code-block">
+                            <pre><code class="language-php"><?php
+$yt = new Ytmusicapi\YTMusic();
+
+// Analyze global music trends
+$charts = $yt->get_charts("ZZ"); // Global charts
+
+echo "Global Music Trends\n";
+echo "==================\n";
+
+// Top artists
+if (isset($charts['artists'])) {
+    echo "\nTop Artists:\n";
+    foreach (array_slice($charts['artists'], 0, 10) as $artist) {
+        $trend = $artist['trend'] ?? 'neutral';
+        $emoji = $trend === 'up' ? '📈' : ($trend === 'down' ? '📉' : '➡️');
+        
+        echo $artist['rank'] . ". " . $artist['title'] . 
+             " (" . $artist['subscribers'] . " subscribers) " . $emoji . "\n";
+    }
+}
+
+// Chart playlists
+if (isset($charts['videos'])) {
+    echo "\nChart Playlists:\n";
+    foreach ($charts['videos'] as $chart) {
+        echo "- " . $chart['title'] . " (ID: " . $chart['playlistId'] . ")\n";
+    }
+}
+
+// US-specific genre charts
+$us_charts = $yt->get_charts("US");
+if (isset($us_charts['genres'])) {
+    echo "\nUS Genre Charts:\n";
+    foreach ($us_charts['genres'] as $genre) {
+        echo "- " . $genre['title'] . "\n";
+    }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>Tip:</strong> Many examples use PHP 8.0+ named parameters for clarity. For older PHP versions, use positional parameters instead.
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <strong>Rate Limiting:</strong> Be mindful of making too many requests quickly. Consider adding small delays between requests for large operations.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="index.html">Overview</a>
+                    <a href="installation.html">Installation</a>
+                    <a href="authentication.html">Authentication</a>
+                    <a href="api-reference.html">API Reference</a>
+                    <a href="https://github.com/sigma67/ytmusicapi-php" target="_blank">GitHub</a>
+                </div>
+                <p class="footer-text">
+                    Based on <a href="https://github.com/sigma67/ytmusicapi" target="_blank">sigma67's ytmusicapi</a> • 
+                    MIT License
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

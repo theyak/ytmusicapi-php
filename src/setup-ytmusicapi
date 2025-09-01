@@ -2,7 +2,8 @@
 <?php
 namespace Ytmusicapi;
 
-include __DIR__ . "/../vendor/autoload.php";
+require_once "vendor/autoload.php";
+
 include "polyfills.php";
 include "helpers.php";
 include "constants.php";

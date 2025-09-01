@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Reference - YTMusicAPI PHP</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/youtubemusic.svg" alt="YouTube Music" class="brand-icon">
+                <span class="brand-text">YTMusicAPI PHP</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Overview</a>
+                <a href="installation.html" class="nav-link">Installation</a>
+                <a href="authentication.html" class="nav-link">Authentication</a>
+                <a href="api-reference.html" class="nav-link">API Reference</a>
+                <a href="examples.html" class="nav-link">Examples</a>
+                <a href="types.html" class="nav-link">Types</a>
+                <a href="https://github.com/sigma67/ytmusicapi-php" class="nav-link github-link" target="_blank">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <header class="page-header">
+        <div class="container">
+            <h1 class="page-title">API Reference</h1>
+            <p class="page-subtitle">Complete reference for all YTMusicAPI PHP methods</p>
+        </div>
+    </header>
+
+    <section class="content-section">
+        <div class="container">
+            <div class="content-grid">
+                <aside class="sidebar">
+                    <ul>
+                        <li><a href="#search">Search</a></li>
+                        <li><a href="#browse">Browse</a></li>
+                        <li><a href="#library">Library</a></li>
+                        <li><a href="#playlists">Playlists</a></li>
+                        <li><a href="#watch">Watch</a></li>
+                        <li><a href="#charts">Charts</a></li>
+                        <li><a href="#explore">Explore</a></li>
+                        <li><a href="#uploads">Uploads</a></li>
+                        <li><a href="#podcasts">Podcasts</a></li>
+                    </ul>
+                </aside>
+                
+                <div class="content">
+                    <h2 id="search">Search</h2>
+                    <p>Search for content on YouTube Music including songs, albums, artists, playlists, and more.</p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">search($query, $filter = null, $scope = null, $limit = 20, $ignore_spelling = false)</h3>
+                        <p class="method-description">Search YouTube Music and return results within the provided category.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$query</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Query string, e.g., 'Oasis Wonderwall'</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$filter</span>
+                                <span class="param-type">string|null</span>
+                                <p class="param-description">Filter for item types. Allowed values: <span class="inline-code">songs</span>, <span class="inline-code">videos</span>, <span class="inline-code">albums</span>, <span class="inline-code">artists</span>, <span class="inline-code">playlists</span>, <span class="inline-code">community_playlists</span>, <span class="inline-code">featured_playlists</span>, <span class="inline-code">uploads</span></p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$scope</span>
+                                <span class="param-type">string|null</span>
+                                <p class="param-description">Search scope. Allowed values: <span class="inline-code">library</span>, <span class="inline-code">uploads</span></p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$limit</span>
+                                <span class="param-type">int</span>
+                                <p class="param-description">Number of search results to return (default: 20)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$ignore_spelling</span>
+                                <span class="param-type">bool</span>
+                                <p class="param-description">Whether to ignore YouTube Music spelling suggestions (default: false)</p>
+                            </div>
+                        </div>
+
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">SearchResult[]</span> - List of search results</p>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">// Basic search
+$results = $yt->search("Oasis Wonderwall");
+
+// Search for specific content type
+$albums = $yt->search("Oasis", filter: "albums");
+
+// Search in library
+$library_songs = $yt->search("Wonderwall", scope: "library");</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_search_suggestions($query, $detailed_runs = false)</h3>
+                        <p class="method-description">Get search suggestions for a query.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$query</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Query string, e.g., 'faded'</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$detailed_runs</span>
+                                <span class="param-type">bool</span>
+                                <p class="param-description">Whether to return detailed runs of each suggestion (default: false)</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$suggestions = $yt->get_search_suggestions("faded");
+$detailed = $yt->get_search_suggestions("faded", detailed_runs: true);</code></pre>
+                        </div>
+                    </div>
+
+                    <h2 id="browse">Browse</h2>
+                    <p>Browse and retrieve detailed information about artists, albums, songs, and users.</p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_home()</h3>
+                        <p class="method-description">Get the home page with music suggestions and recommendations.</p>
+                        
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">array</span> - Home page content with titled rows of music suggestions</p>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$home = $yt->get_home();</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_artist($channelId)</h3>
+                        <p class="method-description">Get information about an artist including albums, songs, and related content.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$channelId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Artist's channel ID</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$artist = $yt->get_artist("UCR28YDxjDE3ogQROaNdnRbQ");</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_album($browseId)</h3>
+                        <p class="method-description">Get information about an album including tracks and metadata.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$browseId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Album's browse ID</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$album = $yt->get_album("MPREb_BQZvl0P6ern");</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_song($videoId, $signatureTimestamp = null)</h3>
+                        <p class="method-description">Returns metadata and streaming information about a song or video.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$videoId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Video ID of the song</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$signatureTimestamp</span>
+                                <span class="param-type">int|null</span>
+                                <p class="param-description">YouTube signature timestamp (optional)</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$song = $yt->get_song("kJQP7kiw5Fk");</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_song_info($videoId)</h3>
+                        <p class="method-description">Get basic information about a track, including whether it's a music video or not. <em>(PHP-specific method)</em></p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$videoId</span>
+                                <span class="param-type">string|Song</span>
+                                <p class="param-description">Video ID or Song object</p>
+                            </div>
+                        </div>
+
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">SongInfo</span> - Basic song information with music flag</p>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$info = $yt->get_song_info("kJQP7kiw5Fk");
+if ($info->music) {
+    echo "This is a music track";
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_lyrics($browseId)</h3>
+                        <p class="method-description">Get lyrics for a song.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$browseId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Lyrics browse ID (from song or track object)</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$lyrics = $yt->get_lyrics($track->lyrics);</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_user($channelId)</h3>
+                        <p class="method-description">Get information about a user and their public content.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$channelId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">User's channel ID</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$user = $yt->get_user("UC123456789");</code></pre>
+                        </div>
+                    </div>
+
+                    <h2 id="library">Library</h2>
+                    <p>Access and manage your personal YouTube Music library. <strong>Requires authentication.</strong></p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_library_playlists($limit = 25)</h3>
+                        <p class="method-description">Retrieve playlists from your library.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$limit</span>
+                                <span class="param-type">int</span>
+                                <p class="param-description">Number of playlists to retrieve (default: 25)</p>
+                            </div>
+                        </div>
+
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">PlaylistInfo[]</span> - List of owned playlists</p>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$playlists = $yt->get_library_playlists();</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_library_songs($limit = 25, $validate_responses = false, $order = null)</h3>
+                        <p class="method-description">Get songs from your library (liked videos are not included).</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$limit</span>
+                                <span class="param-type">int</span>
+                                <p class="param-description">Number of songs to retrieve (default: 25)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$validate_responses</span>
+                                <span class="param-type">bool</span>
+                                <p class="param-description">Whether to validate and retry responses (default: false)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$order</span>
+                                <span class="param-type">string|null</span>
+                                <p class="param-description">Order of songs. Values: 'a_to_z', 'z_to_a', 'recently_added'</p>
+                            </div>
+                        </div>
+
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">Track[]</span> - List of songs in library</p>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$songs = $yt->get_library_songs(limit: 50, order: "recently_added");</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_library_albums($limit = 25, $order = null)</h3>
+                        <p class="method-description">Get albums from your library.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$limit</span>
+                                <span class="param-type">int</span>
+                                <p class="param-description">Number of albums to return (default: 25)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$order</span>
+                                <span class="param-type">string|null</span>
+                                <p class="param-description">Order of albums. Values: 'a_to_z', 'z_to_a', 'recently_added'</p>
+                            </div>
+                        </div>
+
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">AlbumInfo[]</span> - List of albums</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_library_artists($limit = 25, $order = null)</h3>
+                        <p class="method-description">Get artists from your library.</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_history()</h3>
+                        <p class="method-description">Get your music history.</p>
+                        
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">Track[]</span> - List of recently played tracks</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">rate_song($videoId, $rating = "INDIFFERENT")</h3>
+                        <p class="method-description">Rate a song (like, dislike, or indifferent).</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$videoId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Video ID of the song</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$rating</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Rating: "LIKE", "DISLIKE", or "INDIFFERENT"</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$yt->rate_song("kJQP7kiw5Fk", "LIKE");</code></pre>
+                        </div>
+                    </div>
+
+                    <h2 id="playlists">Playlists</h2>
+                    <p>Create, manage, and interact with playlists. Most operations require authentication.</p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_playlist($playlistId, $limit = 100, $related = false, $suggestions_limit = 0, $get_continuations = true)</h3>
+                        <p class="method-description">Returns information and tracks of a playlist.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$playlistId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Playlist ID</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$limit</span>
+                                <span class="param-type">int</span>
+                                <p class="param-description">Maximum number of tracks to return (default: 100)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$related</span>
+                                <span class="param-type">bool</span>
+                                <p class="param-description">Whether to return related playlists (default: false)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$suggestions_limit</span>
+                                <span class="param-type">int</span>
+                                <p class="param-description">Maximum number of suggestions to return (default: 0)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$get_continuations</span>
+                                <span class="param-type">bool</span>
+                                <p class="param-description">Whether to get all tracks or return continuation token (default: true) <em>(PHP-specific)</em></p>
+                            </div>
+                        </div>
+
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">Playlist</span> - Playlist object with tracks and metadata</p>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$playlist = $yt->get_playlist("PLfY7JYgRs-QJZP7zqsKPFMqKJ5qghLqm_");</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_playlist_continuation($playlistId, $token)</h3>
+                        <p class="method-description">Get continuation of playlist tracks for pagination. <em>(PHP-specific method)</em></p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$playlistId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Playlist ID</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$token</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Continuation token from previous playlist request</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">// Get first batch
+$playlist = $yt->get_playlist("LM", get_continuations: false);
+
+// Get next batch
+while ($playlist->continuation) {
+    $next = $yt->get_playlist_continuation("LM", $playlist->continuation);
+    $playlist->tracks = array_merge($playlist->tracks, $next->tracks);
+    $playlist->continuation = $next->continuation;
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_liked_songs($limit = 100)</h3>
+                        <p class="method-description">Get your liked songs playlist.</p>
+                        
+                        <div class="code-block">
+                            <pre><code class="language-php">$liked = $yt->get_liked_songs();</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">create_playlist($title, $description, $privacy_status = "PRIVATE", $video_ids = null, $source_playlist = null)</h3>
+                        <p class="method-description">Create a new playlist.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$title</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Playlist title</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$description</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Playlist description</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$privacy_status</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Privacy: "PUBLIC", "PRIVATE", or "UNLISTED" (default: "PRIVATE")</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$video_ids</span>
+                                <span class="param-type">array|null</span>
+                                <p class="param-description">Video IDs to add to the playlist</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$source_playlist</span>
+                                <span class="param-type">string|null</span>
+                                <p class="param-description">Source playlist to copy songs from</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$playlist_id = $yt->create_playlist(
+    "My Favorite Songs", 
+    "Collection of my favorite tracks",
+    "PRIVATE",
+    ["kJQP7kiw5Fk", "dQw4w9WgXcQ"]
+);</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">edit_playlist($playlistId, $title = null, $description = null, $privacyStatus = null, $moveItem = null, $addPlaylistId = null, $addToTop = null)</h3>
+                        <p class="method-description">Edit playlist properties or add content from another playlist.</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">delete_playlist($playlistId)</h3>
+                        <p class="method-description">Delete a playlist.</p>
+                        
+                        <div class="code-block">
+                            <pre><code class="language-php">$yt->delete_playlist("PLfY7JYgRs-QJZP7zqsKPFMqKJ5qghLqm_");</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">add_playlist_items($playlistId, $videoIds = null, $source_playlist = null, $duplicates = false)</h3>
+                        <p class="method-description">Add songs to an existing playlist.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$playlistId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Playlist ID</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$videoIds</span>
+                                <span class="param-type">array|null</span>
+                                <p class="param-description">Video IDs to add</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$source_playlist</span>
+                                <span class="param-type">string|null</span>
+                                <p class="param-description">Source playlist to copy from</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$duplicates</span>
+                                <span class="param-type">bool</span>
+                                <p class="param-description">Allow duplicate songs (default: false)</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$yt->add_playlist_items(
+    "PLfY7JYgRs-QJZP7zqsKPFMqKJ5qghLqm_",
+    ["kJQP7kiw5Fk", "dQw4w9WgXcQ"]
+);</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">remove_playlist_items($playlistId, $videos)</h3>
+                        <p class="method-description">Remove songs from a playlist.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$playlistId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Playlist ID</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$videos</span>
+                                <span class="param-type">array</span>
+                                <p class="param-description">List of playlist items with setVideoId to remove</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 id="watch">Watch</h2>
+                    <p>Get watch playlists and track information for continuous playback.</p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_watch_playlist($videoId = null, $playlistId = null, $limit = 25, $radio = false, $shuffle = false)</h3>
+                        <p class="method-description">Get a watch list of tracks for continuous playback.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$videoId</span>
+                                <span class="param-type">string|null</span>
+                                <p class="param-description">Video ID of the played video</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$playlistId</span>
+                                <span class="param-type">string|null</span>
+                                <p class="param-description">Playlist ID of the played playlist or album</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$limit</span>
+                                <span class="param-type">int</span>
+                                <p class="param-description">Minimum number of watch playlist items to return (default: 25)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$radio</span>
+                                <span class="param-type">bool</span>
+                                <p class="param-description">Get a radio playlist that changes each time (default: false)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$shuffle</span>
+                                <span class="param-type">bool</span>
+                                <p class="param-description">Shuffle the input playlist (default: false)</p>
+                            </div>
+                        </div>
+
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">WatchList</span> - Watch playlist with tracks and related information</p>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">// Get watch playlist for a song
+$watch = $yt->get_watch_playlist(videoId: "kJQP7kiw5Fk");
+
+// Get radio playlist
+$radio = $yt->get_watch_playlist(videoId: "kJQP7kiw5Fk", radio: true);</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_track($videoId)</h3>
+                        <p class="method-description">Get track information including IDs to retrieve lyrics and related tracks. <em>(PHP-specific method)</em></p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$videoId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Video ID</p>
+                            </div>
+                        </div>
+
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">WatchTrack</span> - Track object with additional IDs for lyrics and related content</p>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$track = $yt->get_track("kJQP7kiw5Fk");
+$lyrics = $yt->get_lyrics($track->lyrics);
+$related = $yt->get_song_related($track->related);</code></pre>
+                        </div>
+                    </div>
+
+                    <h2 id="charts">Charts</h2>
+                    <p>Access music charts and trending content from around the world.</p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_charts($country = "ZZ")</h3>
+                        <p class="method-description">Get latest charts data from YouTube Music including top videos, artists, and genres.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$country</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">ISO 3166-1 Alpha-2 country code (default: "ZZ" = Global)</p>
+                            </div>
+                        </div>
+
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">array</span> - Charts data with videos, artists, and genres (US-only)</p>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">// Get global charts
+$global_charts = $yt->get_charts();
+
+// Get US charts (includes genres)
+$us_charts = $yt->get_charts("US");</code></pre>
+                        </div>
+                    </div>
+
+                    <h2 id="explore">Explore</h2>
+                    <p>Discover new music through mood categories and curated playlists.</p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_mood_categories()</h3>
+                        <p class="method-description">Get available mood categories for music discovery.</p>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$moods = $yt->get_mood_categories();</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_mood_playlists($params)</h3>
+                        <p class="method-description">Get playlists for a specific mood category.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$params</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Parameters from mood category</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 id="uploads">Uploads</h2>
+                    <p>Manage your uploaded music content. <strong>Requires authentication.</strong></p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_library_upload_songs($limit = 25, $order = null)</h3>
+                        <p class="method-description">Get list of uploaded songs from your library.</p>
+                        
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">UploadTrack[]</span> - List of uploaded songs</p>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$uploads = $yt->get_library_upload_songs();</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_library_upload_albums($limit = 25, $order = null)</h3>
+                        <p class="method-description">Get albums of uploaded songs from your library.</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">upload_song($filepath)</h3>
+                        <p class="method-description">Upload a song to YouTube Music.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$filepath</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Path to music file (mp3, m4a, wma, flac, or ogg)</p>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <strong>Requirements:</strong> Requires browser authentication and files must be under 300MB.
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$result = $yt->upload_song("/path/to/song.mp3");</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">delete_upload_entity($entityId)</h3>
+                        <p class="method-description">Delete a previously uploaded song or album.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$entityId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Entity ID from uploaded content</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 id="podcasts">Podcasts</h2>
+                    <p>Browse and manage podcast content on YouTube Music.</p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_podcast($playlistId, $limit = 100)</h3>
+                        <p class="method-description">Get information about a podcast and its episodes.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$playlistId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Podcast playlist ID</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$limit</span>
+                                <span class="param-type">int</span>
+                                <p class="param-description">Number of episodes to return (default: 100)</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$podcast = $yt->get_podcast("PLgH1bHkDmEYz1234567890");</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_episode($videoId)</h3>
+                        <p class="method-description">Get information about a podcast episode.</p>
+                        
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$videoId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Episode video ID</p>
+                            </div>
+                        </div>
+
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">Episode</span> - Episode information including title, description, and metadata</p>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$episode = $yt->get_episode("nDnLSYCOg7E");</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">get_channel($channelId)</h3>
+                        <p class="method-description">Get information about a podcast channel.</p>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>Authentication Required:</strong> Methods marked with 🔒 require authentication. See the <a href="authentication.html">Authentication Guide</a> for setup instructions.
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <strong>PHP-Specific Methods:</strong> Some methods marked with <em>(PHP-specific)</em> are enhancements not available in the original Python version.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="index.html">Overview</a>
+                    <a href="installation.html">Installation</a>
+                    <a href="authentication.html">Authentication</a>
+                    <a href="examples.html">Examples</a>
+                    <a href="https://github.com/sigma67/ytmusicapi-php" target="_blank">GitHub</a>
+                </div>
+                <p class="footer-text">
+                    Based on <a href="https://github.com/sigma67/ytmusicapi" target="_blank">sigma67's ytmusicapi</a> • 
+                    MIT License
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
