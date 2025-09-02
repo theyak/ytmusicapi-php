@@ -9,7 +9,45 @@ test('get_account()', function () {
     expect($account->name)->not->toBeEmpty();
     expect($account->channelId)->not->toBeEmpty();
     expect($account->thumbnails)->toBeArray();
-})->skip();
+});
+
+test('get_account() - with cookie authentication', function () {
+    $browser = json_decode(file_get_contents("browser.json"), true);
+
+    $yt = new YTMusic($browser['cookie'], $browser['x-goog-authuser'] ?? "0");
+    $account = $yt->get_account();
+    expect($account->name)->not->toBeEmpty();
+    expect($account->channelId)->not->toBeEmpty();
+    expect($account->thumbnails)->toBeArray();
+});
+
+test('get_account() - with manual cookie authentication', function () {
+    $browser = json_decode(file_get_contents("browser.json"), true);
+
+    $auth = (object)[
+        "cookie" => $browser['cookie'],
+        "x-goog-authuser" => $browser['x-goog-authuser'] ?? "0",
+        "x-goog-visitor-id" => $browser['x-goog-visitor-id'] ?? ""
+    ];
+
+    $yt = new YTMusic(json_encode($auth));
+    $account = $yt->get_account();
+    expect($account->name)->not->toBeEmpty();
+});
+
+test('get_account() - with manual cookie object authentication', function () {
+    $browser = json_decode(file_get_contents("browser.json"), true);
+
+    $auth = (object)[
+        "cookie" => $browser['cookie'],
+        "x-goog-authuser" => $browser['x-goog-authuser'] ?? "0",
+        "x-goog-visitor-id" => $browser['x-goog-visitor-id'] ?? ""
+    ];
+
+    $yt = new YTMusic($auth);
+    $account = $yt->get_account();
+    expect($account->name)->not->toBeEmpty();
+});
 
 test('get_account() - error condition', function () {
     $credentials = new YtmusicApi\OAuthCredentials(

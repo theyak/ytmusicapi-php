@@ -13,8 +13,9 @@ use WpOrg\Requests\Utility\CaseInsensitiveDictionary as CaseInsensitiveDict;
 function parse_auth_str($auth)
 {
     $auth_path = null;
-    
+
     if (is_string($auth)) {
+
         $auth_str = $auth;
         if (str_starts_with($auth, "{")) {
             $input_json = json_decode($auth_str, true);
@@ -31,9 +32,11 @@ function parse_auth_str($auth)
         } else {
             throw new YTMusicUserError("Invalid auth JSON string or file path provided.");
         }
-        return [new CaseInsensitiveDict($input_json), $auth_path];
+        $auth = array_merge(initialize_headers(), $input_json);
+        return [new CaseInsensitiveDict($auth), $auth_path];
     } else {
-        return [new CaseInsensitiveDict((array)$auth), $auth_path];
+        $auth = array_merge(initialize_headers(), (array)$auth);
+        return [new CaseInsensitiveDict($auth), $auth_path];
     }
 }
 
@@ -51,6 +54,7 @@ function determine_auth_type($auth_headers)
         $auth_type = AuthType::OAUTH_CUSTOM_CLIENT;
     }
 
+    $cookie = $auth_headers->offsetExists("cookie") ? $auth_headers["cookie"] : null;
     $authorization = $auth_headers->offsetExists("authorization") ? $auth_headers["authorization"] : null;
 
     if ($authorization) {
@@ -58,6 +62,10 @@ function determine_auth_type($auth_headers)
             $auth_type = AuthType::BROWSER;
         } elseif (str_starts_with($authorization, "Bearer")) {
             $auth_type = AuthType::OAUTH_CUSTOM_FULL;
+        }
+    } else if ($cookie) {
+        if (str_contains($cookie, "__Secure-3PAPISID") && str_contains($cookie, "SAPISID=")) {
+            $auth_type = AuthType::BROWSER;
         }
     }
 

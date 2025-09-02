@@ -118,7 +118,7 @@ class YTMusic
             // Custom, pass in cookie string directly. A bit easier for Chrome users.
             // A valid cookie must contain both __Secure-3PAPISID, SAPISID, and SID
             
-            if (is_string($auth) && strpos($auth, "__Secure-3PAPISID") !== false && strpos($auth, "SAPISID=") !== false) {    
+            if (is_string($auth) && str_starts_with($auth, "{") === false && strpos($auth, "__Secure-3PAPISID") !== false && strpos($auth, "SAPISID=") !== false) {    
                 $this->auth_type = AuthType::BROWSER;
                 $this->_auth_headers = initialize_headers();
                 $this->_auth_headers["cookie"] = $auth;
