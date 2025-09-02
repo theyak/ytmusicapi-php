@@ -73,6 +73,13 @@ function setup_browser($filepath = null, $headers_raw = null)
         throw new \Exception("Error parsing your input, please try again. Full error: {$e->getMessage()}");
     }
 
+    // Dump any key starting with a colon
+    foreach ($user_headers as $key => $value) {
+        if (substr($key, 0, 1) === ":") {
+            unset($user_headers[$key]);
+        }
+    }
+
     $user_headers = array_change_key_case($user_headers, CASE_LOWER);
 
     $missing_headers = array_diff(["cookie", "x-goog-authuser"], array_map("strtolower", array_keys($user_headers)));

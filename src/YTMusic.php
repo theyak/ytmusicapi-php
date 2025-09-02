@@ -109,7 +109,7 @@ class YTMusic
 
         // see google cookie docs: https://policies.google.com/technologies/cookies
         // value from https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/extractor/youtube.py#L502
-        $this->cookies = ["SOCS" => "CAI"];
+        $this->cookies = "SOCS=CAI;";
 
         $this->_auth_headers = new CaseInsensitiveDict([]);
         $this->auth_type = AuthType::UNAUTHORIZED;
@@ -118,18 +118,11 @@ class YTMusic
             // Custom, pass in cookie string directly. A bit easier for Chrome users.
             // A valid cookie must contain both __Secure-3PAPISID, SAPISID, and SID
             
-            if (is_string($auth) && strpos($auth, "__Secure-3PAPISID") !== false && strpos($auth, "SAPISID=") !== false) {    
+            if (is_string($auth) && str_starts_with($auth, "{") === false && strpos($auth, "__Secure-3PAPISID") !== false && strpos($auth, "SAPISID=") !== false) {    
                 $this->auth_type = AuthType::BROWSER;
-                $this->_auth_headers = [
-                    "cookie" => $auth,
-                    "x-goog-authuser" => $user ?? "0",
-                    "origin" => YTM_DOMAIN,
-                    "user-agent" => USER_AGENT,
-                    "accept" => "*/*",
-                    "accept-encoding" => "gzip, deflate",
-                    "content-type" => "application/json",
-                    "content-encodng" => "gzip",
-                ];
+                $this->_auth_headers = initialize_headers();
+                $this->_auth_headers["cookie"] = $auth;
+                $this->_auth_headers["x-goog-authuser"] = $user ?? "0";
 
                 // Prevent brand account
                 $user = "0";
@@ -274,10 +267,13 @@ class YTMusic
         }
 
         $header = $this->headers();
-        $header["cookies"] = convert_cookies_to_string($this->cookies);
-
+        
         if ($header instanceof CaseInsensitiveDict) {
             $header = $header->getAll();
+        }
+
+        if (empty($header["cookie"])) {
+            $header["cookie"] = $this->cookies;
         }
 
         $response = $this->_session->post(
@@ -325,13 +321,12 @@ class YTMusic
 
         if ($use_base_headers) {
             $headers =  initialize_headers();
-            $headers["cookie"] = "SOCS=CAI;";
         } else {
             $headers =  $this->headers();
         }
 
         if (empty($headers["cookie"])) {
-            $headers["cookie"] = "SOCS=CAI;";
+            $headers["cookie"] = $this->cookies;
         }
 
         $response = $this->_session->get($url, $headers, $options);
