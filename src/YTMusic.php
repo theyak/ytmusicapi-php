@@ -310,9 +310,6 @@ class YTMusic
      */
     public function _send_get_request($url, $params = null, $use_base_headers = false)
     {
-
-        var_dump($use_base_headers);
-
         if ($params) {
             if (is_array($params)) {
                 $params = http_build_query($params);
@@ -331,6 +328,10 @@ class YTMusic
             $headers["cookie"] = "SOCS=CAI;";
         } else {
             $headers =  $this->headers();
+        }
+
+        if (empty($headers["cookie"])) {
+            $headers["cookie"] = "SOCS=CAI;";
         }
 
         $response = $this->_session->get($url, $headers, $options);
