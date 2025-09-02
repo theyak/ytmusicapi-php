@@ -23,18 +23,39 @@ test('get_account() - error condition', function () {
 })->throws("Could not find account information.");
 
 test('get_home()', function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
 
-    $home = $yt->get_home();
+    $home = $yt->get_home(limit: 20);
 
     expect($home)->toBeArray();
-    foreach ($home as $row) {
-        expect($row::class)->toBe("Ytmusicapi\\Shelf");
-        expect($row->title)->not->toBeEmpty();
-        expect($row->contents)->toBeArray();
-        foreach ($row->contents as $content) {
-            expect($content->title)->not->toBeEmpty();
-            expect($content->thumbnails)->toBeArray();
+
+    $apiResultTypes = $yt->get_api_result_types();
+
+    foreach ($home as $section) {
+        expect($section::class)->toBe("Ytmusicapi\\Shelf");
+        expect($section->title)->not->toBeEmpty();
+        expect($section->contents)->toBeArray();
+        foreach ($section->contents as $item) {
+            # ensure all links are supported by parse_mixed_content
+            expect($item)->not->toBeNull();
+
+            if (!empty($item->artists)) {
+                $artists = $item->artists;
+                if (count($artists) <= 1) {
+                    continue;
+                }
+
+                $firstArtist = $artists[0];
+                $artistName = $firstArtist->name;
+                $artistId = $firstArtist->id;
+
+                expect($artistName)->not->toBeEmpty();
+                expect($artistName)->not->toBeIn($apiResultTypes);
+                expect($artistId)->not->toBeIn($apiResultTypes);
+            }
+
+            expect($item->title)->not->toBeEmpty();
+            expect($item->thumbnails)->toBeArray();
         }
     }
 });
@@ -128,7 +149,7 @@ test('get_song_info() - Invalid video ID type', function () {
 })->throws(Exception::class);
 
 test('get_artist() shows', function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
 
     $results = $yt->get_artist("UCyiY-0Af0O6emoI3YvCEDaA");
     expect(count($results->shows->results))->toBe(10);
@@ -138,7 +159,7 @@ test('get_artist() shows', function () {
 });
 
 test('get_artist() and get_artist_albums()', function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
 
     $artist = $yt->get_artist($this->artistId);
 
@@ -215,7 +236,7 @@ test('get_artist_albums() - singles', function () {
 });
 
 test('get_artist_albums() - Without prefix', function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
 
     $artist = $yt->get_artist($this->artistId);
     $channelId = substr($artist->albums->browseId, 4);
@@ -288,7 +309,7 @@ test("get_user() and get_user_playlists()", function () {
 });
 
 test("get_tasteprofile() and set_tasteprofile()", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
 
     $profile = $yt->get_tasteprofile();
     foreach ($profile as $taste) {
@@ -305,7 +326,7 @@ test("get_tasteprofile() and set_tasteprofile()", function () {
 });
 
 test("set_tasteprofile() - without sending in tasteprofile", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
 
     $profile = $yt->get_tasteprofile();
     $artists = array_slice(array_keys($profile), 0, 5);
@@ -313,7 +334,7 @@ test("set_tasteprofile() - without sending in tasteprofile", function () {
 })->throwsNoExceptions();
 
 test("set_tasteprofile() - invalid artist", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
 
     $profile = $yt->get_tasteprofile();
     $artists = ["invalid artist"];
@@ -331,7 +352,7 @@ test("set_tasteprofile() - invalid artist", function () {
 
 test("get_song_related() and get_lyrics()", function () {
     $yt = ytmusic();
-    
+
     $playlist = $yt->get_watch_playlist($this->videoId);
 
     expect($playlist)->not->toBeEmpty();
@@ -343,17 +364,34 @@ test("get_song_related() and get_lyrics()", function () {
 
     // Hard to really test fully because responses can vary
     $related = $yt->get_song_related($playlist->related);
+
     expect($related)->toBeArray();
     expect($related)->not->toBeEmpty();
-    foreach ($related as $shelf) {
-        expect($shelf::class)->toBe("Ytmusicapi\\Shelf");
+    foreach ($related as $section) {
+        expect($section::class)->toBe("Ytmusicapi\\Shelf");
+
+        if (is_string($section->contents)) {
+            continue;
+        }
+
+        foreach ($section->contents as $item) {
+            if (empty($item->videoId)) {
+                continue;
+            }
+
+            $value = $item->views ?? $item->album ?? null;
+            expect($value)->not->toBeNull();
+            expect($item)->not->toBeNull();
+            expect($item->title)->not->toBeEmpty();
+            expect($item->thumbnails)->toBeArray();
+        }
     }
 });
 
 test("get_lyrics() - TimedLyrics", function () {
     $yt = ytmusic();
-    $playlist = $yt->get_watch_playlist($this->videoId);
-
+    
+    $playlist = $yt->get_watch_playlist("hpSrLjc5SMs");
     expect($playlist)->not->toBeEmpty();
     expect($playlist->related)->toBeString();
 
@@ -362,9 +400,19 @@ test("get_lyrics() - TimedLyrics", function () {
     expect($lyrics->source)->not->toBeEmpty();
 });
 
+test("get_lyrics() - TimedLyrics with song that has no timed data", function () {
+    $yt = ytmusic();
+
+    $playlist = $yt->get_watch_playlist($this->videoId);
+
+    $lyrics = $yt->get_lyrics($playlist->lyrics, true);
+
+    expect($lyrics)->toBeNull();
+});
+
 test("get_transcript() - TimedLyrics", function () {
     $yt = ytmusic();
-    $lyrics = $yt->get_transcript($this->videoId);
+    $lyrics = $yt->get_transcript("hpSrLjc5SMs");
     expect($lyrics)->toBeArray();
     expect($lyrics[1]->start)->not->toBeEmpty();
     expect($lyrics[1]->duration)->not->toBeEmpty();
@@ -379,7 +427,7 @@ test("get_song_related() and get_lyrics() exceptions", function () {
 
 test("get_user_videos()", function () {
     $channel = "UCus8EVJ7Oc9zINhs-fg8l1Q"; // Turbo
-
+  
     $yt = ytmusic();
     $user = $yt->get_user($channel);
     $results = $yt->get_user_videos($channel, $user->videos->params);

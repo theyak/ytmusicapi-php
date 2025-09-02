@@ -39,7 +39,9 @@
     {
         $result_type = get_search_result_type(nav($data, SUBTITLE), $search_result_types);
 
-        $search_result = ['category' => nav($data, CARD_SHELF_TITLE), 'resultType' => $result_type];
+        // header element is missing in some edge cases (#799)
+        $category = nav($data, CARD_SHELF_TITLE, true) ?? "Top result";
+        $search_result = ["category" => $category, "resultType" => $result_type];
 
         if ($result_type === 'artist') {
             $subscribers = nav($data, SUBTITLE2, true);
@@ -97,12 +99,11 @@
     /**
      * 
      * @param object $data
-     * @param string[] $search_result_types
      * @param ?string $result_type
      * @param ?string $category
      * @return object
      */
-    function parse_search_result($data, $search_result_types, $result_type, $category)
+    function parse_search_result($data, $result_type, $category)
     {
         $default_offset = (empty($result_type) || $result_type === 'album') * 2;
         $search_result = ['category' => $category];
@@ -235,19 +236,8 @@
                 $runs[] = (object)["text" => ""];
                 $runs = array_merge($runs, $flex_item2->text->runs);
             }
-
-            // ignore the first run if it is a type specifier (like "Single" or "Album")
-            // $runs_offset = (count($runs[0]) && isset($api_search_result_types[strtolower($runs[0]->text)])) * 2;
-
-            $runs_offset = 0;
-            if (count($runs) > 0 && isset($runs[0]->text)) {
-                $key = strtolower($runs[0]->text);
-                if (isset($api_search_result_types[$key])) {
-                    $runs_offset = 2;
-                }
-            }
            
-            $song_info = parse_song_runs(array_slice($runs, $runs_offset));
+            $song_info = parse_song_runs($runs, true);
             $search_result = array_merge($search_result, $song_info);
         }
 
@@ -278,19 +268,17 @@
     /**
      * 
      * @param object[] $results
-     * @param string[] $api_search_result_types
      * @param ?string $resultType
      * @param ?string $category
      * @return object[]
      */
-    function parse_search_results($results, $api_search_result_types, $resultType = null, $category = null)
+    function parse_search_results($results, $resultType = null, $category = null)
     {
         $parsed_results = [];
 
         foreach ($results as $result) {
             $parsed_results[] = parse_search_result(
                 $result->musicResponsiveListItemRenderer,
-                $api_search_result_types,
                 $resultType,
                 $category
             );
@@ -405,14 +393,13 @@
         $raw_suggestions = $results->contents[0]->searchSuggestionsSectionRenderer->contents;
         $suggestions = [];
 
-
         foreach ($raw_suggestions as $raw_suggestion) {
+            $feedback_token = null;
             if (isset($raw_suggestion->historySuggestionRenderer)) {
                 $suggestion_content = $raw_suggestion->historySuggestionRenderer;
-                $from_history = true;
+                $feedback_token = nav($suggestion_content, 'serviceEndpoint.feedback.feedbackToken', true);
             } else {
                 $suggestion_content = $raw_suggestion->searchSuggestionRenderer;
-                $from_history = false;
             }
 
             $text = $suggestion_content->navigationEndpoint->searchEndpoint->query;
@@ -422,7 +409,7 @@
                 $suggestions[] = (object)[
                     "text" => $text,
                     "runs" => $runs,
-                    "fromHistroy" => !!$from_history,
+                    "fromHistroy" => !empty($feedback_token),
                     "feedbackToken" => $feedback_token,
                 ];
             } else {

@@ -171,7 +171,7 @@ function json_dump($object): void
 /**
  * @param string $raw_cookie
  */
-function sapisid_from_cookie($raw_cookie): string
+function sapisid_from_cookie($raw_cookie): ?string
 {
     $cookies = convert_string_to_cookies($raw_cookie);
     return $cookies["__Secure-3PAPISID"];

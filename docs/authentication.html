@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication - YTMusicAPI PHP</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/youtubemusic.svg" alt="YouTube Music" class="brand-icon">
+                <span class="brand-text">YTMusicAPI PHP</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Overview</a>
+                <a href="installation.html" class="nav-link">Installation</a>
+                <a href="authentication.html" class="nav-link">Authentication</a>
+                <a href="api-reference.html" class="nav-link">API Reference</a>
+                <a href="examples.html" class="nav-link">Examples</a>
+                <a href="types.html" class="nav-link">Types</a>
+                <a href="https://github.com/sigma67/ytmusicapi-php" class="nav-link github-link" target="_blank">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <header class="page-header">
+        <div class="container">
+            <h1 class="page-title">Authentication</h1>
+            <p class="page-subtitle">Setup authentication to access your YouTube Music data</p>
+        </div>
+    </header>
+
+    <section class="content-section">
+        <div class="container">
+            <div class="content-grid">
+                <aside class="sidebar">
+                    <ul>
+                        <li><a href="#overview">Overview</a></li>
+                        <li><a href="#browser-method">Browser Method</a></li>
+                        <li><a href="#cookie-method">Cookie Method</a></li>
+                        <li><a href="#manual-config">Manual Configuration</a></li>
+                        <li><a href="#oauth-setup">OAuth Setup</a></li>
+                        <li><a href="#brand-accounts">Brand Accounts</a></li>
+                        <li><a href="#troubleshooting">Troubleshooting</a></li>
+                    </ul>
+                </aside>
+                
+                <div class="content">
+                    <h2 id="overview">Authentication Overview</h2>
+                    <p>To access your personal YouTube Music data (playlists, library, history), you need to authenticate your requests. YTMusicAPI PHP supports several authentication methods:</p>
+
+                    <div class="features-grid" style="margin: 30px 0;">
+                        <a href="#browser-method">
+                            <div class="feature-card">
+                                <h3>🌐 Browser Headers</h3>
+                                <p>Extract authentication from browser developer tools (recommended)</p>
+                            </div>
+                        </a>
+                        <a href="#cookie-method">   
+                            <div class="feature-card">
+                                <h3>🍪 Cookie String</h3>
+                                <p>Use cookies directly from your browser session</p>
+                            </div>
+                        </a>
+
+                        <a href="#manual-config">
+                            <div class="feature-card">
+                                <h3>📄 Manual Config</h3>
+                                <p>Create JSON configuration with required headers</p>
+                            </div>
+                        </a>
+
+                        <a href="#oauth-setup">
+                            <div class="feature-card">
+                                <h3>🔐 OAuth</h3>
+                                <p>Full OAuth flow support</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <strong>Security Note:</strong> Never commit authentication files to version control. Add them to your <span class="inline-code">.gitignore</span> file.
+                    </div>
+
+                    <h2 id="browser-method">Browser Method (Recommended)</h2>
+                    <p>
+                        This is the most reliable method for getting authentication headers. You'll need Firefox for best results,
+                        though we have tried to make it work with Chrome as well.
+                    </p>
+
+                    <h3>Step 1: Extract Headers from Browser</h3>
+                    <ol>
+                        <li>Open Firefox and go to <a href="https://music.youtube.com" target="_blank">https://music.youtube.com</a></li>
+                        <li>Make sure you're logged in to your Google account</li>
+                        <li>Open Developer Tools (F12 or Ctrl/Cmd + Shift + I)</li>
+                        <li>Go to the <strong>Network</strong> tab</li>
+                        <li>Click on "Library" in YouTube Music to trigger a request</li>
+                        <li>Filter by <span class="inline-code">browse</span></li>
+                        <li>Right-click on a POST request under the name column</li>
+                        <li>Select <strong>Copy Value</strong> → <strong>Copy Request Headers</strong></li>
+                    </ol>
+
+                    <h3>Step 2: Setup Authentication</h3>
+                    <p>Run the setup command:</p>
+
+                    <div class="code-block">
+                        <pre><code class="language-bash">php vendor/bin/setup-ytmusicapi browser</code></pre>
+                    </div>
+
+                    <p>Paste the copied headers when prompted and press Enter twice. This will create a <span class="inline-code">browser.json</span> file.</p>
+
+                    <h3>Step 3: Use Authentication</h3>
+                    <div class="code-block">
+                        <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
+// Use the generated browser.json file
+$yt = new Ytmusicapi\YTMusic("browser.json");
+
+// Now you can access your personal data
+$playlists = $yt->get_library_playlists();
+$history = $yt->get_history();</code></pre>
+                    </div>
+
+                    <h2 id="cookie-method">Cookie Method</h2>
+                    <p>For Chrome users or when the browser method doesn't work, you can use cookies directly.</p>
+
+                    <h3>Extract Cookies</h3>
+                    <ol>
+                        <li>Go to <a href="https://music.youtube.com" target="_blank">https://music.youtube.com</a> in your browser</li>
+                        <li>Open Developer Tools → Network tab</li>
+                        <li>Find a request to a <span class="inline-code">browse</span> or <span class="inline-code">next</span> endpoint</li>
+                        <li>Click on the request and go to the <strong>Headers</strong> tab</li>
+                        <li>Copy the <span class="inline-code">Cookie</span> value</li>
+                        <li>Copy the <span class="inline-code">X-Goog-Authuser</span> value (usually "0")</li>
+                    </ol>
+
+                    <h3>Use Cookie Authentication</h3>
+                    <div class="code-block">
+                        <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
+$cookie = "SAPISID=your_sapisid_value; __Secure-3PAPISID=your_secure_value; SID=your_sid_value; ...";
+$user = "0"; // X-Goog-Authuser value
+
+$yt = new Ytmusicapi\YTMusic($cookie, $user);
+
+// Access authenticated endpoints
+$playlists = $yt->get_library_playlists();</code></pre>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>Required Cookies:</strong> Your cookie string must contain <span class="inline-code">__Secure-3PAPISID</span>, <span class="inline-code">SAPISID</span>, and <span class="inline-code">SID</span> values to work properly.
+                    </div>
+
+                    <h2 id="manual-config">Manual Configuration File</h2>
+                    <p>Create a JSON file with the required authentication headers:</p>
+
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+    "cookie": "SAPISID=your_value; __Secure-3PAPISID=your_value; SID=your_value; ...",
+    "x-goog-authuser": "0",
+    "x-goog-visitor-id": "your_value"
+}</code></pre>
+                    </div>
+
+                    <p>Save this as <span class="inline-code">auth.json</span> and use it:</p>
+
+                    <div class="code-block">
+                        <pre><code class="language-php">$yt = new Ytmusicapi\YTMusic("auth.json");</code></pre>
+                    </div>
+
+                    <h2 id="oauth-setup">OAuth Setup</h2>
+                    <p>OAuth support is available but requires additional setup for custom OAuth credentials.</p>
+
+                    <div class="alert alert-warning">
+                        <strong>Note:</strong> OAuth setup is requires and is intended for users who are familiar with Google Cloud Console. The browser method is recommended for most users.
+                    </div>
+
+
+                    <h3>Step 1: Setup OAuth Credentials</h3>
+                    <p>
+                        Create your OAuth credentials in your <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a>.
+                        You can create a new OAuth client ID by clicking on <span class="inline-code">Create Credentials</span> and selecting <span class="inline-code">OAuth client ID</span>.
+                        Set the application type to <span class="inline-code">TVs and Limited Input Devices</span> and follow the instructions to create a new OAuth client ID.
+                        Next, activate the YouTube Data API for your project by clicking on <span class="inline-code">Enabled APIs and Services</span>, 
+                        then clicking <span class="inline-code">Enable APIs and Services</span> and selecting <span class="inline-code">YouTube Data API v3</span>.
+                    </p>
+
+                    <h3>Step 2: Setup Authentication</h3>
+                    <p>Run the setup command:</p>
+
+                    <div class="code-block">
+                        <pre><code class="language-bash">php vendor/bin/setup-ytmusicapi oauth</code></pre>
+                    </div>
+
+                    <h3>Step 3: Login to Google</h3>                    
+                    <p>
+                        Follow the instructions to login to Google and grant access to your YouTube Music data.
+                    </p>
+
+                    <h3>Step 4: Use Authentication</h3>
+                    <p>Use the generated <span class="inline-code">oauth.json</span> file:</p>
+
+                    <div class="code-block">
+                        <pre><code class="language-php">&lt;?php
+// OAuth requires additional credentials from your Google Cloud Console
+// which has access to the YouTube Data API. Here we assume you have setup
+// those values in your environment variables.
+$client_id = getenv("GOOGLE_CLIENT_ID");
+$client_secret = getenv("GOOGLE_SECRET_ID");
+
+// Create OAuth credentials
+$credentials = new Ytmusicapi\OAuthCredentials($client_id, $client_secret);
+$yt = new Ytmusicapi\YTMusic("oauth.json", oauth_credentials: $credentials);</code></pre>
+                    </div>
+
+                    <h2 id="brand-accounts">Brand Accounts</h2>
+                    <p>Brand accounts are not yet supported.</p>
+
+                    <h2 id="troubleshooting">Authentication Troubleshooting</h2>
+
+                    <div class="method-card">
+                        <h4>Authentication Failed</h4>
+                        <p><strong>Symptoms:</strong> "Please provide authentication before using this function"</p>
+                        <p><strong>Solution:</strong> Ensure your authentication file contains valid credentials and the required cookie values.</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>Missing SAPISID Cookie</h4>
+                        <p><strong>Symptoms:</strong> "Your cookie is missing the required value __Secure-3PAPISID"</p>
+                        <p><strong>Solution:</strong> Re-extract cookies from a fresh browser session. Make sure you're logged in and have accessed YouTube Music recently.</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>HTTP 401 Unauthorized</h4>
+                        <p><strong>Symptoms:</strong> Requests fail with 401 status</p>
+                        <p><strong>Solution:</strong> Your authentication has expired. Re-run the browser setup process to get fresh credentials.</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>HTTP 403 Forbidden</h4>
+                        <p><strong>Symptoms:</strong> Requests fail with 403 status</p>
+                        <p><strong>Solution:</strong> Google may be blocking your IP or user agent. Try from a different network or with fresh authentication.</p>
+                    </div>
+
+                    <h3>Testing Authentication</h3>
+                    <p>Test your authentication setup with this simple script:</p>
+
+                    <div class="code-block">
+                        <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
+try {
+    $yt = new Ytmusicapi\YTMusic("browser.json");
+    
+    // Test authenticated request
+    $account = $yt->get_account();
+    echo "Authentication successful!\n";
+    echo "Account: " . $account->name . "\n";
+    
+} catch (Exception $e) {
+    echo "Authentication failed: " . $e->getMessage() . "\n";
+}</code></pre>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>Tip:</strong> Keep your authentication files in a secure location and never share them. They provide access to your YouTube Music account.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="index.html">Overview</a>
+                    <a href="installation.html">Installation</a>
+                    <a href="api-reference.html">API Reference</a>
+                    <a href="examples.html">Examples</a>
+                    <a href="https://github.com/sigma67/ytmusicapi-php" target="_blank">GitHub</a>
+                </div>
+                <p class="footer-text">
+                    Based on <a href="https://github.com/sigma67/ytmusicapi" target="_blank">sigma67's ytmusicapi</a> • 
+                    MIT License
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation - YTMusicAPI PHP</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/youtubemusic.svg" alt="YouTube Music" class="brand-icon">
+                <span class="brand-text">YTMusicAPI PHP</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Overview</a>
+                <a href="installation.html" class="nav-link">Installation</a>
+                <a href="authentication.html" class="nav-link">Authentication</a>
+                <a href="api-reference.html" class="nav-link">API Reference</a>
+                <a href="examples.html" class="nav-link">Examples</a>
+                <a href="types.html" class="nav-link">Types</a>
+                <a href="https://github.com/sigma67/ytmusicapi-php" class="nav-link github-link" target="_blank">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <header class="page-header">
+        <div class="container">
+            <h1 class="page-title">Installation</h1>
+            <p class="page-subtitle">Get started with YTMusicAPI PHP in minutes</p>
+        </div>
+    </header>
+
+    <section class="content-section">
+        <div class="container">
+            <div class="content-grid">
+                <aside class="sidebar">
+                    <ul>
+                        <li><a href="#requirements">Requirements</a></li>
+                        <li><a href="#composer-install">Composer Installation</a></li>
+                        <li><a href="#verify-install">Verify Installation</a></li>
+                        <li><a href="#autoloading">Autoloading</a></li>
+                        <li><a href="#troubleshooting">Troubleshooting</a></li>
+                    </ul>
+                </aside>
+                
+                <div class="content">
+                    <h2 id="requirements">Requirements</h2>
+                    <p>Before installing YTMusicAPI PHP, ensure your system meets the following requirements:</p>
+                    
+                    <div class="table">
+                        <table width="100%">
+                            <thead>
+                                <tr>
+                                    <th>Requirement</th>
+                                    <th>Version</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>PHP</td>
+                                    <td>7.4+</td>
+                                    <td>Developed and tested on PHP 8.2</td>
+                                </tr>
+                                <tr>
+                                    <td>Composer</td>
+                                    <td>2.0+</td>
+                                    <td>For package management</td>
+                                </tr>
+                                <tr>
+                                    <td>cURL extension</td>
+                                    <td>-</td>
+                                    <td>Required for HTTP requests</td>
+                                </tr>
+                                <tr>
+                                    <td>JSON extension</td>
+                                    <td>-</td>
+                                    <td>Required for API communication</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> While the library is designed to work with PHP 7.4+, it has been developed and thoroughly tested on PHP 8.2. Some examples in the documentation may use PHP 8.0+ features like named parameters.
+                    </div>
+
+                    <h2 id="composer-install">Composer Installation</h2>
+                    <p>The easiest way to install YTMusicAPI PHP is through Composer:</p>
+
+                    <div class="code-block">
+                        <pre><code class="language-bash">composer require ytmusicapi/ytmusicapi</code></pre>
+                    </div>
+
+                    <p>This will automatically download the library and its dependencies, including the <span class="inline-code">rmccue/requests</span> package used for HTTP communication.</p>
+
+                    <h2 id="verify-install">Verify Installation</h2>
+                    <p>Create a simple test script to verify the installation:</p>
+
+                    <div class="code-block">
+                        <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
+try {
+    $yt = new Ytmusicapi\YTMusic();
+    echo "YTMusicAPI PHP is installed correctly!\n";
+    
+    // Test a simple search
+    $results = $yt->search("test", limit: 1);
+    echo "Search functionality works: " . count($results) . " result(s) found\n";
+    print_r($results);
+    
+} catch (Exception $e) {
+    echo "Installation error: " . $e->getMessage() . "\n";
+}</code></pre>
+                    </div>
+                    
+                    <p>Save the file as <span class="inline-code">test-installation.php</span>.</p>
+
+                    <p>&nbsp;</p>
+                    <p>Run this script with:</p>
+                    <div class="code-block">
+                        <pre><code class="language-bash">php test-installation.php</code></pre>
+                    </div>
+
+                    <h2 id="autoloading">Autoloading</h2>
+                    <p>YTMusicAPI PHP uses a custom autoloading approach to stay close to the original Python structure. The main class and all mixins are automatically included when you include the Composer autoloader.</p>
+
+                    <div class="code-block">
+                        <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
+// Now you can use any part of the library
+$yt = new Ytmusicapi\YTMusic();
+$results = $yt->search("your query");</code></pre>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> In order to stay as close as possible to the original Python structure, the library bypasses standard PSR-4 autoloading to maintain compatibility with the Python version's structure. All necessary files are included automatically.
+                    </div>
+
+                    <h2 id="authentication">Authentication</h2>
+                    <p>
+                        To access your personal YouTube Music data (playlists, library, history),
+                        you need to authenticate your requests. Please see the 
+                        <a href="authentication.html">authentication</a> page for more information.
+                    </p>
+      
+                    <h2 id="troubleshooting">Troubleshooting</h2>
+
+                    <h3>Common Issues</h3>
+
+                    <div class="method-card">
+                        <h4>Class 'Ytmusicapi\YTMusic' not found</h4>
+                        <p><strong>Solution:</strong> Make sure you've run <span class="inline-code">composer install</span> and included the autoloader:</p>
+                        <div class="code-block">
+                            <pre><code class="language-php">require "vendor/autoload.php";</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>cURL Error: Could not resolve host</h4>
+                        <p><strong>Solution:</strong> This is usually a network connectivity issue. Ensure your server can reach YouTube Music servers and that cURL is properly configured.</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>HTTP 403 Forbidden Errors</h4>
+                        <p><strong>Solution:</strong> Google has been stricter with bot detection. Try using authentication or consider if you're running on a commonly flagged hosting provider, which is most of them.</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>SSL Certificate Issues</h4>
+                        <p><strong>Solution:</strong> Update your CA bundle or configure cURL to handle SSL properly:</p>
+                        <div class="code-block">
+                            <pre><code class="language-php">// If you encounter SSL issues, you may need to configure the session
+$session = new \WpOrg\Requests\Session();
+$session->options["verify"] = "/path/to/cacert.pem";
+$yt = new Ytmusicapi\YTMusic(null, null, $session);</code></pre>
+                        </div>
+                    </div>
+
+                    <h3>Getting Help</h3>
+                    <p>If you encounter issues not covered here:</p>
+                    <ul style="margin-left: 20px; margin-top: 15px;">
+                        <li>Check the <a href="https://github.com/sigma67/ytmusicapi-php/issues" target="_blank">GitHub issues</a></li>
+                        <li>Refer to the original <a href="https://ytmusicapi.readthedocs.io/" target="_blank">Python documentation</a></li>
+                        <li>Review the <a href="examples.html">examples</a> for working code patterns</li>
+                    </ul>
+
+                    <div class="alert alert-warning">
+                        <strong>Important:</strong> This PHP port is currently behind the Python version in updates. The Python version may have solutions to issues that haven't been ported yet.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="index.html">Overview</a>
+                    <a href="installation.html">Installation</a>
+                    <a href="api-reference.html">API Reference</a>
+                    <a href="examples.html">Examples</a>
+                    <a href="https://github.com/sigma67/ytmusicapi-php" target="_blank">GitHub</a>
+                </div>
+                <p class="footer-text">
+                    Based on <a href="https://github.com/sigma67/ytmusicapi" target="_blank">sigma67's ytmusicapi</a> • 
+                    MIT License
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

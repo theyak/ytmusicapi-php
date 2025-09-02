@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YTMusicAPI PHP - Unofficial YouTube Music API</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/youtubemusic.svg" alt="YouTube Music" class="brand-icon">
+                <span class="brand-text">YTMusicAPI PHP</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#overview" class="nav-link">Overview</a>
+                <a href="installation.html" class="nav-link">Installation</a>
+                <a href="authentication.html" class="nav-link">Authentication</a>
+                <a href="api-reference.html" class="nav-link">API Reference</a>
+                <a href="examples.html" class="nav-link">Examples</a>
+                <a href="types.html" class="nav-link">Types</a>
+                <a href="https://github.com/sigma67/ytmusicapi-php" class="nav-link github-link" target="_blank">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="hero-title">YTMusicAPI PHP</h1>
+                    <p class="hero-subtitle">Unofficial YouTube Music API for PHP</p>
+                    <p class="hero-description">
+                        A PHP library that allows you to interact with YouTube Music programmatically. 
+                        Search for music, manage playlists, access your library, and much more.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="installation.html" class="btn btn-primary">Get Started</a>
+                        <a href="examples.html" class="btn btn-secondary">View Examples</a>
+                    </div>
+                </div>
+                <div class="hero-code">
+                    <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
+$yt = new Ytmusicapi\YTMusic();
+
+// Search for music
+$results = $yt->search("Oasis Wonderwall");
+$videoId = $results[0]->videoId;
+
+// Get song information
+$song = $yt->get_song_info($videoId);
+
+print_r($song);</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section class="features" id="overview">
+            <div class="container">
+                <h2 class="section-title">Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🔍</div>
+                        <h3>Search & Browse</h3>
+                        <p>Search for songs, albums, artists, playlists, and podcasts. Browse YouTube Music content programmatically.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📚</div>
+                        <h3>Library Management</h3>
+                        <p>Access and manage your personal library, liked songs, playlists, and upload content.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎵</div>
+                        <h3>Playlist Control</h3>
+                        <p>Create, edit, and delete playlists. Add or remove songs with full programmatic control.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Charts & Trends</h3>
+                        <p>Get access to music charts, trending content, and mood-based playlists from around the world.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎧</div>
+                        <h3>Podcast Support</h3>
+                        <p>Browse podcasts, get episode information, and manage podcast subscriptions.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔐</div>
+                        <h3>Multiple Auth Methods</h3>
+                        <p>Support for browser headers, cookies, and OAuth authentication for secure access.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="compatibility">
+            <div class="container">
+                <h2 class="section-title">Based on Python YTMusicAPI</h2>
+                <p class="compatibility-description">
+                    This library is a faithful PHP port of the popular 
+                    <a href="https://github.com/sigma67/ytmusicapi" target="_blank">Python ytmusicapi</a> library. 
+                    We maintain compatibility with function names, parameter names, and API behavior to make 
+                    migration easy for developers familiar with the Python version.
+                </p>
+                <div class="compatibility-features">
+                    <div class="compat-item">
+                        <span class="check">✓</span>
+                        <span>Same function names and parameters</span>
+                    </div>
+                    <div class="compat-item">
+                        <span class="check">✓</span>
+                        <span>Compatible with YtMusicAPI v1.11.0</span>
+                    </div>
+                    <div class="compat-item">
+                        <span class="check">✓</span>
+                        <span>PHP-specific enhancements included</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="quick-start">
+            <div class="container">
+                <h2 class="section-title">Quick Start</h2>
+                <div class="quick-start-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Install via Composer</h3>
+                            <pre><code class="language-bash">composer require ytmusicapi/ytmusicapi</code></pre>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Basic Usage</h3>
+                            <pre><code class="language-php">&lt;?php
+require "vendor/autoload.php";
+
+$yt = new Ytmusicapi\YTMusic();
+$song = $yt->get_song('kJQP7kiw5Fk');</code></pre>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>With Authentication</h3>
+                            <p>
+                                Load YouTube Music in your browser, go to developer tools, and copy the request headers for
+                                any request to a <span class="inline-code">browse</span> or <span class="inline-code">next</span> endpoint.
+                                Then create a <span class="inline-code">browser.json</span> file with the headers.
+                            </p>
+                            <pre><code class="language-php">// Setup authentication
+php vendor/bin/setup-ytmusicapi browser
+
+// Use authenticated client
+$yt = new Ytmusicapi\YTMusic("browser.json");</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="warning">
+            <div class="container">
+                <div class="warning-content">
+                    <h3>⚠️ Important Notice</h3>
+                    <p>
+                        Google has taken a harder stance against bots. Endpoints that may have previously worked 
+                        while not authenticated may now respond with an error. This seems especially true if you 
+                        are running the software on common hosting providers such as AWS, Netlify, Vercel, 
+                        Digital Ocean, or Linode.
+                    </p>
+                    <p>
+                        <strong>Note:</strong> This PHP port is currently behind the Python version in updates. 
+                        If you can choose either Python or PHP, consider using the 
+                        <a href="https://github.com/sigma67/ytmusicapi" target="_blank">Python version</a>.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="installation.html">Installation</a>
+                    <a href="api-reference.html">API Reference</a>
+                    <a href="examples.html">Examples</a>
+                    <a href="https://github.com/sigma67/ytmusicapi-php" target="_blank">GitHub</a>
+                </div>
+                <p class="footer-text">
+                    Based on <a href="https://github.com/sigma67/ytmusicapi" target="_blank">sigma67's ytmusicapi</a> • 
+                    MIT License
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -186,14 +186,12 @@ def i18n(method):
 */
 
 /**
- * TODO: Why is this using an array instead of an object?
- * 
  * @param object $sub_run
  * @return array
  */
 function parse_id_name($sub_run)
 {
-    return [
+    return (object)[
         "id" => nav($sub_run, NAVIGATION_BROWSE_ID, true),
         "name" => nav($sub_run, "text", true),
     ];

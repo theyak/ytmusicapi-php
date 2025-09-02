@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Types - YTMusicAPI PHP</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/youtubemusic.svg" alt="YouTube Music" class="brand-icon">
+                <span class="brand-text">YTMusicAPI PHP</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Overview</a>
+                <a href="installation.html" class="nav-link">Installation</a>
+                <a href="authentication.html" class="nav-link">Authentication</a>
+                <a href="api-reference.html" class="nav-link">API Reference</a>
+                <a href="examples.html" class="nav-link">Examples</a>
+                <a href="types.html" class="nav-link">Types</a>
+                <a href="https://github.com/sigma67/ytmusicapi-php" class="nav-link github-link" target="_blank">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <header class="page-header">
+        <div class="container">
+            <h1 class="page-title">Types</h1>
+            <p class="page-subtitle">Data structures and type definitions</p>
+        </div>
+    </header>
+
+    <section class="content-section">
+        <div class="container">
+            <div class="content-grid">
+                <aside class="sidebar">
+                    <ul>
+                    </ul>
+                </aside>
+                
+                <div class="content">
+                    <h2 id="overview">Type System Overview</h2>
+                    <p>
+                        YTMusicAPI PHP uses docblock-typed objects to document the data returned from the YouTube Music API.
+                        These types are defined as PHP classes with documented properties using PHPDoc annotations.
+                        Most objects returned are actually stdclass objects retrieved directly from YouTube's data,
+                        but the docblock annotations allow your intellisense to provide you with the correct properties.
+                    </p>
+
+                    <h2 id="core-types">Core Types</h2>
+                    <p>These are the fundamental types used throughout the library.</p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">SearchResult</h3>
+                        <p class="method-description">Represents a single search result item. The type of content depends on the <span class="inline-code">resultType</span> property.</p>
+                        
+                        <div class="method-params">
+                            <h4>Properties</h4>
+                            <div class="param">
+                                <span class="param-name">category</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Category of search result: "Top results", "Songs", "Videos", "Albums", "Artists", "Playlists", etc.</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">resultType</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Type of result: "album", "artist", "playlist", "song", "video", "station", "profile", "podcast", "episode"</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">title</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Title of the search result (not valid for artist results)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">artists</span>
+                                <span class="param-type">TrackArtist[]</span>
+                                <p class="param-description">Artists (valid for songs, videos, and albums)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">browseId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Browse ID for detailed information</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">videoId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Video ID (for songs and videos)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">duration</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Duration in MM:SS format</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">thumbnails</span>
+                                <span class="param-type">Thumbnail[]</span>
+                                <p class="param-description">Thumbnail images</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$results = $yt->search("Oasis Wonderwall");
+foreach ($results as $result) {
+    if ($result->resultType === "song") {
+        echo "Song: " . $result->title . "\n";
+        echo "Video ID: " . $result->videoId . "\n";
+    }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">Song</h3>
+                        <p class="method-description">Complete song information including streaming data and metadata.</p>
+                        
+                        <div class="method-params">
+                            <h4>Properties</h4>
+                            <div class="param">
+                                <span class="param-name">playabilityStatus</span>
+                                <span class="param-type">PlayabilityStatus</span>
+                                <p class="param-description">Playability information and status</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">streamingData</span>
+                                <span class="param-type">StreamingData</span>
+                                <p class="param-description">Streaming URLs and formats</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">videoDetails</span>
+                                <span class="param-type">VideoDetails</span>
+                                <p class="param-description">Video metadata (title, author, duration, etc.)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">microformat</span>
+                                <span class="param-type">Microformat</span>
+                                <p class="param-description">Additional metadata and tags</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$song = $yt->get_song("kJQP7kiw5Fk");
+echo "Title: " . $song->videoDetails->title . "\n";
+echo "Playable: " . ($song->playabilityStatus->status === "OK" ? "Yes" : "No") . "\n";</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">Track</h3>
+                        <p class="method-description">Simplified track information used in playlists and library results.</p>
+                        
+                        <div class="method-params">
+                            <h4>Properties</h4>
+                            <div class="param">
+                                <span class="param-name">title</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Track title</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">videoId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Video ID</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">artists</span>
+                                <span class="param-type">TrackArtist[]</span>
+                                <p class="param-description">Track artists</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">album</span>
+                                <span class="param-type">Ref</span>
+                                <p class="param-description">Album reference</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">duration</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Duration in MM:SS format</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">inLibrary</span>
+                                <span class="param-type">bool</span>
+                                <p class="param-description">Whether track is in your library</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">isExplicit</span>
+                                <span class="param-type">bool</span>
+                                <p class="param-description">Whether track has explicit content</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 id="search-types">Search Types</h2>
+                    <p>Types specifically related to search functionality.</p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">TrackArtist</h3>
+                        <p class="method-description">Artist information in track contexts.</p>
+                        
+                        <div class="method-params">
+                            <h4>Properties</h4>
+                            <div class="param">
+                                <span class="param-name">name</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Artist name</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">id</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Artist channel ID</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">foreach ($track->artists as $artist) {
+    echo "Artist: " . $artist->name . " (ID: " . $artist->id . ")\n";
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <h2 id="content-types">Content Types</h2>
+                    <p>Types for different kinds of content (albums, artists, playlists).</p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">Playlist</h3>
+                        <p class="method-description">Complete playlist information including tracks and metadata.</p>
+                        
+                        <div class="method-params">
+                            <h4>Properties</h4>
+                            <div class="param">
+                                <span class="param-name">id</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Playlist ID</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">title</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Playlist title</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">description</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Playlist description</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">privacy</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Privacy status: "PUBLIC", "PRIVATE", or "UNLISTED"</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">trackCount</span>
+                                <span class="param-type">int</span>
+                                <p class="param-description">Number of tracks in playlist</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">duration</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Total duration</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">author</span>
+                                <span class="param-type">Ref</span>
+                                <p class="param-description">Playlist author</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">tracks</span>
+                                <span class="param-type">Track[]</span>
+                                <p class="param-description">Array of tracks in the playlist</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">continuation</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Continuation token for loading more tracks</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$playlist = $yt->get_playlist("PLfY7JYgRs-QJZP7zqsKPFMqKJ5qghLqm_");
+echo "Playlist: " . $playlist->title . "\n";
+echo "Tracks: " . $playlist->trackCount . "\n";
+echo "Duration: " . $playlist->duration . "\n";</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">Artist</h3>
+                        <p class="method-description">Complete artist information including songs, albums, and related content.</p>
+                        
+                        <div class="method-params">
+                            <h4>Properties</h4>
+                            <div class="param">
+                                <span class="param-name">name</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Artist name</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">channelId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Artist channel ID</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">description</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Artist description</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">subscribers</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Subscriber count</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">subscribed</span>
+                                <span class="param-type">bool</span>
+                                <p class="param-description">Whether you're subscribed to this artist</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">songs</span>
+                                <span class="param-type">SongList</span>
+                                <p class="param-description">Artist's popular songs</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">albums</span>
+                                <span class="param-type">AlbumList</span>
+                                <p class="param-description">Artist's albums</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">singles</span>
+                                <span class="param-type">SingleList</span>
+                                <p class="param-description">Artist's singles</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">Album</h3>
+                        <p class="method-description">Album information including tracks and metadata.</p>
+                        
+                        <div class="method-params">
+                            <h4>Properties</h4>
+                            <div class="param">
+                                <span class="param-name">title</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Album title</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">type</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Album type: "Album", "Single", "EP"</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">artist</span>
+                                <span class="param-type">Ref</span>
+                                <p class="param-description">Primary artist</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">year</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Release year</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">trackCount</span>
+                                <span class="param-type">int</span>
+                                <p class="param-description">Number of tracks</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">duration</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Total duration</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">tracks</span>
+                                <span class="param-type">Track[]</span>
+                                <p class="param-description">Album tracks</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 id="library-types">Library Types</h2>
+                    <p>Types for user library content and account information.</p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">Account</h3>
+                        <p class="method-description">User account information. <em>(PHP-specific type)</em></p>
+                        
+                        <div class="method-params">
+                            <h4>Properties</h4>
+                            <div class="param">
+                                <span class="param-name">name</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Account name</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">channelId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Account channel ID</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">is_premium</span>
+                                <span class="param-type">bool</span>
+                                <p class="param-description">Whether account has YouTube Music Premium</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">thumbnails</span>
+                                <span class="param-type">Thumbnail[]</span>
+                                <p class="param-description">Profile pictures</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$account = $yt->get_account();
+if ($account->is_premium) {
+    echo "Premium user: " . $account->name . "\n";
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">SongInfo</h3>
+                        <p class="method-description">Basic song information with music detection. <em>(PHP-specific type)</em></p>
+                        
+                        <div class="method-params">
+                            <h4>Properties</h4>
+                            <div class="param">
+                                <span class="param-name">music</span>
+                                <span class="param-type">bool</span>
+                                <p class="param-description">Whether this is actual music (not just a video)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">videoId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Video ID</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">title</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Track title</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">author</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Track author</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">canEmbed</span>
+                                <span class="param-type">bool</span>
+                                <p class="param-description">Whether track can be embedded</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 id="media-types">Media Types</h2>
+                    <p>Types for media content and streaming information.</p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">Episode</h3>
+                        <p class="method-description">Podcast episode information.</p>
+                        
+                        <div class="method-params">
+                            <h4>Properties</h4>
+                            <div class="param">
+                                <span class="param-name">title</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Episode title</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">author</span>
+                                <span class="param-type">Ref</span>
+                                <p class="param-description">Podcast/channel information</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">date</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Publication date</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">duration</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Episode duration</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">playlistId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Episode playlist ID</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">description</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Episode description</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$episode = $yt->get_episode("nDnLSYCOg7E");
+echo "Episode: " . $episode->title . "\n";
+echo "Podcast: " . $episode->author->name . "\n";</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">WatchList</h3>
+                        <p class="method-description">Watch playlist for continuous playback.</p>
+                        
+                        <div class="method-params">
+                            <h4>Properties</h4>
+                            <div class="param">
+                                <span class="param-name">tracks</span>
+                                <span class="param-type">Track[]</span>
+                                <p class="param-description">List of tracks for playback</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">playlistId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Watch playlist ID</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">lyrics</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Lyrics browse ID (if available)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">related</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Related content browse ID</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 id="common-properties">Common Properties</h2>
+                    <p>Properties and types that appear across multiple objects.</p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">Thumbnail</h3>
+                        <p class="method-description">Image thumbnail information.</p>
+                        
+                        <div class="method-params">
+                            <h4>Properties</h4>
+                            <div class="param">
+                                <span class="param-name">url</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Thumbnail URL</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">width</span>
+                                <span class="param-type">int</span>
+                                <p class="param-description">Image width in pixels</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">height</span>
+                                <span class="param-type">int</span>
+                                <p class="param-description">Image height in pixels</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">foreach ($artist->thumbnails as $thumbnail) {
+    echo "Thumbnail: " . $thumbnail->width . "x" . $thumbnail->height . "\n";
+    echo "URL: " . $thumbnail->url . "\n";
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">Ref</h3>
+                        <p class="method-description">Reference object containing ID and name for linked content.</p>
+                        
+                        <div class="method-params">
+                            <h4>Properties</h4>
+                            <div class="param">
+                                <span class="param-name">name</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Display name</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">id</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">ID for browsing (browseId or channelId)</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">// Used for artists, albums, authors, etc.
+echo "Album: " . $track->album->name . "\n";
+$album_details = $yt->get_album($track->album->id);</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">FeedbackTokens</h3>
+                        <p class="method-description">Tokens for adding/removing items from library.</p>
+                        
+                        <div class="method-params">
+                            <h4>Properties</h4>
+                            <div class="param">
+                                <span class="param-name">add</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Token for adding to library</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">remove</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Token for removing from library</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Type Usage Patterns</h3>
+                    <div class="code-block">
+                        <pre><code class="language-php">&lt;?php
+// Most API methods return strongly-typed objects
+$results = $yt->search("Radiohead");  // Returns SearchResult[]
+$playlist = $yt->get_playlist("PLxyz");  // Returns Playlist
+$artist = $yt->get_artist("UCxyz");  // Returns Artist
+
+// Access properties with IDE autocomplete support
+echo $playlist->title;  // string
+echo $playlist->trackCount;  // int
+echo $playlist->tracks[0]->title;  // string
+
+// Check types at runtime if needed
+if ($result->resultType === "song") {
+    // $result has song-specific properties
+    echo "Duration: " . $result->duration . "\n";
+}
+
+// Many objects contain references to related content
+$track = $playlist->tracks[0];
+if ($track->album) {
+    $album_details = $yt->get_album($track->album->id);
+}</code></pre>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>IDE Support:</strong> All types include PHPDoc annotations for better IDE support and autocomplete functionality.
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <strong>Optional Properties:</strong> Many properties may be null or undefined depending on the content type and availability. Always check for null values before accessing nested properties.
+                    </div>
+
+                    <h3>Complete Type List</h3>
+                    <p>The library includes these type definitions:</p>
+                    
+                    <div class="table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Purpose</th>
+                                    <th>Used By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Account</td>
+                                    <td>User account information</td>
+                                    <td>get_account()</td>
+                                </tr>
+                                <tr>
+                                    <td>SearchResult</td>
+                                    <td>Search result item</td>
+                                    <td>search()</td>
+                                </tr>
+                                <tr>
+                                    <td>Song</td>
+                                    <td>Complete song data</td>
+                                    <td>get_song()</td>
+                                </tr>
+                                <tr>
+                                    <td>SongInfo</td>
+                                    <td>Basic song information</td>
+                                    <td>get_song_info()</td>
+                                </tr>
+                                <tr>
+                                    <td>Track</td>
+                                    <td>Track in playlist/library</td>
+                                    <td>Playlist tracks, library songs</td>
+                                </tr>
+                                <tr>
+                                    <td>WatchTrack</td>
+                                    <td>Track with playback information</td>
+                                    <td>get_track()</td>
+                                </tr>
+                                <tr>
+                                    <td>Playlist</td>
+                                    <td>Playlist information</td>
+                                    <td>get_playlist()</td>
+                                </tr>
+                                <tr>
+                                    <td>Artist</td>
+                                    <td>Artist information</td>
+                                    <td>get_artist()</td>
+                                </tr>
+                                <tr>
+                                    <td>Album</td>
+                                    <td>Album information</td>
+                                    <td>get_album()</td>
+                                </tr>
+                                <tr>
+                                    <td>Episode</td>
+                                    <td>Podcast episode</td>
+                                    <td>get_episode()</td>
+                                </tr>
+                                <tr>
+                                    <td>Podcast</td>
+                                    <td>Podcast information</td>
+                                    <td>get_podcast()</td>
+                                </tr>
+                                <tr>
+                                    <td>UploadTrack</td>
+                                    <td>Uploaded track</td>
+                                    <td>Upload methods</td>
+                                </tr>
+                                <tr>
+                                    <td>WatchList</td>
+                                    <td>Watch playlist</td>
+                                    <td>get_watch_playlist()</td>
+                                </tr>
+                                <tr>
+                                    <td>Thumbnail</td>
+                                    <td>Image information</td>
+                                    <td>All content types</td>
+                                </tr>
+                                <tr>
+                                    <td>Ref</td>
+                                    <td>Reference with ID and name</td>
+                                    <td>Artists, albums, authors</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="index.html">Overview</a>
+                    <a href="installation.html">Installation</a>
+                    <a href="authentication.html">Authentication</a>
+                    <a href="api-reference.html">API Reference</a>
+                    <a href="examples.html">Examples</a>
+                    <a href="https://github.com/sigma67/ytmusicapi-php" target="_blank">GitHub</a>
+                </div>
+                <p class="footer-text">
+                    Based on <a href="https://github.com/sigma67/ytmusicapi" target="_blank">sigma67's ytmusicapi</a> • 
+                    MIT License
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

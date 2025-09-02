@@ -33,8 +33,20 @@ test('Search with filter playlists has special handling', function () {
     }
 });
 
+test('Search top result video', function () {
+    $yt = ytmusic();
+    $results = $yt->search("Fuel Eminem");
+    expect($results[0]->category)->toBe("Top result");
+    expect($results[0]->resultType)->toBe("video");
+    expect($results[0]->videoId)->toBe("t5H_CewqpKA");
+    expect($results[0]->artists)->toMatchArray([
+        (object)["name" => "Eminem", "id" => "UCedvOgsKFzcK3hA5taf3KoQ"], 
+        (object)["name" => "JID", "id" => "UCRlGNubLJBgW9VRCuiUnuYw"]]
+    );
+});
+
 test('Search uploads', function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
     $songs = $yt->search("Almost There", null, "uploads");
 
     // Probably empty, but at least it's an array
@@ -43,7 +55,7 @@ test('Search uploads', function () {
 
 // This function doesn't really work for library search.
 test('Search library', function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
     $songs = $yt->search("Almost There", null, "library");
     expect($songs)->toBeArray();
 });

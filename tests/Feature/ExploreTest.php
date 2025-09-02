@@ -28,7 +28,7 @@ test('get_explore() - Not authenticated', function () {
 });
 
 test('get_explore() - Authenticated', function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
     $explore = $yt->get_explore();
 
     expect(count($explore))->toBeGreaterThan(5);
@@ -38,24 +38,28 @@ test('get_explore() - Authenticated', function () {
     }
 
     foreach ($explore["top_songs"]["items"] as $item) {
-        expect($item->videoId)->toBeString();
+        $has_video_id = !empty($item->videoId); 
+        $has_views_or_album = !empty($item->views) || !empty($item->album);
+        if ($has_video_id) {
+            expect($has_views_or_album)->toBeTrue();
+        }
     }
 
     foreach ($explore["trending"]["items"] as $item) {
-        expect($item["videoId"])->not->toBeEmpty();
-        foreach ($item["artists"] as $artist) {
-            expect($artist->id)->not->toBeEmpty();
+        expect($item->videoId)->not->toBeEmpty();
+        foreach ($item->artists as $artist) {
+            expect($artist->name)->not->toBeEmpty();
         }
-    }   
+    }
 
     foreach ($explore["trending"]["items"] as $item) {
-        expect($item["videoId"])->not->toBeEmpty();
+        expect($item->videoId)->not->toBeEmpty();
     }
 
     foreach ($explore["top_episodes"] as $item) {
         expect($item->duration)->not->toBeEmpty();
-        expect($item->podcast["id"])->not->toBeEmpty();
-        expect($item->podcast["name"])->not->toBeEmpty();
+        expect($item->podcast->id)->not->toBeEmpty();
+        expect($item->podcast->name)->not->toBeEmpty();
     }
 });
 

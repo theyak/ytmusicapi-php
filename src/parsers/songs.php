@@ -14,10 +14,40 @@ function parse_song_artists($data, $index)
     return parse_song_artists_runs($runs);
 }
 
+function parse_song_run($run) {
+    $text = $run->text;
+    if (isset($run->navigationEndpoint)) { // artist or album
+        $item = (object)[
+            "name" => $text,
+            "id" => nav($run, NAVIGATION_BROWSE_ID, true),
+        ];
+
+        if ($item->id && (str_starts_with($item->id, 'MPRE')
+            || str_contains($item->id, "release_detail"))) { // album
+            return ["type" => "album", "data" => $item];
+        } else { // artist
+            return ["type" => "artist", "data" => $item];
+        } 
+    }else {
+        // note: YT uses non-breaking space \xa0 to separate number and magnitude
+        if (preg_match("/^\d([^ ])* [^ ]*$/", $text)) {
+            return ["type" => "views", "data" => explode(' ', $text)[0]];
+        } elseif (preg_match("/^(\d+:)*\d+:\d+$/", $text)) {
+            return ["type" => "duration", "data" => $text];
+        } elseif (preg_match("/^\d{4}$/", $text)) {
+            return ["type" => "year", "data" => $text];
+        } else { // artist without id
+            return ["type" => "artist", "data" => (object)["name" => $text, "id" => null]];
+        }
+    }
+}
+
 /**
  * Crazy parsing of song data. Used all over the place.
  *
  * @param array $runs
+ * @param bool $skip_type_spec if true, skip the type specifier (like "Song", "Single", or "Album") 
+ *   that may appear before artists ("Song • Eminem"). Otherwise, that text item is parsed as an artist with no ID.
  * @return array This returns an array as it is usually merged with another array
  *   Here is the data it can return:
  *   - artists: array of artists, each with name and id
@@ -27,38 +57,42 @@ function parse_song_artists($data, $index)
  *   - duration: string
  *   - duration_seconds: int
  */
-function parse_song_runs($runs)
+function parse_song_runs($runs, $skip_type_spec = false)
 {
     $parsed = ['artists' => []];
+
+    // prevent type specifier from being parsed as an artist
+    // it's the first run, separated from the actual artists by " • "
+    if (
+        $skip_type_spec && 
+        count($runs) > 2 && 
+        parse_song_run($runs[0])["type"] == "artist" && 
+        !empty($runs[1]->text) && 
+        $runs[1]->text === " • " && 
+        parse_song_run($runs[2])["type"] == "artist") {
+        $runs = array_slice($runs, 2);
+    }
+
     foreach ($runs as $i => $run) {
         if ($i % 2) { // uneven items are always separators
             continue;
         }
-        $text = $run->text;
-        if (isset($run->navigationEndpoint)) { // artist or album
-            $item = (object)[
-                "name" => $text,
-                "id" => nav($run, NAVIGATION_BROWSE_ID, true),
-            ];
+        
+        $parsed_run = parse_song_run($run);
+        $data = $parsed_run["data"];
 
-            if ($item->id && (str_starts_with($item->id, 'MPRE')
-                || str_contains($item->id, "release_detail"))) { // album
-                $parsed['album'] = $item;
-            } else { // artist
-                $parsed['artists'][] = $item;
-            }
-        } else {
-            // note: YT uses non-breaking space \xa0 to separate number and magnitude
-            if (preg_match("/^\d([^ ])* [^ ]*$/", $text) && $i > 0) {
-                $parsed['views'] = explode(' ', $text)[0];
-            } elseif (preg_match("/^(\d+:)*\d+:\d+$/", $text)) {
-                $parsed['duration'] = $text;
-                $parsed['duration_seconds'] = parse_duration($text);
-            } elseif (preg_match("/^\d{4}$/", $text)) {
-                $parsed['year'] = $text;
-            } else { // artist without id
-                $parsed['artists'][] = (object)['name' => $text, 'id' => null];
-            }
+        if ($parsed_run["type"] === "album") {
+            $parsed["album"] = $data;
+        } elseif ($parsed_run["type"] === "artist") {
+            $parsed["artists"] = $parsed["artists"] ?? [];
+            $parsed["artists"][] = $data;
+        } elseif ($parsed_run["type"] === "views") {
+            $parsed["views"] = $data;
+        } elseif ($parsed_run["type"] === "duration") {
+            $parsed["duration"] = $data;
+            $parsed["duration_seconds"] = parse_duration($data);
+        } elseif ($parsed_run["type"] === "year") {
+            $parsed["year"] = $data;
         }
     }
 

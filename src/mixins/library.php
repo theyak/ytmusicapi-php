@@ -329,14 +329,14 @@ trait Library
      * Requires authentication.
      *
      * Usage:
-     * 
+     *
      *     $song = $yt_auth->get_song($videoId);
      *     $reponse = $yt_auth->add_history_item($song);
-     * 
+     *
      * Note:
-     * 
+     *
      *     You need to use the same YTMusic instance as you used for `get_song`.
-     * 
+     *
      * Known differences from Python version:
      *   - Can pass in a video id in addition to a Song object
      *
@@ -346,7 +346,7 @@ trait Library
     public function add_history_item($song)
     {
         $this->_check_auth();
-        
+
         if (is_string($song)) {
             $song = $this->get_song($song);
         }
@@ -360,7 +360,7 @@ trait Library
         }
 
         $params = ['ver' => 2, 'c' => 'WEB_REMIX', 'cpn' => $cpn];
-        
+
         return $this->_send_get_request($url, $params);
     }
 
@@ -393,7 +393,7 @@ trait Library
      * @param LikeStatus $rating One of 'LIKE', 'DISLIKE', 'INDIFFERENT'
      *  'INDIFFERENT' removes the previous rating and assigns no rating
      * @return object Full response from YouTube Music
-     * 
+     *
      * @throws YtMusicUserError if the rating is invalid
      */
     public function rate_song($videoId, $rating = LikeStatus::INDIFFERENT)
@@ -417,7 +417,7 @@ trait Library
     public function edit_song_library_status($feedbackTokens)
     {
         throw new YTMusicUserError("Not implemented - Google changed the API on us.");
-        
+
         if (is_string($feedbackTokens)) {
             $feedbackTokens = [$feedbackTokens];
         }
@@ -436,8 +436,8 @@ trait Library
      * @param LikeStatus $rating One of 'LIKE', 'DISLIKE', 'INDIFFERENT'
      *   'INDIFFERENT' removes the playlist/album from the library
      * @return object Full response from YouTube Music
-     * 
-     * @throws YtMusicUserError if the rating is invalid 
+     *
+     * @throws YtMusicUserError if the rating is invalid
      */
     public function rate_playlist($playlistId, $rating = LikeStatus::INDIFFERENT)
     {

@@ -28,7 +28,7 @@ function setup_browser($filepath = null, $headers_raw = null)
         while (true) {
             try {
                 $line = trim(readline());
-                if (!$line) {
+                if (empty($line) && $line !== "0") {
                     break;
                 }
             } catch (\Exception $e) {
@@ -43,22 +43,31 @@ function setup_browser($filepath = null, $headers_raw = null)
     try {
         $user_headers = [];
         $chrome_remembered_key = "";
-        foreach ($contents as $content) {
-            $header = explode(": ", $content);
-            if (substr($header[0], 0, 1) == ":") { // nothing was split or chromium headers
-                continue;
-            }
-            if (substr($header[0], -1) == ":") { // weird new chrome "copy-paste in separate lines" format
-                $chrome_remembered_key = str_replace(":", "", $content);
-            }
-            if (count($header) == 1) {
-                if ($chrome_remembered_key) {
-                    $user_headers[$chrome_remembered_key] = $header[0];
+
+        for ($i = 0; $i < count($contents); $i++) {
+            $content = $contents[$i];
+            $header = explode(": ", $content, 2);
+
+            // What is Chrome doing here?!?!?
+            if (str_starts_with($header[0], "Decoded:")) {
+                while ($i < count($contents) && $contents[$i] !== "}") {
+                    $i++;
                 }
+
+                continue;   
+            }
+
+            if (sizeof($header) === 2) {
+                $user_headers[strtolower($header[0])] = $header[1];
                 continue;
             }
 
-            $user_headers[strtolower($header[0])] = implode(": ", array_slice($header, 1));
+            if ($chrome_remembered_key) {
+                $user_headers[$chrome_remembered_key] = $header[0];
+                $chrome_remembered_key = "";
+            }  else {
+                $chrome_remembered_key = strtolower($header[0]);
+            }
         }
     } catch (\Exception $e) {
         throw new \Exception("Error parsing your input, please try again. Full error: {$e->getMessage()}");

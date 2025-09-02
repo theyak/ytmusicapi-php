@@ -16,7 +16,7 @@ define(
  */
 function parse_chart_song($data)
 {
-    $parsed = parse_trending_song($data);
+    $parsed = parse_song_flat($data);
     $parsed = (object)array_merge((array)$parsed, (array)parse_ranking($data));
     return $parsed;
 }
@@ -63,26 +63,6 @@ function parse_chart_artist($data)
         "thumbnails" => nav($data, THUMBNAILS),
     ];
     $parsed = array_merge($parsed, parse_ranking($data));
-    return $parsed;
-}
-
-/**
- * @return array
- */
-function parse_trending_song($data)
-{
-    $flex_0 = get_flex_column_item($data, 0);
-    $flex_1 = get_flex_column_item($data, 1);
-    
-    $parsed = [
-        "title" => nav($flex_0, TEXT_RUN_TEXT),
-        "videoId" => nav($flex_0, join(TEXT_RUN, NAVIGATION_VIDEO_ID), true),
-        ...parse_song_runs(nav($flex_1, TEXT_RUNS)), // Gets artists and views
-        "playlistId" => nav($flex_0, join(TEXT_RUN, NAVIGATION_PLAYLIST_ID), true),
-        "thumbnails" => nav($data, THUMBNAILS),
-        "isExplicit" => !!nav($data, BADGE_LABEL, true),
-    ];
-
     return $parsed;
 }
 
