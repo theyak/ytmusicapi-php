@@ -326,7 +326,7 @@ class YTMusic
         }
 
         if (empty($headers["cookie"])) {
-            $this->cookies;
+            $headers["cookie"] = $this->cookies;
         }
 
         $response = $this->_session->get($url, $headers, $options);
