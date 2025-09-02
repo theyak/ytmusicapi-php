@@ -23,7 +23,6 @@ it("should have liked songs w/cookie authentication", function () {
     $browser = json_decode(file_get_contents("browser.json"), true);
 
     $yt = new YTMusic($browser['cookie'], $browser['x-goog-authuser'] ?? "0");
-    $yt = ytbrowser();
     $playlist = $yt->get_liked_songs();
 
     expect($playlist)->toHaveProperty('id');
@@ -58,7 +57,7 @@ it("should have liked songs w/cookie authentication", function () {
             expect($track->feedbackTokens)->toHaveProperty("remove");
         }
     }
-})->only();
+});
 
 test("get_library_songs() without continuation", function () {
     $yt = ytbrowser();

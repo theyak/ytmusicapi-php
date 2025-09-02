@@ -130,6 +130,9 @@ class YTMusic
                     "content-type" => "application/json",
                     "content-encodng" => "gzip",
                 ];
+
+                // Prevent brand account
+                $user = "0";
             } else {
                 [$this->_auth_headers, $auth_path] = parse_auth_str($auth);
                 $this->auth_type = determine_auth_type($this->_auth_headers);
@@ -196,11 +199,12 @@ class YTMusic
             $this->_base_headers = $this->_base_headers->getAll();
         }
 
+        // This caused all sorts of problems when using the direct credentials
         // The visitor ID only seems to be needed when calling get_user() followed
         // by get_user_videos(). Why do they make this so complicated?
         $keys = array_map(fn ($key) => strtolower($key), array_keys($this->_base_headers));
         if (!in_array("x-goog-visitor-id", $keys)) {
-            $this->_base_headers["X-Goog-Visitor-Id"] = get_visitor_id(fn ($url) => $this->_send_get_request($url));
+            $this->_base_headers["x-goog-visitor-id"] = get_visitor_id(fn ($url) => $this->_send_get_request($url, null, true));
         }
         
         return $this->_base_headers;
@@ -306,6 +310,9 @@ class YTMusic
      */
     public function _send_get_request($url, $params = null, $use_base_headers = false)
     {
+
+        var_dump($use_base_headers);
+
         if ($params) {
             if (is_array($params)) {
                 $params = http_build_query($params);
@@ -319,9 +326,11 @@ class YTMusic
             $options["proxy"] = $this->proxies;
         }
 
-        $headers =  $use_base_headers ? initialize_headers() : $this->headers();
-        if (empty($headers["cookie"])) {
+        if ($use_base_headers) {
+            $headers =  initialize_headers();
             $headers["cookie"] = "SOCS=CAI;";
+        } else {
+            $headers =  $this->headers();
         }
 
         $response = $this->_session->get($url, $headers, $options);
