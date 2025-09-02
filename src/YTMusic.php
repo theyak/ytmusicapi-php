@@ -255,6 +255,12 @@ class YTMusic
      */
     public function _send_request($endpoint, $body, $additionalParams = "")
     {
+        static $count = 1;
+        $count++;
+        
+        // $response_text = file_get_contents("response-{$count}.json");
+        // return json_decode($response_text);
+
         $body = (object)$body;
         $body->context = $this->context;
 
@@ -277,6 +283,7 @@ class YTMusic
             $options
         );
 
+        // file_put_contents("response-{$count}.json", $response->body);
         $response_text = json_decode($response->body);
 
         if ($response->status_code >= 400) {
@@ -313,7 +320,9 @@ class YTMusic
         }
 
         $headers =  $use_base_headers ? initialize_headers() : $this->headers();
-        $headers["cookie"] = "SOCS=CAI;";
+        if (empty($headers["cookie"])) {
+            $headers["cookie"] = "SOCS=CAI;";
+        }
 
         $response = $this->_session->get($url, $headers, $options);
         return $response->body;

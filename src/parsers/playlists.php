@@ -27,18 +27,9 @@ function parse_playlist_header($response)
     if (empty($playlist->thumbnails)) {
         $playlist->thumbnails = nav($header, THUMBNAIL_CROPPED, true);
     }
-    $playlist->description = nav($header, DESCRIPTION, true);
-    $run_count = count(nav($header, SUBTITLE_RUNS));
 
-    if ($run_count > 1) {
-        $playlist->author = (object)[
-            "name" => nav($header, SUBTITLE2),
-            "id" => nav($header, join(SUBTITLE_RUNS, 2, NAVIGATION_BROWSE_ID), true),
-        ];
-        if ($run_count === 5) {
-            $playlist->year = nav($header, SUBTITLE3);
-        }
-    }
+    $playlist->description = nav($header, join("description", DESCRIPTION_SHELF, DESCRIPTION), true);
+    $playlist->year = nav($header, SUBTITLE2);
 
     if (isset($header->secondSubtitle->runs)) {
         $second_subtitle_runs = $header->secondSubtitle->runs;
@@ -75,6 +66,17 @@ function parse_playlist_header_meta($header): array {
         }, $header->title->runs ?? [])),
         "thumbnails" => nav($header, THUMBNAILS),
     ];
+
+    if (!empty($header->facepile)) {
+        $playlist_meta["author"] = (object)[
+            "name" => nav($header, join("facepile", "avatarStackViewModel", "text", "content")),
+            "id" => nav(
+                $header,
+                join("facepile", "avatarStackViewModel", "rendererContext", "commandContext", "onTap", "innertubeCommand", "browseEndpoint", "browseId"), 
+                true
+            ),
+        ];
+    }
     
     if (isset($header->secondSubtitle->runs)) {
         $second_subtitle_runs = $header->secondSubtitle->runs;

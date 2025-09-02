@@ -110,7 +110,7 @@ trait Explore
                     } else if (str_starts_with($browse_id, "VLOLA")) {
                         $explore["trending"] = [
                             "playlist" => $browse_id,
-                            "items" => parse_content_list($contents, fn ($item) => parse_trending_song($item), MRLIR)
+                            "items" => parse_content_list($contents, fn ($item) => parse_song_flat($item), MRLIR)
                         ];
                     }
             }

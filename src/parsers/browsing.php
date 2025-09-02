@@ -8,7 +8,9 @@ namespace Ytmusicapi;
  * @param array $rows
  * @return Shelf[]
  */
-function parse_mixed_content($rows)
+function parse_mixed_content(
+    $rows
+)
 {
     $items = [];
 
@@ -31,7 +33,7 @@ function parse_mixed_content($rows)
                 $data = nav($result, MTRIR, true);
                 $content = null;
                 if ($data) {
-                    $page_type = nav($data, implode(".", [TITLE, NAVIGATION_BROWSE, PAGE_TYPE]), true);
+                    $page_type = nav($data, join(TITLE, NAVIGATION_BROWSE, PAGE_TYPE), true);
                     if ($page_type === null) { // song or watch_playlist
                         if (nav($data, NAVIGATION_WATCH_PLAYLIST_ID, true) !== null) {
                             $content = parse_watch_playlist($data);
@@ -40,7 +42,7 @@ function parse_mixed_content($rows)
                         }
                     } elseif ($page_type === "MUSIC_PAGE_TYPE_ALBUM") {
                         $content = parse_album($data);
-                    } elseif ($page_type === "MUSIC_PAGE_TYPE_ARTIST") {
+                    } elseif ($page_type === "MUSIC_PAGE_TYPE_ARTIST" || $page_type === "MUSIC_PAGE_TYPE_USER_CHANNEL") {
                         $content = parse_related_artist($data);
                     } elseif ($page_type === "MUSIC_PAGE_TYPE_PLAYLIST") {
                         $content = parse_playlist($data);
@@ -98,7 +100,7 @@ function parse_album($result)
     if ($runs) {
         foreach ($runs as $run) {
             if (isset($run->navigationEndpoint)) {
-                $artists[] = parse_id_name($run->navigationEndpoint);
+                $artists[] = parse_id_name($run);
             }
         }
     }
@@ -156,7 +158,7 @@ function parse_song($result)
         'thumbnails' => nav($result, THUMBNAIL_RENDERER)
     ];
 
-    $song = object_merge($song, parse_song_runs(nav($result, SUBTITLE_RUNS)));
+    $song = object_merge($song, parse_song_runs(nav($result, SUBTITLE_RUNS), true));
     return $song;
 }
 
@@ -176,10 +178,13 @@ function parse_song_flat($data)
         'resultType' => 'song',
         'title' => nav($columns[0], TEXT_RUN_TEXT),
         'videoId' => nav($columns[0], join(TEXT_RUN, NAVIGATION_VIDEO_ID), true),
-        'artists' => parse_song_artists($data, 1),
         'thumbnails' => nav($data, THUMBNAILS),
         'isExplicit' => nav($data, BADGE_LABEL, true) !== null
     ];
+
+    $runs = nav($columns[1], TEXT_RUNS);
+    $song = array_merge($song, parse_song_runs($runs, true));
+
     if (count($columns) > 2 && $columns[2] !== null) {
         $navigation = nav($columns[2], TEXT_RUN);
         if (isset($navigation->navigationEndpoint)) {
@@ -187,13 +192,7 @@ function parse_song_flat($data)
                 'name' => nav($columns[2], TEXT_RUN_TEXT),
                 'id' => nav($columns[2], join(TEXT_RUN, NAVIGATION_BROWSE_ID))
             ];
-        } else {
-            $song['views'] = explode(' ', nav($columns[1], "text.runs.-1.text"))[0];
         }
-    } else {
-        $runs = nav($columns[1], TEXT_RUNS);
-        $views = (end($runs))->text;
-        $song['views'] = explode(' ', $views)[0];
     }
 
     return (object)$song;
@@ -228,7 +227,11 @@ function parse_video($result)
     $last_run = end($runs);
 
     $data = (object)[
-        'title' => nav($result, TITLE_TEXT),
+        'title' => nav(
+            $result,
+            TITLE_TEXT,
+            true  // rare but possible for playlist title to be missing
+        ),
         'videoId' => $videoId,
         'artists' => parse_song_artists_runs(array_slice($runs, 0, $artists_len)),
         'playlistId' => nav($result, NAVIGATION_PLAYLIST_ID, true),

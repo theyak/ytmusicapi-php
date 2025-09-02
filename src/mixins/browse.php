@@ -59,6 +59,7 @@ trait Browse
         $body = ["browseId" => "FEmusic_home"];
         $response = $this->_send_request($endpoint, $body);
         $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST));
+
         $home = parse_mixed_content($results);
 
         $section_list = nav($response, join(SINGLE_COLUMN_TAB, "sectionListRenderer"));
@@ -68,9 +69,13 @@ trait Browse
                 return $this->_send_request($endpoint, $body, $additionalParams);
             };
 
-            $parse_func = fn ($contents) => parse_mixed_content($contents);
-
-            $continuations = get_continuations($section_list, "sectionListContinuation", $limit - count($home), $request_func, $parse_func);
+            $continuations = get_continuations(
+                $section_list,
+                "sectionListContinuation",
+                $limit - count($home),
+                $request_func,
+                'Ytmusicapi\\parse_mixed_content'
+            );
             $home = array_merge($home, $continuations);
         }
 
@@ -556,7 +561,9 @@ trait Browse
         $response = $this->_send_request("browse", $body);
         $contents = nav($response, join("contents", SECTION_LIST), true);
 
-        $content = parse_mixed_content($contents);
+        $content = parse_mixed_content(
+            $contents
+        );
         $content = array_map(function ($item) { return Shelf::from($item); }, $content);
         return $content;
     }
@@ -657,6 +664,11 @@ trait Browse
 
         if ($timestamps && $data) {
             if (empty($data->timedLyricsData)) {
+                return null;
+            }
+
+            // Sometimes there are no timed lyrics, such as Z85lxckrtzg.
+            if (empty($data->timedLyricsData[0]->cueRange)) {
                 return null;
             }
 

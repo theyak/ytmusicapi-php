@@ -345,12 +345,14 @@ trait Library
      */
     public function add_history_item($song)
     {
+        var_dump($song);
         $this->_check_auth();
-        
-        if (is_string($song)) {
+        var_dump($song);
+
+        if (is_string($song)) {    
             $song = $this->get_song($song);
         }
-
+     
         $url = $song->playbackTracking->videostatsPlaybackUrl->baseUrl;
 
         $cpn = "";
@@ -360,7 +362,7 @@ trait Library
         }
 
         $params = ['ver' => 2, 'c' => 'WEB_REMIX', 'cpn' => $cpn];
-        
+
         return $this->_send_get_request($url, $params);
     }
 

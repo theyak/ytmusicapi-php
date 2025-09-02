@@ -57,7 +57,7 @@ test('get_track() - Unauthorized', function () {
 });
 
 test('get_track() - Authorized', function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
     $track = $yt->get_track("JTvNVxk1WnU");
 
     expect($track::class)->toBe("Ytmusicapi\\WatchTrack");

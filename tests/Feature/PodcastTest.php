@@ -47,7 +47,7 @@ test("get_channel", function () {
 test("get_channel_episodes", function () {
     $channel_id = "UCGwuxdEeCf0TIA2RbPOj-8g"; // Stanford Graduate School of Business
 
-    $yt = ytauth();
+    $yt = ytbrowser();
     $channel = $yt->get_channel($channel_id);
     $channel_episodes = $yt->get_channel_episodes($channel_id, $channel->episodes->params);
     expect(count($channel_episodes))->toBeGreaterThan(150);
@@ -56,7 +56,7 @@ test("get_channel_episodes", function () {
 
 // Requires new episodes of subscribed podcasts.
 test("get_episodes_playlist", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
     $playlist = $yt->get_episodes_playlist();
     expect(count($playlist->episodes))->toBeGreaterThan(1);
 })->skip("Not working - response format seems to have changed.");

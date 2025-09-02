@@ -113,8 +113,21 @@ test("get_playlist() - skip continuations", function () {
     expect(count($playlist->tracks))->toBeLessThanOrEqual(100);
 });
 
+test("get_playlist_author", function () {
+    $yt = ytmusic();
+    $playlist = $yt->get_playlist("PL9tY0BWXOZFu4vlBOzIOmvT6wjYb2jNiV");
+
+    expect($playlist->artists)->toBeEmpty();
+    expect($playlist->author->name)->toBe("Vevo");
+    expect($playlist->author->id)->toBe("UC2pmfLm7iq6Ov1UwYrWYkZA");
+
+    $playlist = $yt->get_playlist("RDCLAK5uy_l2pHac-aawJYLcesgTf67gaKU-B9ekk1o");
+    expect($playlist->author->name)->toBe("YouTube Music");
+    expect($playlist->author->id)->toBeNull();
+});
+
 test("Get own playlist + suggestions + related", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
 
     $playlist = $yt->get_playlist(getenv("OWN_PLAYLIST_ID"), related: true, suggestions_limit: 30);
 
@@ -140,7 +153,7 @@ test("Get own playlist + suggestions + related", function () {
 })->skip(getenv("OWN_PLAYLIST_ID") === false, "OWN_PLAYLIST_ID not set in environment variables");
 
 test("Get liked music", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
     $playlist = $yt->get_playlist("LM");
 
     expect($playlist)->toHaveProperty('id');
@@ -178,7 +191,7 @@ test("Get liked music", function () {
 });
 
 test("Edit playlist", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
 
     $playlist = $yt->get_playlist(getenv("OWN_PLAYLIST_ID"));
 
@@ -215,7 +228,7 @@ test("Edit playlist", function () {
 })->skip(getenv("OWN_PLAYLIST_ID") === false, "OWN_PLAYLIST_ID not set in environment variables");
 
 test("What happens if I send in an invalid privacy status?", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
     $yt->edit_playlist(
         $this->playlistId,
         privacyStatus: "INVALID",
@@ -223,7 +236,7 @@ test("What happens if I send in an invalid privacy status?", function () {
 })->throws(\Exception::class);
 
 test("Big create, add to, and delete test of library", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
 
     // Carin Leon - Colmillo de Leche, 16 tracks
     $colmillo = "OLAK5uy_lhHr2ATl41N4kOuCcPc3wo1nRYtakCqFc";
@@ -288,7 +301,7 @@ test("Big create, add to, and delete test of library", function () {
 })->skip();
 
 test("create_playlist() - Using video ids", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
     
     $playlistId = $yt->create_playlist("test", "test description", "PRIVATE", [$this->videoId]);
 
@@ -304,7 +317,7 @@ test("create_playlist() - Using video ids", function () {
 });
 
 test("Bad remove_playlist_items() parameter - no setVideoId", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
     $bad_delete = [
         (object)["videoId" => "aaaaaaaaaaa", "setVideoId" => ""],
     ];
@@ -323,27 +336,27 @@ test("create_playlist() - fail", function () {
 })->throws(\Exception::class, "Failed to create playlist");
 
 test("create_playlist() - should fail sending in both video_ids and source_playlist", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
     $yt->create_playlist("test", "", source_playlist: "aaaaaaaaaaa", video_ids: ["aaaaaaaaaaa"]);
 })->throws(\Exception::class, "You can't specify both video_ids and source_playlist");
 
 test("create_playlist() - should fail sending in invalid privacy status", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
     $yt->create_playlist("test", "", "BLAH");
 })->throws(\Exception::class, "Invalid privacy status, must be one of PUBLIC, PRIVATE, or UNLISTED");
 
 test("add_playlist_items() - should fail when not sending in video_ids or source_playlist", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
     $yt->add_playlist_items($this->playlistId, []);
 })->throws(\Exception::class, "You must provide either videoIds or a source_playlist to add to the playlist");
 
 test("remove_playlist_items() - Provide empty list of videos", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
     $yt->remove_playlist_items($this->playlistId, []);
 })->throws(\Exception::class, "Cannot remove songs, because setVideoId is missing. Do you own this playlist?");
 
 test("remove_playlist_items() - Provide playlist no owned by user", function () {
-    $yt = ytauth();
+    $yt = ytbrowser();
 
     $playlist = $yt->get_playlist($this->playlistId);
     $yt->remove_playlist_items($this->albumPlaylistId, $playlist->tracks);

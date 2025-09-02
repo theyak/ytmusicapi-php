@@ -142,11 +142,9 @@ trait Search
                 continue;
             }
 
-            $api_search_result_types = $this->get_api_result_types();
-
             $search_results = array_merge(
                 $search_results,
-                parse_search_results($shelf_contents, $api_search_result_types, $result_type, $category)
+                parse_search_results($shelf_contents, $result_type, $category)
             );
 
             if ($filter) {  // if filter is set, there are continuations
@@ -154,8 +152,8 @@ trait Search
                     return $this->_send_request($endpoint, $body, $additionalParams);
                 };
 
-                $parse_func = function ($contents) use ($api_search_result_types, $result_type, $category) {
-                    return parse_search_results($contents, $api_search_result_types, $result_type, $category);
+                $parse_func = function ($contents) use ($result_type, $category) {
+                    return parse_search_results($contents, $result_type, $category);
                 };
 
                 $search_results = array_merge(
