@@ -1,5 +1,8 @@
 # ytmusicapi-php
 
+Please see https://theyak.github.io/ytmusicapi-php/ for latest documentation.
+Note that the documentation is a work in progress.
+
 WARNING
 
 Google has taken a harder stance against bots. Endpoints that may have
@@ -7,12 +10,6 @@ previously worked while not authenticated may now responsd with an error.
 This seems especially true if you are running the software on a common
 hosting provider such as AWS, Netlify, Vercel, Digital Ocean, or Linode.
 
-WARNING 2:
-
-I have fallen quite behind in keeping this updated with the Python version.
-If you can choose either Python or PHP, choose the Python version. If you
-have time to bring this up to date with the Python version, please feel
-free to make a pull request.
 
 ## About
 
