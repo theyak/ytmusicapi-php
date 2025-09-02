@@ -10,7 +10,6 @@ previously worked while not authenticated may now responsd with an error.
 This seems especially true if you are running the software on a common
 hosting provider such as AWS, Netlify, Vercel, Digital Ocean, or Linode.
 
-
 ## About
 
 This is a port of the [ytmusicapi](https://github.com/sigma67/ytmusicapi)
@@ -19,7 +18,7 @@ possible. All API function names, parameter names, and public methods have
 been kept the same as in their original Python library. Keeping everything
 the same should make it easy to reference their
 [documentation](https://ytmusicapi.readthedocs.io/en/stable/index.html).
-This package is currently feature compatable with YtMusicAPI v1.7.3.
+This package is currently feature compatable with YtMusicAPI v1.11.0.
 
 ## Requirements
 
