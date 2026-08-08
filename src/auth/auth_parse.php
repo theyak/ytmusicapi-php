@@ -6,7 +6,7 @@ use WpOrg\Requests\Utility\CaseInsensitiveDictionary as CaseInsensitiveDict;
 
 /**
  * Parse authentication string or array into headers and optional file path
- * 
+ *
  * @param string|array $auth user-provided auth string or array
  * @return array [CaseInsensitiveDict headers, string|null auth_path]
  */
@@ -33,23 +33,33 @@ function parse_auth_str($auth)
             throw new YTMusicUserError("Invalid auth JSON string or file path provided.");
         }
         $auth = array_merge(initialize_headers(), $input_json);
-        return [new CaseInsensitiveDict($auth), $auth_path];
+        $headers = new CaseInsensitiveDict($input_json);
     } else {
         $auth = array_merge(initialize_headers(), (array)$auth);
-        return [new CaseInsensitiveDict($auth), $auth_path];
+        $headers = new CaseInsensitiveDict($auth);
     }
+
+    // URLEncode unicode charaters
+    foreach ($headers as $key => $header) {
+    $headers[$key] = preg_replace_callback(
+        '/[^\x00-\x7F]/',
+        static fn(string $match): string => rawurlencode($match),
+        $header
+    );
+
+    return [$headers, $auth_path];
 }
 
 /**
  * Determine the type of auth based on auth headers.
- * 
+ *
  * @param CaseInsensitiveDict $auth_headers auth headers dict
  * @return AuthType constant
  */
 function determine_auth_type($auth_headers)
 {
     $auth_type = AuthType::OAUTH_CUSTOM_CLIENT;
-    
+
     if (OAuthToken::is_oauth($auth_headers)) {
         $auth_type = AuthType::OAUTH_CUSTOM_CLIENT;
     }

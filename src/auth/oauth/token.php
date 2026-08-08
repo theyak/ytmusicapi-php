@@ -42,8 +42,7 @@ class Token
      */
     public function as_auth()
     {
-        $this->refresh_token();
-        return "{$this->token_type} {$this->access_token}";
+        return "{$this->token_type} {$this->getAccessToken()}";
     }
 
     public function is_expiring()
@@ -51,8 +50,9 @@ class Token
         return $this->expires_in < 60;
     }
 
-    public function refresh_token()
+    public function getAccessToken()
     {
+        return $this->access_token;
     }
 }
 
@@ -98,6 +98,9 @@ class OAuthToken extends Token
         return $this->expires_at - time() < 60;
     }
 
+    /**
+     * @param string $file_path
+     */
     public static function from_json($file_path): ?self
     {
         if (file_exists($file_path)) {
@@ -113,6 +116,13 @@ class OAuthToken extends Token
  * Compositional implementation of Token that automatically refreshes
  * an underlying OAuthToken when required (credential expiration <= 1 min)
  * upon access_token attribute access.
+ *
+ * PROBLEM: This doesn't really work in PHP. Basically, in the Python version,
+ * any time the `access_token` property was read, it would check if it needed
+ * updating via a __getattribute__ method. Unfortunately, PHP's __get method
+ * only works on properties that aren't defined on the class, so there's no
+ * exact way to acheive the exact same functionality. We have tried to
+ * mitigate this functionality with the getAccessToken() method.
  */
 class RefreshingToken extends OAuthToken
 {
@@ -126,6 +136,11 @@ class RefreshingToken extends OAuthToken
      */
     public ?string $_local_cache = null;
 
+    /**
+     * @param Credentials $credentials
+     * @param ?string $local_cache
+     * @param array $headers
+     */
     public function __construct($credentials, $local_cache = null, $headers = [])
     {
         $this->credentials = $credentials;
@@ -133,6 +148,15 @@ class RefreshingToken extends OAuthToken
         foreach ($headers as $key => $value) {
             $this->$key = $value;
         }
+    }
+
+    /**
+     * Auto refresh token if it is expiring.
+     */
+    public function getAccessToken()
+    {
+        $this->refresh_token();
+        return $this->access_token;
     }
 
     public function refresh_token()
@@ -144,11 +168,17 @@ class RefreshingToken extends OAuthToken
         }
     }
 
+    /**
+     * @param Credentials $credentials
+     */
     public function setCredentials($credentials)
     {
         $this->credentials = $credentials;
     }
 
+    /**
+     * @param string $path
+     */
     public function set_local_cache($path): void
     {
         $this->_local_cache = $path;
@@ -173,14 +203,16 @@ class RefreshingToken extends OAuthToken
 
         $raw_token = $credentials->token_from_code($code->device_code);
 
-        $ref_token = new self($credentials);
-        $ref_token->credentials = $credentials;
+        $refresh_token_expires_in = $raw_token->refresh_token_expires_in ?? $raw_token->expires_in;
 
-        foreach ((array)$raw_token as $key => $value) {
-            $ref_token->$key = $value;
-        }
+        $ref_token = new static($credentials);
+        $ref_token->access_token = $raw_token->access_token;
+        $ref_token->refresh_token = $raw_token->refresh_token;
+        $ref_token->scope = $raw_token->scope;
+        $ref_token->token_type = $raw_token->token_type;
+        $ref_token->expires_in = $refresh_token_expires_in;
 
-        $ref_token->update($ref_token);
+        $ref_token->update($raw_token);
 
         if ($to_file) {
             $ref_token->set_local_cache($to_file);
@@ -193,7 +225,7 @@ class RefreshingToken extends OAuthToken
      * Write token values to json file at specified path, defaulting to $this->local_cache.
      * Operation does not update instance local_cache attribute.
      * Automatically called when local_cache is set post init.
-     * 
+     *
      * Custom logic to specify exact key/value pairs for json file.
      *
      * @param ?string $path

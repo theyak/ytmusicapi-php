@@ -18,7 +18,11 @@ possible. All API function names, parameter names, and public methods have
 been kept the same as in their original Python library. Keeping everything
 the same should make it easy to reference their
 [documentation](https://ytmusicapi.readthedocs.io/en/stable/index.html).
-This package is currently feature compatable with YtMusicAPI v1.11.0.
+This package is currently feature compatable with YtMusicAPI v1.11.1.
+
+The source Python repository gets far more love than this repository.
+For production work, it is recommended you use the Python library
+over this library, even if needing to make a PHP wrapper around it.
 
 ## Requirements
 

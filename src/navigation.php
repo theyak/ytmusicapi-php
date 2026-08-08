@@ -80,13 +80,17 @@ define("Ytmusicapi\HEADER_SIDE", "header.musicSideAlignedItemRenderer");
 define("Ytmusicapi\HEADER_MUSIC_VISUAL", "header.musicVisualHeaderRenderer");
 define("Ytmusicapi\DESCRIPTION_SHELF", "musicDescriptionShelfRenderer");
 define("Ytmusicapi\DESCRIPTION", "description.runs.0.text");
+define("Ytmusicapi\DESCRIPTION_RUN_LIST", "description.runs.0");
 define("Ytmusicapi\CAROUSEL", "musicCarouselShelfRenderer");
 define("Ytmusicapi\IMMERSIVE_CAROUSEL", "musicImmersiveCarouselShelfRenderer");
 define("Ytmusicapi\CAROUSEL_CONTENTS", "musicCarouselShelfRenderer.contents");
 define("Ytmusicapi\CAROUSEL_TITLE", "header.musicCarouselShelfBasicHeaderRenderer.title.runs.0");
+define("Ytmusicapi\CAROUSEL_STRAPLINE", "header.musicCarouselShelfBasicHeaderRenderer.strapline.runs.0");
 define("Ytmusicapi\CARD_SHELF_TITLE", "header.musicCardShelfHeaderBasicRenderer.title.runs.0.text");
 define("Ytmusicapi\FRAMEWORK_MUTATIONS", "frameworkUpdates.entityBatchUpdate.mutations");
 define("Ytmusicapi\TIMESTAMPED_LYRICS", "contents.elementRenderer.newElement.type.componentType.model.timedLyricsModel.lyricsData");
+define("Ytmusicapi\ENGAGEMENT_BAR", "engagementBar.engagementBarViewModel.actions.0.votingViewModel.initialState");
+define("Ytmusicapi\CREDITS_SECTIONS", "onResponseReceivedActions.0.openPopupAction.popup.dismissableDialogRenderer.sections");
 
 /**
  * Create a nested array from a string of keys sepatated by dots.

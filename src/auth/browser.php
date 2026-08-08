@@ -24,7 +24,7 @@ function setup_browser($filepath = null, $headers_raw = null)
 {
     $contents = [];
     if (!$headers_raw) {
-        echo "Please paste the request headers from Firefox and press [Enter] twice to continue:\n";
+        echo "Please paste the request headers from Firefox or Chrome/Edge and press [Enter] twice to continue:\n";
         while (true) {
             try {
                 $line = trim(readline());
@@ -54,7 +54,7 @@ function setup_browser($filepath = null, $headers_raw = null)
                     $i++;
                 }
 
-                continue;   
+                continue;
             }
 
             if (sizeof($header) === 2) {
@@ -64,8 +64,16 @@ function setup_browser($filepath = null, $headers_raw = null)
 
             if ($chrome_remembered_key) {
                 $user_headers[$chrome_remembered_key] = $header[0];
-                $chrome_remembered_key = "";
+
+                if (!str_ends_with($header[0], ':') && (
+                    $chrome_remembered_key !== "Decoded" || $header[0] === "}"
+                )) {
+                    // support chrome format with or without colons for headers
+                    // and handle corner case of "Decoded:" multi-line header
+                    $chrome_remembered_key = "";
+                }
             }  else {
+                // Set key when header does not end in colon
                 $chrome_remembered_key = strtolower($header[0]);
             }
         }
