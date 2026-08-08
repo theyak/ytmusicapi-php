@@ -108,7 +108,7 @@ class YTMusic
         $this->proxies = $proxies;
 
         // see google cookie docs: https://policies.google.com/technologies/cookies
-        // value from https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/extractor/youtube.py#L502
+        // value from https://github.com/yt-dlp/yt-dlp/blob/2023.09.24/yt_dlp/extractor/youtube.py#L502
         $this->cookies = "SOCS=CAI;";
 
         $this->_auth_headers = new CaseInsensitiveDict([]);
@@ -117,8 +117,8 @@ class YTMusic
         if ($auth) {
             // Custom, pass in cookie string directly. A bit easier for Chrome users.
             // A valid cookie must contain both __Secure-3PAPISID, SAPISID, and SID
-            
-            if (is_string($auth) && str_starts_with($auth, "{") === false && strpos($auth, "__Secure-3PAPISID") !== false && strpos($auth, "SAPISID=") !== false) {    
+
+            if (is_string($auth) && str_starts_with($auth, "{") === false && strpos($auth, "__Secure-3PAPISID") !== false && strpos($auth, "SAPISID=") !== false) {
                 $this->auth_type = AuthType::BROWSER;
                 $this->_auth_headers = initialize_headers();
                 $this->_auth_headers["cookie"] = $auth;
@@ -136,9 +136,18 @@ class YTMusic
                         $message .= "Please provide oauth_credentials as specified in the OAuth setup documentation.\n";
                         throw new YTMusicUserError($message);
                     }
-                    
+
+                    # Filter unknown keys (e.g. ``refresh_token_expires_in`` from Google's
+                    # device flow) so previously saved oauth.json files load cleanly. See #921.G
+                    $token_kwargs = new CaseInsensitiveDict([]);
+                    foreach (Token::members() as $key) {
+                        if (isset($this->_auth_headers[$key])) {
+                            $token_kwargs[$key] = $this->_auth_headers[$key];
+                        }
+                    }
+
                     $this->_token = new RefreshingToken(
-                        $oauth_credentials, $auth_path, $this->_auth_headers
+                        $oauth_credentials, $auth_path, $token_kwargs
                     );
                 }
             }
@@ -199,7 +208,7 @@ class YTMusic
         if (!in_array("x-goog-visitor-id", $keys)) {
             $this->_base_headers["x-goog-visitor-id"] = get_visitor_id(fn ($url) => $this->_send_get_request($url, null, true));
         }
-        
+
         return $this->_base_headers;
     }
 
@@ -223,7 +232,7 @@ class YTMusic
 
     /**
      * Sends a POST request to YouTube Music using the mobile context.
-     * 
+     *
      * @param string $endpoint The main YouTube Music endpoint to use
      * @param array $body The body of the request
      * @return object Result from YouTube Music.
@@ -254,7 +263,7 @@ class YTMusic
     {
         static $count = 1;
         $count++;
-        
+
         // $response_text = file_get_contents("response-{$count}.json");
         // return json_decode($response_text);
 
@@ -267,7 +276,7 @@ class YTMusic
         }
 
         $header = $this->headers();
-        
+
         if ($header instanceof CaseInsensitiveDict) {
             $header = $header->getAll();
         }
@@ -354,7 +363,7 @@ class YTMusic
 
     /**
      * Prepare requests session or use user-provided requests_session
-     * 
+     *
      * @param \WpOrg\Requests\Session $requests_session
      * @return \WpOrg\Requests\Session
      */
@@ -366,7 +375,7 @@ class YTMusic
 
         $this->_session = new \WpOrg\Requests\Session();
         $this->_session->options["timeout"] = 30;
-        
+
         return $this->_session;
     }
 }

@@ -41,11 +41,12 @@ function parse_auth_str($auth)
 
     // URLEncode unicode charaters
     foreach ($headers as $key => $header) {
-    $headers[$key] = preg_replace_callback(
-        '/[^\x00-\x7F]/',
-        static fn(string $match): string => rawurlencode($match),
-        $header
-    );
+        $headers[$key] = preg_replace_callback(
+            '/[^\x00-\x7F]/',
+            static fn(string $match): string => rawurlencode($match),
+            $header
+        );
+    }
 
     return [$headers, $auth_path];
 }
