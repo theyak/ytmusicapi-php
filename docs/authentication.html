@@ -61,7 +61,7 @@
                         <li><a href="#troubleshooting">Troubleshooting</a></li>
                     </ul>
                 </aside>
-                
+
                 <div class="content">
                     <h2 id="overview">Authentication Overview</h2>
                     <p>To access your personal YouTube Music data (playlists, library, history), you need to authenticate your requests. YTMusicAPI PHP supports several authentication methods:</p>
@@ -73,7 +73,7 @@
                                 <p>Extract authentication from browser developer tools (recommended)</p>
                             </div>
                         </a>
-                        <a href="#cookie-method">   
+                        <a href="#cookie-method">
                             <div class="feature-card">
                                 <h3>🍪 Cookie String</h3>
                                 <p>Use cookies directly from your browser session</p>
@@ -188,6 +188,11 @@ $playlists = $yt->get_library_playlists();</code></pre>
                     </div>
 
                     <h2 id="oauth-setup">OAuth Setup</h2>
+                    <p>
+                        We have recently found OAuth support to no longer be working in this library, both
+                        Python and PHP versions are failing.
+                    </p>
+                    <!--
                     <p>OAuth support is available but requires additional setup for custom OAuth credentials.</p>
 
                     <div class="alert alert-warning">
@@ -200,7 +205,7 @@ $playlists = $yt->get_library_playlists();</code></pre>
                         Create your OAuth credentials in your <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a>.
                         You can create a new OAuth client ID by clicking on <span class="inline-code">Create Credentials</span> and selecting <span class="inline-code">OAuth client ID</span>.
                         Set the application type to <span class="inline-code">TVs and Limited Input Devices</span> and follow the instructions to create a new OAuth client ID.
-                        Next, activate the YouTube Data API for your project by clicking on <span class="inline-code">Enabled APIs and Services</span>, 
+                        Next, activate the YouTube Data API for your project by clicking on <span class="inline-code">Enabled APIs and Services</span>,
                         then clicking <span class="inline-code">Enable APIs and Services</span> and selecting <span class="inline-code">YouTube Data API v3</span>.
                     </p>
 
@@ -211,7 +216,7 @@ $playlists = $yt->get_library_playlists();</code></pre>
                         <pre><code class="language-bash">php vendor/bin/setup-ytmusicapi oauth</code></pre>
                     </div>
 
-                    <h3>Step 3: Login to Google</h3>                    
+                    <h3>Step 3: Login to Google</h3>
                     <p>
                         Follow the instructions to login to Google and grant access to your YouTube Music data.
                     </p>
@@ -231,6 +236,7 @@ $client_secret = getenv("GOOGLE_SECRET_ID");
 $credentials = new Ytmusicapi\OAuthCredentials($client_id, $client_secret);
 $yt = new Ytmusicapi\YTMusic("oauth.json", oauth_credentials: $credentials);</code></pre>
                     </div>
+                -->
 
                     <h2 id="brand-accounts">Brand Accounts</h2>
                     <p>Brand accounts are not yet supported.</p>
@@ -270,12 +276,12 @@ require "vendor/autoload.php";
 
 try {
     $yt = new Ytmusicapi\YTMusic("browser.json");
-    
+
     // Test authenticated request
     $account = $yt->get_account();
     echo "Authentication successful!\n";
     echo "Account: " . $account->name . "\n";
-    
+
 } catch (Exception $e) {
     echo "Authentication failed: " . $e->getMessage() . "\n";
 }</code></pre>
@@ -300,7 +306,7 @@ try {
                     <a href="https://github.com/sigma67/ytmusicapi-php" target="_blank">GitHub</a>
                 </div>
                 <p class="footer-text">
-                    Based on <a href="https://github.com/sigma67/ytmusicapi" target="_blank">sigma67's ytmusicapi</a> • 
+                    Based on <a href="https://github.com/sigma67/ytmusicapi" target="_blank">sigma67's ytmusicapi</a> •
                     MIT License
                 </p>
             </div>
