@@ -4,7 +4,7 @@ use Ytmusicapi\YTMusic;
 
 test('get_charts()', function () {
     $yt = ytmusic();
-    
+
     $charts = $yt->get_charts();
     expect(count($charts))->toBeGreaterThan(2);
 
@@ -21,11 +21,15 @@ test('get_charts() with browser.json', function () {
     $charts = $yt->get_charts();
     expect(count($charts))->toBeGreaterThan(2);
 
+    // Count depends on if premium account is testing or not. Annoying.
     $charts = $yt->get_charts("US");
-    expect(count($charts))->toBe(5); // countries, daily, weekly, genres, artists
+    expect(count($charts))->toBeGreaterThanOrEqual(4);
 
     $charts = $yt->get_charts("BE");
     expect(count($charts))->toBe(3); // countries, videos, artists
+
+    $charts = $yt->get_charts("IN");
+    expect(count($charts))->toBe(4); // countries, videos, languages, artists
 });
 
 
