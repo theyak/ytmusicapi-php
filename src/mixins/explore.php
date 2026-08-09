@@ -71,7 +71,7 @@ trait Explore
     public function get_explore()
     {
         $body = ['browseId' => 'FEmusic_explore'];
-        
+
         $response = $this->_send_request("browse", $body);
         $results = nav($response, [SINGLE_COLUMN_TAB, SECTION_LIST]);
 
@@ -110,7 +110,7 @@ trait Explore
                     } else if (str_starts_with($browse_id, "VLOLA")) {
                         $explore["trending"] = [
                             "playlist" => $browse_id,
-                            "items" => parse_content_list($contents, fn ($item) => parse_song_flat($item), MRLIR)
+                            "items" => parse_content_list($contents, fn ($item) => parse_trending_item($item), MRLIR)
                         ];
                     }
             }

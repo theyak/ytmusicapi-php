@@ -27,7 +27,7 @@ test('get_explore() - Not authenticated', function () {
     expect(count($explore))->toBe(5);
 });
 
-test('get_explore() - Authenticated', function () {
+test('get_explore() - Premium User', function () {
     $yt = ytbrowser();
     $explore = $yt->get_explore();
 
@@ -38,7 +38,7 @@ test('get_explore() - Authenticated', function () {
     }
 
     foreach ($explore["top_songs"]["items"] as $item) {
-        $has_video_id = !empty($item->videoId); 
+        $has_video_id = !empty($item->videoId);
         $has_views_or_album = !empty($item->views) || !empty($item->album);
         if ($has_video_id) {
             expect($has_views_or_album)->toBeTrue();
