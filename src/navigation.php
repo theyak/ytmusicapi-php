@@ -80,7 +80,7 @@ define("Ytmusicapi\HEADER_SIDE", "header.musicSideAlignedItemRenderer");
 define("Ytmusicapi\HEADER_MUSIC_VISUAL", "header.musicVisualHeaderRenderer");
 define("Ytmusicapi\DESCRIPTION_SHELF", "musicDescriptionShelfRenderer");
 define("Ytmusicapi\DESCRIPTION", "description.runs.0.text");
-define("Ytmusicapi\DESCRIPTION_RUN_LIST", "description.runs.0");
+define("Ytmusicapi\DESCRIPTION_RUN_LIST", "description.runs");
 define("Ytmusicapi\CAROUSEL", "musicCarouselShelfRenderer");
 define("Ytmusicapi\IMMERSIVE_CAROUSEL", "musicImmersiveCarouselShelfRenderer");
 define("Ytmusicapi\CAROUSEL_CONTENTS", "musicCarouselShelfRenderer.contents");

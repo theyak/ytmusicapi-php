@@ -124,15 +124,14 @@ trait Browse
         $body = ["browseId" => $channelId];
         $endpoint = "browse";
         $response = $this->_send_request($endpoint, $body);
-        $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST));
+
+        $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST), true);
         if (!$results) {
+            # some artist pages use twoColumnBrowseResultsRenderer instead of singleColumn (#929)
             $results = nav($response, join(TWO_COLUMN_RENDERER, TAB_CONTENT, SECTION_LIST));
         }
 
-        $header = nav($response, "header.musicImmersiveHeaderRenderer", true);
-        if (!$header) {
-            $header = nav($response, "header.musicVisualHeaderRenderer", true);
-        }
+        $header = nav($response, "header.musicImmersiveHeaderRenderer");
 
         $artist = (object)[
             "description" => null,
@@ -143,9 +142,8 @@ trait Browse
 
         $descriptionShelf = find_object_by_key($results, DESCRIPTION_SHELF, null, true);
         if ($descriptionShelf) {
-            [$description, $description_runs] = parse_description_runs(
-                nav($descriptionShelf, DESCRIPTION_RUN_LIST)
-            );
+            $runs = nav($descriptionShelf, DESCRIPTION_RUN_LIST, true);
+            [$description, $description_runs] = parse_description_runs($runs);
 
             $artist->description = $description;
             $artist->descriptionRuns = $description_runs;
@@ -153,9 +151,10 @@ trait Browse
         }
 
         $subscription_button = $header->subscriptionButton->subscribeButtonRenderer;
+
         $artist->channelId = $subscription_button->channelId;
-        $artist->shuffleId = nav($header, join("playButton.buttonRenderer", NAVIGATION_WATCH_PLAYLIST_ID), true);
-        $artist->radioId = nav($header, join("startRadioButton.buttonRenderer", NAVIGATION_WATCH_PLAYLIST_ID), true);
+        $artist->shuffleId = nav($header, join("playButton.buttonRenderer", NAVIGATION_PLAYLIST_ID), true);
+        $artist->radioId = nav($header, join("startRadioButton.buttonRenderer", NAVIGATION_PLAYLIST_ID), true);
         $artist->subscribers = nav($subscription_button, join("subscriberCountText.runs.0.text"), true);
         $artist->monthlyListeners = nav($header, "monthlyListenerCount.runs.0.text", true);
         if ($artist->monthlyListeners) {
@@ -328,40 +327,40 @@ trait Browse
      * Example:
      *
      *     [
-     *       "performed_by" => [
+     *       "performed_by" => {
      *         "localized_title" => "Performed by",
      *         "data" => [
      *           "Eminem",
      *           "Beyoncé"
      *         ]
-     *       ],
-     *       "written_by" => [
+     *       },
+     *       "written_by" => {
      *         "localized_title" => "Written by",
      *         "data" => [
      *           "Marshall Mathers",
      *           "Beyoncé Knowles",
      *           "Holly Hafermann"
      *         ]
-     *       ],
-     *       "produced_by" => [
+     *       },
+     *       "produced_by" => {
      *         "localized_title" => "Produced by",
      *         "data" => [
      *           "Rick Rubin"
      *         ]
-     *       ],
-     *       "music_metadata_provided_by" => [
+     *       },
+     *       "music_metadata_provided_by" => {
      *         "localized_title" => "Music metadata provided by",
      *         "data" => [
      *           "Eminem Catalog PS"
-     *         ]
+     *         }
      *       ],
      *       "other_sections" => [
-     *         [
+     *         {
      *           "localized_title" => "Piano",
      *           "data" => [
      *             "Skylar Grey"
      *           ]
-     *         ]
+     *         }
      *       ]
      *     ]
      */
@@ -385,13 +384,14 @@ trait Browse
         foreach ($sections as $section) {
             $section_content = $section->dismissableDialogContentSectionRenderer;
             $section_local_name = nav($section_content, TITLE_TEXT);
+
             $section_snake_case_name = $localized_section_map[$section_local_name] ?? null;
 
             $data = [];
 
             foreach (nav($section_content, SUBTITLE_RUNS) as $i => $item) {
                 if ($i % 2 === 0) {
-                    $data[] = $item["text"];
+                    $data[] = $item->text;
                 }
             }
 

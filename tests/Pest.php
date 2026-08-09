@@ -14,6 +14,8 @@
 include "TestCase.php";
 uses(TestCase::class)->in('Feature');
 
+require_once __DIR__ . '/Support/helpers.php';
+
 // Confirm environment variables are set
 $client_id = getenv("GOOGLE_CLIENT_ID");
 $client_secret = getenv("GOOGLE_SECRET_ID");
@@ -53,7 +55,7 @@ function something()
     // ..
 }
 
-function ytmusic() 
+function ytmusic()
 {
     static $yt;
 
@@ -62,7 +64,7 @@ function ytmusic()
     }
 
     $yt = new Ytmusicapi\YTMusic();
-    
+
     return $yt;
 }
 

@@ -49,19 +49,19 @@ function parse_description_runs($descriptionRunsList)
     $description = "";
 
     foreach ($descriptionRunsList as $run) {
-        $description .= $run["text"];
+        $description .= $run->text;
 
         // hashtag runs carry a searchEndpoint instead of a urlEndpoint - treat them as plain text
         $link = nav($run, "navigationEndpoint.urlEndpoint.url", true);
 
         if ($link !== null) {
             $descriptionRuns[] = (object)[
-                "text" => $run["text"],
+                "text" => $run->text,
                 "url" => $link,
             ];
         } else {
             $descriptionRuns[] = (object)[
-                "text" => $run["text"],
+                "text" => $run->text,
             ];
         }
     }

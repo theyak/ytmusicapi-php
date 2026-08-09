@@ -33,10 +33,10 @@ trait I18n
         // If we supported i18n we could move this to i18n.php for proper languages
         // local language => canonical snake case name
         $localized_section_map = [
-            "performed_by" => "performed_by",
-            "written_by" => "written_by",
-            "produced_by" => "produced_by",
-            "music_metadata_provided_by" => "music_metadata_provided_by",
+            "Performed by" => "performed_by",
+            "Written by" => "written_by",
+            "Produced by" => "produced_by",
+            "Music metadata provided by" => "music_metadata_provided_by",
         ];
 
         return $localized_section_map;

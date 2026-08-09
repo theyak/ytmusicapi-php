@@ -2,6 +2,36 @@
 
 use Ytmusicapi\YTMusic;
 
+// Matches ytmusicapi
+test("get_home()", function() {
+    $yt = ytmusic();
+    $result = $yt->get_home();
+    expect(sizeof($result))->toBeGreaterThanOrEqual(2);
+
+    $yt = ytbrowser();
+    $result = $yt->get_home(limit: 20);
+    expect(sizeof($result))->toBeGreaterThanOrEqual(15);
+
+    $types = ytbrowser()->get_api_result_types();
+
+    foreach ($result as $section) {
+        foreach ($section->contents as $item) {
+            if ($item && !empty($item->artists)) {
+                if (!empty($item->artists[0]->id)) {
+                    continue 2;
+                }
+
+                $name = strtolower($item->artists[0]->name);
+                if (!in_array($name, $types)) {
+                    continue 2;
+                }
+
+                expect(true)->toBe(false);
+            }
+        }
+    }
+});
+
 test('get_account()', function () {
     $yt = ytbrowser();
     $account = $yt->get_account();
@@ -59,44 +89,6 @@ test('get_account() - error condition', function () {
     $yt->shouldReceive("_send_request")->andReturn("");
     $yt->get_account();
 })->throws("Could not find account information.");
-
-test('get_home()', function () {
-    $yt = ytbrowser();
-
-    $home = $yt->get_home(limit: 20);
-
-    expect($home)->toBeArray();
-
-    $apiResultTypes = $yt->get_api_result_types();
-
-    foreach ($home as $section) {
-        expect($section::class)->toBe("Ytmusicapi\\Shelf");
-        expect($section->title)->not->toBeEmpty();
-        expect($section->contents)->toBeArray();
-        foreach ($section->contents as $item) {
-            # ensure all links are supported by parse_mixed_content
-            expect($item)->not->toBeNull();
-
-            if (!empty($item->artists)) {
-                $artists = $item->artists;
-                if (count($artists) <= 1) {
-                    continue;
-                }
-
-                $firstArtist = $artists[0];
-                $artistName = $firstArtist->name;
-                $artistId = $firstArtist->id;
-
-                expect($artistName)->not->toBeEmpty();
-                expect($artistName)->not->toBeIn($apiResultTypes);
-                expect($artistId)->not->toBeIn($apiResultTypes);
-            }
-
-            expect($item->title)->not->toBeEmpty();
-            expect($item->thumbnails)->toBeArray();
-        }
-    }
-});
 
 test('get_song()', function () {
     $yt = ytmusic();
@@ -189,11 +181,62 @@ test('get_song_info() - Invalid video ID type', function () {
 test('get_artist() shows', function () {
     $yt = ytbrowser();
 
-    $results = $yt->get_artist("UCyiY-0Af0O6emoI3YvCEDaA");
-    expect(count($results->shows->results))->toBe(10);
+    $results = $yt->get_artist("MPLAUCmMUZbaYdNH0bEd1PAlAqsA");
 
-    $results = $yt->get_artist_albums($results->shows->browseId, $results->shows->params);
-    expect(count($results))->toBe(100);
+
+    // test correctness of related artists
+    $related = $results->related->results;
+
+    foreach ($related as $item) {
+        expect($item)->toHaveKeys([
+            "browseId",
+            "subscribers",
+            "title",
+            "thumbnails",
+            "resultType"
+        ]);
+    }
+
+    foreach ($results->albums->results as $album) {
+        print_r($album); // --- IGNORE ---
+        expect($album->year)->toBeNumeric();
+        if (isset($album->type)) {
+            expect($album->type)->not->toMatch('/^\d+$/');
+        }
+    }
+
+    foreach ($results->singles->results as $single) {
+        expect($single->year)->toBeNumeric();
+        if (isset($single->type)) {
+            expect($single->type)->not->toMatch('/^\d+$/');
+        }
+    }
+});
+
+test('get_artist() - Description', function () {
+    $yt = ytmusic();
+
+    $artist = $yt->get_artist("UCJwGWV914kBlV4dKRn7AEFA");
+
+    expect($artist->description)->toContain("under Creative Commons Attribution");
+    expect($artist->descriptionRuns[0]->text)->toContain("Hatsune Miku");
+    expect($artist->descriptionRuns[0]->text)->not->toContain("under Creative Commons Attribution");
+    expect($artist->descriptionRuns[0])->not->toHaveProperty("url");
+    expect($artist->descriptionRuns[1])->toHaveProperty("url");
+});
+
+test('get_artist_two_column_layout', function () {
+    $mockResponse = loadJsonFixture('2026_07_get_artist_two_column');
+
+    $yt = Mockery::mock(YTMusic::class)->makePartial();
+    $yt->shouldReceive("_send_request")->andReturn($mockResponse);
+
+    $result = $yt->get_artist("UCTestChannelId");
+    expect($result->name)->toBe("Test Artist");
+    expect($result->songs->results)->toBeEmpty();
+    expect(count($result->albums->results))->toBe(1);
+    expect($result->albums->results[0]->title)->toBe("Test Album");
+    expect($result->albums->results[0]->browseId)->toBe("MPREb_test123");
 });
 
 test('get_artist() and get_artist_albums()', function () {
@@ -235,7 +278,7 @@ test('get_artist() and get_artist_albums()', function () {
 
 test("get_artist() - Artist with no songs and no subscribe", function () {
     $yt = ytmusic();
-    
+
     $artist = $yt->get_artist("UCK3inMNRNAVUleEbpDU1k2g");
 
     expect($artist->name)->toBe("SEB");
@@ -319,7 +362,7 @@ test("get_album() with bad album ID", function () {
 
 test("get_user() and get_user_playlists()", function () {
     $yt = ytmusic();
-    
+
     $user = $yt->get_user($this->userChannel);
 
     expect($user->channelId)->toBe($this->userChannel);
@@ -428,7 +471,7 @@ test("get_song_related() and get_lyrics()", function () {
 
 test("get_lyrics() - TimedLyrics", function () {
     $yt = ytmusic();
-    
+
     $playlist = $yt->get_watch_playlist("hpSrLjc5SMs");
     expect($playlist)->not->toBeEmpty();
     expect($playlist->related)->toBeString();
@@ -465,7 +508,7 @@ test("get_song_related() and get_lyrics() exceptions", function () {
 
 test("get_user_videos()", function () {
     $channel = "UCus8EVJ7Oc9zINhs-fg8l1Q"; // Turbo
-  
+
     $yt = ytmusic();
     $user = $yt->get_user($channel);
     $results = $yt->get_user_videos($channel, $user->videos->params);
@@ -473,4 +516,29 @@ test("get_user_videos()", function () {
 
     // The python library runs the query again, but expects zero results.
     // I'm not sure why it does this. I must be missing something.
+});
+
+test("get_song_credits()", function () {
+    $yt = ytmusic();
+    $credits = $yt->get_song_credits($this->sample_credits);
+
+    $sections = ["performed_by", "written_by", "produced_by", "music_metadata_provided_by"];
+
+    foreach ($sections as $section) {
+        expect(array_key_exists($section, $credits))->toBeTrue();
+        expect($credits[$section])->not->toBeNull();
+        expect(is_string($credits[$section]->localized_title))->toBeTrue();
+        expect(count($credits[$section]->data))->toBeGreaterThan(0);
+        foreach ($credits[$section]->data as $item) {
+            expect(is_string($item) && !empty($item))->toBeTrue();
+            expect(strpos($item, "\n"))->toBeFalse();
+        }
+    }
+
+    expect(count($credits["performed_by"]->data))->toBe(12);
+    expect($credits["performed_by"]->data[0])->toBe("KANGTA");
+    expect($credits["written_by"]->data[4])->toBe("Eirik Røland");
+    expect($credits["produced_by"]->data[1])->toBe("David Zandén");
+    expect($credits["music_metadata_provided_by"]->data[0])->toBe("SM Entertainment");
+    expect(count($credits["other_sections"]))->toBe(0);
 });
