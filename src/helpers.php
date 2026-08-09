@@ -1,5 +1,5 @@
 <?php
-
+/** @phpstan-import-type TextRun */
 namespace Ytmusicapi;
 
 use WpOrg\Requests\Utility\CaseInsensitiveDictionary as CaseInsensitiveDict;
@@ -31,6 +31,42 @@ function sum_total_duration($item)
     }
 
     return $sum;
+}
+
+/**
+ * @phpstan-import-type TextRun
+ *
+ * @param array $descriptionRunsList
+ * @return array{0: string, 1: list<TextRun>}
+ */
+function parse_description_runs($descriptionRunsList)
+{
+    if (!is_array($descriptionRunsList)) {
+        return ["", []];
+    }
+
+    $descriptionRuns = [];
+    $description = "";
+
+    foreach ($descriptionRunsList as $run) {
+        $description .= $run["text"];
+
+        // hashtag runs carry a searchEndpoint instead of a urlEndpoint - treat them as plain text
+        $link = nav($run, "navigationEndpoint.urlEndpoint.url", true);
+
+        if ($link !== null) {
+            $descriptionRuns[] = (object)[
+                "text" => $run["text"],
+                "url" => $link,
+            ];
+        } else {
+            $descriptionRuns[] = (object)[
+                "text" => $run["text"],
+            ];
+        }
+    }
+
+    return [$description, $descriptionRuns];
 }
 
 function initialize_headers(): array
@@ -179,7 +215,7 @@ function sapisid_from_cookie($raw_cookie): ?string
 
 /**
  * Get authorization header for YouTube Music.
- * 
+ *
  * @param string $sapisid
  * @return string
  */

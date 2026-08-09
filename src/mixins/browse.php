@@ -125,6 +125,9 @@ trait Browse
         $endpoint = "browse";
         $response = $this->_send_request($endpoint, $body);
         $results = nav($response, join(SINGLE_COLUMN_TAB, SECTION_LIST));
+        if (!$results) {
+            $results = nav($response, join(TWO_COLUMN_RENDERER, TAB_CONTENT, SECTION_LIST));
+        }
 
         $header = nav($response, "header.musicImmersiveHeaderRenderer", true);
         if (!$header) {
@@ -133,32 +136,32 @@ trait Browse
 
         $artist = (object)[
             "description" => null,
+            "descriptionRuns" => [],
             "views" => null,
             "name" => nav($header, TITLE_TEXT),
         ];
 
         $descriptionShelf = find_object_by_key($results, DESCRIPTION_SHELF, null, true);
         if ($descriptionShelf) {
-            $artist->description = nav($descriptionShelf, DESCRIPTION);
+            [$description, $description_runs] = parse_description_runs(
+                nav($descriptionShelf, DESCRIPTION_RUN_LIST)
+            );
+
+            $artist->description = $description;
+            $artist->descriptionRuns = $description_runs;
             $artist->views = isset($descriptionShelf->subheader) ? $descriptionShelf->subheader->runs[0]->text : null;
         }
 
-        if (isset($header->subscriptionButton)) {
-            $subscription_button = $header->subscriptionButton->subscribeButtonRenderer;
-            $artist->channelId = $subscription_button->channelId;
-            $artist->subscribers = nav($subscription_button, join("subscriberCountText.runs.0.text"), true);
-            $artist->subscribed = (bool)$subscription_button->subscribed;
-        }
-
+        $subscription_button = $header->subscriptionButton->subscribeButtonRenderer;
+        $artist->channelId = $subscription_button->channelId;
         $artist->shuffleId = nav($header, join("playButton.buttonRenderer", NAVIGATION_WATCH_PLAYLIST_ID), true);
         $artist->radioId = nav($header, join("startRadioButton.buttonRenderer", NAVIGATION_WATCH_PLAYLIST_ID), true);
-        if (!$artist->shuffleId) {
-            $artist->shuffleId = nav($header, join("playButton.buttonRenderer", NAVIGATION_WATCH_PLAYLIST_ID2), true);
+        $artist->subscribers = nav($subscription_button, join("subscriberCountText.runs.0.text"), true);
+        $artist->monthlyListeners = nav($header, "monthlyListenerCount.runs.0.text", true);
+        if ($artist->monthlyListeners) {
+            $artist->monthlyListeners = str_replace(" monthly audience", "", $artist->monthlyListeners);
         }
-        if (!$artist->radioId) {
-            $artist->radioId = nav($header, join("startRadioButton.buttonRenderer", NAVIGATION_WATCH_PLAYLIST_ID2), true);
-        }
-
+        $artist->subscribed = (bool)$subscription_button->subscribed;
         $artist->thumbnails = nav($header, THUMBNAILS, true);
 
         // API sometimes does not return songs
@@ -292,7 +295,7 @@ trait Browse
         $album->tracks = parse_playlist_items($results->contents, null, true);
 
         $secondary_carousels = nav($response, join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION_LIST), true) ?? [];
-    
+
         foreach (array_slice($secondary_carousels, 1) as $section) {
             $carousel = nav($section, CAROUSEL);
             $key_map = [
@@ -311,6 +314,102 @@ trait Browse
 
         return $album;
     }
+
+
+    /**
+     * Get credits for a song. Top-level entries are limited to `performed_by`,
+     * `written_by`, `produced_by` and `music_metadata_provided_by`.
+     * If YouTube returns additional data, it will be returned in `other_sections`.
+     *
+     * @param string $browseId browseId for the credits of a song, for example
+     *   returned as `creditsBrowseId` in the tracks of `get_album()`
+     * @return array Array with credit sections.
+     *
+     * Example:
+     *
+     *     [
+     *       "performed_by" => [
+     *         "localized_title" => "Performed by",
+     *         "data" => [
+     *           "Eminem",
+     *           "Beyoncé"
+     *         ]
+     *       ],
+     *       "written_by" => [
+     *         "localized_title" => "Written by",
+     *         "data" => [
+     *           "Marshall Mathers",
+     *           "Beyoncé Knowles",
+     *           "Holly Hafermann"
+     *         ]
+     *       ],
+     *       "produced_by" => [
+     *         "localized_title" => "Produced by",
+     *         "data" => [
+     *           "Rick Rubin"
+     *         ]
+     *       ],
+     *       "music_metadata_provided_by" => [
+     *         "localized_title" => "Music metadata provided by",
+     *         "data" => [
+     *           "Eminem Catalog PS"
+     *         ]
+     *       ],
+     *       "other_sections" => [
+     *         [
+     *           "localized_title" => "Piano",
+     *           "data" => [
+     *             "Skylar Grey"
+     *           ]
+     *         ]
+     *       ]
+     *     ]
+     */
+    public function get_song_credits($browseId)
+    {
+        if (!$browseId || !str_starts_with($browseId, "MPTC")) {
+            throw new YTMusicUserError("Invalid song credits browseId provided, must start with MPTC.");
+        }
+
+        $body = ["browseId" => $browseId];
+        $endpoint = "browse";
+        $response = $this->_send_request($endpoint, $body);
+
+        $credits = [
+            "other_sections" => []
+        ];
+
+        $sections = nav($response, CREDITS_SECTIONS);
+
+        $localized_section_map = $this->get_song_credit_section_map();
+        foreach ($sections as $section) {
+            $section_content = $section->dismissableDialogContentSectionRenderer;
+            $section_local_name = nav($section_content, TITLE_TEXT);
+            $section_snake_case_name = $localized_section_map[$section_local_name] ?? null;
+
+            $data = [];
+
+            foreach (nav($section_content, SUBTITLE_RUNS) as $i => $item) {
+                if ($i % 2 === 0) {
+                    $data[] = $item["text"];
+                }
+            }
+
+            $section_data = (object)[
+                "localized_title" => $section_local_name,
+                "data" => $data,
+            ];
+
+            if ($section_snake_case_name) {
+                $credits[$section_snake_case_name] = $section_data;
+            } else {
+                $credits["other_sections"][] = $section_data;
+            }
+        }
+
+        return $credits;
+    }
+
 
     /**
      * Get an album's browseId based on its audioPlaylistId.
@@ -650,7 +749,7 @@ trait Browse
         if (!is_string($browseId)) {
             throw new YTMusicUserError("Invalid browseId provided. This song might not have lyrics.");
         }
-        
+
         if ($timestamps) {
             // Custom: This function seems to fail when authenticated. Use non-authenticated request instead.
             // Also failed in Python version when authenticated.
@@ -726,7 +825,7 @@ trait Browse
     public function get_tasteprofile()
     {
         $this->_check_auth();
-        
+
         $response = $this->_send_request("browse", ["browseId" => "FEmusic_tastebuilder"]);
         $profiles = nav($response, TASTE_PROFILE_ITEMS);
 

@@ -1,5 +1,7 @@
 <?php
 
+namespace Ytmusicapi;
+
 class TrackArtist
 {
     /**

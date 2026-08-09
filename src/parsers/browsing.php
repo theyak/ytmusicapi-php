@@ -8,9 +8,7 @@ namespace Ytmusicapi;
  * @param array $rows
  * @return Shelf[]
  */
-function parse_mixed_content(
-    $rows
-)
+function parse_mixed_content($rows)
 {
     $items = [];
 
@@ -24,6 +22,12 @@ function parse_mixed_content(
             $results = $row->{$keys[0]};
             if (!isset($results->contents)) {
                 continue;
+            }
+
+            // some carousel headers only carry a strapline (e.g. "MORE FROM") instead of a title
+            $title = nav($results, join(CAROUSEL_TITLE, "text"), true);
+            if (!$title) {
+                $title = nav($results, join(CAROUSEL_STRAPLINE, "text"), true);
             }
 
             $title = nav($results, join(CAROUSEL_TITLE, 'text'));
@@ -40,7 +44,7 @@ function parse_mixed_content(
                         } else {
                             $content = parse_song($data);
                         }
-                    } elseif ($page_type === "MUSIC_PAGE_TYPE_ALBUM") {
+                    } elseif ($page_type === "MUSIC_PAGE_TYPE_ALBUM" || $page_type === "MUSIC_PAGE_TYPE_AUDIOBOOK") {
                         $content = parse_album($data);
                     } elseif ($page_type === "MUSIC_PAGE_TYPE_ARTIST" || $page_type === "MUSIC_PAGE_TYPE_USER_CHANNEL") {
                         $content = parse_related_artist($data);
@@ -81,11 +85,41 @@ function parse_content_list($results, $parse_func, $key = null)
     $key = $key === null ? MTRIR : $key;
     $contents = [];
     foreach ($results as $result) {
+        if (!isset($result->$key)) {
+            continue;
+        }
         $contents[] = $parse_func($result->$key);
     }
 
     return $contents;
 }
+
+/**
+ * Fill in type and year properties of an object based on result set.
+ *
+ * @template T of object
+ * @param T $result
+ * @param object $album_or_single
+ * @return T
+ */
+function _parse_album_single_subtitle($result, $album_or_single)
+{
+    $type_or_year = nav($result, SUBTITLE, true);
+    if ($type_or_year) {
+        if (ctype_digit($type_or_year)) {
+            $album_or_single->year = $type_or_year;
+        } else {
+            $album_or_single->type = $type_or_year;
+            $year = nav($result, SUBTITLE2);
+            if (ctype_digit($year)) {
+                $album_or_single->year = $year;
+            }
+        }
+    }
+
+    return $album_or_single;
+}
+
 
 /**
  * Get information about an album from the get_home() routine.
@@ -117,12 +151,7 @@ function parse_album($result)
         'isExplicit' => nav($result, SUBTITLE_BADGE_LABEL, true) !== null,
     ];
 
-    $year = nav($result, SUBTITLE2, true);
-    if ($year && is_numeric($year)) {
-        $album->year = $year;
-    }
-
-    return $album;
+    return _parse_album_single_subtitle($result, $album);
 }
 
 /**
@@ -133,13 +162,14 @@ function parse_album($result)
  */
 function parse_single($result)
 {
-    return (object)[
+    $single = (object)[
         'resultType' => 'single',
         'title' => nav($result, TITLE_TEXT),
-        'year' => nav($result, SUBTITLE, true),
         'browseId' => nav($result, join(TITLE, NAVIGATION_BROWSE_ID)),
         'thumbnails' => nav($result, THUMBNAIL_RENDERER),
     ];
+
+    return _parse_album_single_subtitle($result, $single);
 }
 
 /**
@@ -166,9 +196,10 @@ function parse_song($result)
  * Get information about a song from the parse_chart_song() routine
  *
  * @param object $data
+ * @param bool $with_playlist_id
  * @return object
  */
-function parse_song_flat($data)
+function parse_song_flat($data, $with_playlist_id = false)
 {
     $columns = [];
     for ($i = 0; $i < count($data->flexColumns); $i++) {
@@ -178,9 +209,14 @@ function parse_song_flat($data)
         'resultType' => 'song',
         'title' => nav($columns[0], TEXT_RUN_TEXT),
         'videoId' => nav($columns[0], join(TEXT_RUN, NAVIGATION_VIDEO_ID), true),
+        "videoType" => nav($data, join(PLAY_BUTTON, "playNavigationEndpoint", NAVIGATION_VIDEO_TYPE), true),
         'thumbnails' => nav($data, THUMBNAILS),
         'isExplicit' => nav($data, BADGE_LABEL, true) !== null
     ];
+
+    if ($with_playlist_id) {
+        $song['playlistId'] = nav($data, join(PLAY_BUTTON, "playNavigationEndpoint", WATCH_PLAYLIST_ID));
+    }
 
     $runs = nav($columns[1], TEXT_RUNS);
     $song = array_merge($song, parse_song_runs($runs, true));
@@ -233,7 +269,7 @@ function parse_video($result)
             true  // rare but possible for playlist title to be missing
         ),
         'videoId' => $videoId,
-        'artists' => parse_song_artists_runs(array_slice($runs, 0, $artists_len)),
+        'artists' => parse_artists_runs(array_slice($runs, 0, $artists_len)),
         'playlistId' => nav($result, NAVIGATION_PLAYLIST_ID, true),
         'thumbnails' => nav($result, THUMBNAIL_RENDERER, true),
         'views' => explode(' ', $last_run->text)[0]
@@ -262,10 +298,29 @@ function parse_video($result)
  */
 function parse_playlist($data)
 {
+    $playlist_id = substr(nav($data, join(TITLE, NAVIGATION_BROWSE_ID)), 2);
+    $menu_items = nav($data, "menu.menuRenderer.items", true) ?? [];
+
+    $owned = false;
+
+    foreach ($menu_items as $item) {
+        if (
+            nav(
+                $item,
+                "menuNavigationItemRenderer.navigationEndpoint.playlistEditorEndpoint.playlistId",
+                true
+            ) === $playlist_id
+        ) {
+            $owned = true;
+            break;
+        }
+    }
+
     $playlist = new PlaylistInfo();
     $playlist->title = nav($data, TITLE_TEXT);
-    $playlist->playlistId = substr(nav($data, join(TITLE, NAVIGATION_BROWSE_ID)), 2);
-    $playlist->thumbnails = nav($data, THUMBNAIL_RENDERER);
+    $playlist->playlistId = $playlist_id;
+    $playlist->thumbnails = nav($data, THUMBNAIL_RENDERER, true);
+    $playlist->owned = $owned;
     $playlist->description = "";
     $playlist->count = 0;
     $playlist->author = [];
@@ -282,7 +337,7 @@ function parse_playlist($data)
 
         if (count($runs) === 3 && preg_match('/^\d{1,3}(,\d{3})*(\.\d+)?([KMB])? /', $runs[2]->text)) {
             $playlist->count = (int)explode(' ', $runs[2]->text)[0];
-            $playlist->author = parse_song_artists_runs([$runs[0]]);
+            $playlist->author = parse_artists_runs([$runs[0]]);
         }
     }
 

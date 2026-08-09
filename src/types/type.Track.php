@@ -36,7 +36,7 @@ class Track
     public $inLibrary;
 
     /**
-     * @var Thumbnails[]
+     * @var Thumbnail[]
      */
     public $thumbnails;
 
@@ -101,6 +101,21 @@ class AlbumTrack extends Track
      * Play count is only available for albums
      */
     public $playCount = "";
+
+    /**
+     * @var bool
+     */
+    public $pinnedToListenAgain = false;
+
+    /**
+     * @var object{pin: string, unpin: string}
+     */
+    public $listenAgainFeedbackTokens;
+
+    /**
+     * @var string
+     */
+    public $creditsBrowseId;
 }
 
 #[\AllowDynamicProperties]
