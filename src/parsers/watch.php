@@ -3,9 +3,9 @@
 namespace Ytmusicapi;
 
 /**
- * Known as parse_watch_playlist() in Python, but that conflicts with 
+ * Known as parse_watch_playlist() in Python, but that conflicts with
  * function in parsers/browsing.php, so renamed here.
- * 
+ *
  * @param array $results
  * @return array
  */
@@ -47,19 +47,13 @@ function watch_playlist_parser($results)
  */
 function parse_watch_track($data)
 {
-    $feedback_tokens = null;
     $like_status = null;
-    $library_status = null;
 
     $items = nav($data, MENU_ITEMS);
 
     foreach ($items as $item) {
         if (isset($item->toggleMenuServiceItemRenderer)) {
-            $library_status = parse_song_library_status($item);
             $service = $item->toggleMenuServiceItemRenderer->defaultServiceEndpoint;
-            if (isset($service->feedbackEndpoint)) {
-                $feedback_tokens = parse_song_menu_tokens($item);
-            }
             if (isset($service->likeEndpoint)) {
                 $like_status = parse_like_status($service);
             }
@@ -71,12 +65,16 @@ function parse_watch_track($data)
         'title' => nav($data, TITLE_TEXT),
         'length' => nav($data, 'lengthText.runs.0.text', true),
         'thumbnail' => nav($data, THUMBNAIL),
-        'feedbackTokens' => $feedback_tokens,
         'likeStatus' => $like_status,
-        'inLibrary' => $library_status,
         'isExplicit' => nav($data, BADGE_LABEL, true) !== null,
-        'videoType' => nav($data, join('navigationEndpoint', NAVIGATION_VIDEO_TYPE), true)
+        'videoType' => nav($data, join('navigationEndpoint', NAVIGATION_VIDEO_TYPE), true),
+        'inLibrary' => null,
+        'feedbackTokens' => null,
+        'pinnedToListenAgain' => null,
+        'listenAgainFeedbackTokens' => null,
     ];
+
+    $track = array_merge($track, parse_song_menu_data($data));
 
     $longBylineText = nav($data, "longBylineText");
     if ($longBylineText) {
@@ -89,14 +87,22 @@ function parse_watch_track($data)
 
 /**
  * @param object $watchNextRenderer
- * @param int $tab_id
- * @return string|null
+ * @return array
  */
-function get_tab_browse_id($watchNextRenderer, $tab_id)
-{
-    if (!isset($watchNextRenderer->tabs[$tab_id]->tabRenderer->unselectable)) {
-        return (string)$watchNextRenderer->tabs[$tab_id]->tabRenderer->endpoint->browseEndpoint->browseId;
-    } else {
-        return null;
+function get_tab_browse_ids($watchNextRenderer) {
+    $browse_ids = [];
+
+    foreach ($watchNextRenderer->tabs as $tab) {
+        if (isset($tab->tabRenderer->unselectable)) {
+            continue;
+        }
+
+        $browse_endpoint = nav($tab, "tabRenderer.endpoint.browseEndpoint", true);
+        if ($browse_endpoint) {
+            $page_type = nav($browse_endpoint, PAGE_TYPE);
+            $browse_ids[$page_type] = $browse_endpoint->browseId;
+        }
     }
+
+    return $browse_ids;
 }

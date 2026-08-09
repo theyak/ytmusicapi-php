@@ -62,6 +62,7 @@ class YTMusic
     public $sapisid;
     public $lang = [];
 
+
     /**
      * Create a new instance to interact with YouTube Music.
      *
@@ -174,12 +175,13 @@ class YTMusic
 
             $headers = $this->base_headers();
             $this->sapisid = sapisid_from_cookie($this->_auth_headers["cookie"]);
-            $this->origin = $headers["origin"] ?? $headers["x-origin"];
+            $this->origin = $headers["origin"] ?? ($headers["x-origin"] ?? "https://music.youtube.com");
 
             if (!$this->sapisid) {
                 throw new YTMusicUserError("Your cookie is missing the required value __Secure-3PAPISID");
             }
         }
+
     }
 
     /**
@@ -329,13 +331,17 @@ class YTMusic
         }
 
         if ($use_base_headers) {
-            $headers =  initialize_headers();
+            $headers = initialize_headers();
         } else {
-            $headers =  $this->headers();
+            $headers = $this->headers();
         }
 
         if (empty($headers["cookie"])) {
             $headers["cookie"] = $this->cookies;
+        }
+
+        if (is_array($headers["cookie"]) && empty($headers["cookie"])) {
+            $headers["cookie"] = "";
         }
 
         $response = $this->_session->get($url, $headers, $options);
@@ -367,11 +373,12 @@ class YTMusic
      * @param \WpOrg\Requests\Session $requests_session
      * @return \WpOrg\Requests\Session
      */
-    private function _prepare_session($requests_session)
+    public function _prepare_session($requests_session)
     {
         if ($requests_session && $requests_session instanceof \WpOrg\Requests\Session) {
             return $requests_session;
         }
+
 
         $this->_session = new \WpOrg\Requests\Session();
         $this->_session->options["timeout"] = 30;

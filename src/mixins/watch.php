@@ -73,8 +73,10 @@ trait Watch
 
         $watchNextRenderer = nav($response, "contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer");
 
-        $lyrics_browse_id = get_tab_browse_id($watchNextRenderer, 1);
-        $related_browse_id = get_tab_browse_id($watchNextRenderer, 2);
+        $browse_ids = get_tab_browse_ids($watchNextRenderer);
+
+        $lyrics_browse_id = $browse_ids["MUSIC_PAGE_TYPE_TRACK_LYRICS"];
+        $related_browse_id = $browse_ids["MUSIC_PAGE_TYPE_TRACK_RELATED"];
 
         $results = nav($watchNextRenderer, join(TAB_CONTENT, "musicQueueRenderer.content.playlistPanelRenderer"), true);
         if (!$results) {

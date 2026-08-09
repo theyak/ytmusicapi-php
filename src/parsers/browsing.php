@@ -110,8 +110,8 @@ function _parse_album_single_subtitle($result, $album_or_single)
             $album_or_single->year = $type_or_year;
         } else {
             $album_or_single->type = $type_or_year;
-            $year = nav($result, SUBTITLE2);
-            if (ctype_digit($year)) {
+            $year = nav($result, SUBTITLE2, true);
+            if ($year && ctype_digit($year)) {
                 $album_or_single->year = $year;
             }
         }

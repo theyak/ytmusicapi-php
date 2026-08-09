@@ -20,9 +20,15 @@ require_once __DIR__ . '/Support/helpers.php';
 $client_id = getenv("GOOGLE_CLIENT_ID");
 $client_secret = getenv("GOOGLE_SECRET_ID");
 
-
-// die(1);
-
+// Warnings trigger errors
+// set_error_handler(function (
+//     int $severity,
+//     string $message,
+//     string $file,
+//     int $line
+// ): never {
+//     throw new ErrorException($message, 0, $severity, $file, $line);
+// });
 
 /*
 |--------------------------------------------------------------------------

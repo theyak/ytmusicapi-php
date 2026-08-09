@@ -15,7 +15,6 @@ function parse_auth_str($auth)
     $auth_path = null;
 
     if (is_string($auth)) {
-
         $auth_str = $auth;
         if (str_starts_with($auth, "{")) {
             $input_json = json_decode($auth_str, true);
@@ -33,13 +32,12 @@ function parse_auth_str($auth)
             throw new YTMusicUserError("Invalid auth JSON string or file path provided.");
         }
         $auth = array_merge(initialize_headers(), $input_json);
-        $headers = new CaseInsensitiveDict($input_json);
     } else {
         $auth = array_merge(initialize_headers(), (array)$auth);
-        $headers = new CaseInsensitiveDict($auth);
     }
 
     // URLEncode unicode charaters
+    $headers = new CaseInsensitiveDict($auth);
     foreach ($headers as $key => $header) {
         $headers[$key] = preg_replace_callback(
             '/[^\x00-\x7F]/',
@@ -47,6 +45,7 @@ function parse_auth_str($auth)
             $header
         );
     }
+
 
     return [$headers, $auth_path];
 }

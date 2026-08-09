@@ -21,6 +21,7 @@ trait Browse
         $endpoint = "account/account_menu";
         $response = $this->_send_request($endpoint, []);
 
+
         $renderer = nav($response, "actions.0.openPopupAction.popup.multiPageMenuRenderer.header.activeAccountHeaderRenderer", true);
         $sections = nav($response, "actions.0.openPopupAction.popup.multiPageMenuRenderer.sections", true);
 
@@ -131,7 +132,11 @@ trait Browse
             $results = nav($response, join(TWO_COLUMN_RENDERER, TAB_CONTENT, SECTION_LIST));
         }
 
-        $header = nav($response, "header.musicImmersiveHeaderRenderer");
+        $header = nav($response, "header.musicImmersiveHeaderRenderer", true);
+        if (!$header) {
+            // Example channel: UCK3inMNRNAVUleEbpDU1k2g
+            $header = nav($response, "header.musicVisualHeaderRenderer", true);
+        }
 
         $artist = (object)[
             "description" => null,

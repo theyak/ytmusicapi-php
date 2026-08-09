@@ -27,7 +27,7 @@ function parse_song_run($run) {
             return ["type" => "album", "data" => $item];
         } else { // artist
             return ["type" => "artist", "data" => $item];
-        } 
+        }
     }else {
         // note: YT uses non-breaking space \xa0 to separate number and magnitude
         if (preg_match("/^\d([^ ])* [^ ]*$/", $text)) {
@@ -46,7 +46,7 @@ function parse_song_run($run) {
  * Crazy parsing of song data. Used all over the place.
  *
  * @param array $runs
- * @param bool $skip_type_spec if true, skip the type specifier (like "Song", "Single", or "Album") 
+ * @param bool $skip_type_spec if true, skip the type specifier (like "Song", "Single", or "Album")
  *   that may appear before artists ("Song • Eminem"). Otherwise, that text item is parsed as an artist with no ID.
  * @return array This returns an array as it is usually merged with another array
  *   Here is the data it can return:
@@ -64,11 +64,11 @@ function parse_song_runs($runs, $skip_type_spec = false)
     // prevent type specifier from being parsed as an artist
     // it's the first run, separated from the actual artists by " • "
     if (
-        $skip_type_spec && 
-        count($runs) > 2 && 
-        parse_song_run($runs[0])["type"] == "artist" && 
-        !empty($runs[1]->text) && 
-        $runs[1]->text === " • " && 
+        $skip_type_spec &&
+        count($runs) > 2 &&
+        parse_song_run($runs[0])["type"] == "artist" &&
+        !empty($runs[1]->text) &&
+        $runs[1]->text === " • " &&
         parse_song_run($runs[2])["type"] == "artist") {
         $runs = array_slice($runs, 2);
     }
@@ -77,7 +77,7 @@ function parse_song_runs($runs, $skip_type_spec = false)
         if ($i % 2) { // uneven items are always separators
             continue;
         }
-        
+
         $parsed_run = parse_song_run($run);
         $data = $parsed_run["data"];
 
@@ -161,6 +161,15 @@ function parse_song_menu_tokens($item)
 
     return (object)['add' => $library_add_token, 'remove' => $library_remove_token];
 }
+
+/**
+ * @param object $data
+ * @return array
+ */
+function parse_song_menu_data($data) {
+    return [];
+}
+
 
 /**
  * Return current status based on what the button says. For instance

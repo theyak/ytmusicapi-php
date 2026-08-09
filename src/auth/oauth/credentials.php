@@ -117,18 +117,16 @@ class OAuthCredentials extends Credentials
             $data
         );
 
-        // This logic differs for Python implementation.
         if ($response->status_code >= 400) {
             $data = json_decode($response->body);
+            $issue = $data->error;
 
-            echo "Error creating OAuth credentials:\n";
-            echo "status_code: " . $response->status_code . "\n";
-            echo "url: " . $url . "\n";
-            echo "content: " . $data->error . "\n";
-            if (!empty($data->error_description)) {
-                echo "error: " . $data->error_description . "\n";
+            if ($issue === "unauthorized_client") {
+                throw new UnauthorizedOAuthClient("Token refresh error. Most likely client/token mismatch.");
+            } else if ($issue === "invalid_client") {
+                throw new BadOAuthClient("OAuth client failure. Most likely client_id and client_secret mismatch or YouTubeData API is not enabled.");
             } else {
-                print_r($data);
+                throw new YTMusicServerError("OAuth request error. status_code: {$response->status_code}, url: {$url}, content: {$response->body}");
             }
         }
 
@@ -137,7 +135,7 @@ class OAuthCredentials extends Credentials
 
     /**
      * Method for verifying user auth code and conversion into a FullTokenDict.
-     * 
+     *
      * @param string $device_code
      * @return RefreshableTokenDict
      */

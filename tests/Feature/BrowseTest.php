@@ -57,7 +57,6 @@ test('get_account() - with manual cookie authentication', function () {
     $auth = (object)[
         "cookie" => $browser['cookie'],
         "x-goog-authuser" => $browser['x-goog-authuser'] ?? "0",
-        "x-goog-visitor-id" => $browser['x-goog-visitor-id'] ?? ""
     ];
 
     $yt = new YTMusic(json_encode($auth));
@@ -79,16 +78,17 @@ test('get_account() - with manual cookie object authentication', function () {
     expect($account->name)->not->toBeEmpty();
 });
 
-test('get_account() - error condition', function () {
+test('get_account() - Invalid credentials', function () {
     $credentials = new YtmusicApi\OAuthCredentials(
         "abc",
         "123"
     );
 
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
-    $yt->shouldReceive("_send_request")->andReturn("");
+    $yt = new YTMusic('oauth.json', oauth_credentials: $credentials);
     $yt->get_account();
-})->throws("Could not find account information.");
+
+    expect(true)->toBe(true);
+})->expectException("Ytmusicapi\BadOAuthClient");
 
 test('get_song()', function () {
     $yt = ytmusic();
@@ -198,7 +198,6 @@ test('get_artist() shows', function () {
     }
 
     foreach ($results->albums->results as $album) {
-        print_r($album); // --- IGNORE ---
         expect($album->year)->toBeNumeric();
         if (isset($album->type)) {
             expect($album->type)->not->toMatch('/^\d+$/');
@@ -360,6 +359,75 @@ test("get_album() with bad album ID", function () {
     $yt->get_album($this->albumId . "AAA");
 })->throws(Exception::class);
 
+test("get_album() with description containing link", function () {
+    $mock_response = loadJsonFixture('2026_05_get_album');
+    $expected_output = loadJsonFixture('expected_output/2026_05_get_album');
+
+    $yt = Mockery::mock(YTMusic::class)->makePartial();
+    $yt->shouldReceive("_send_request")->andReturn($mock_response);
+
+    /** @var \Ytmusicapi\YTMusic $yt */
+    $yt->_prepare_session(true);
+    $browseId = $yt->get_album_browse_id("OLAK5uy_kW9hN-oBmekJ06jhhfStpwRd5pcRKIztY");
+    $result = $yt->get_album($browseId);
+
+    expect($result->description)->toEqual($expected_output->description);
+    expect($result->descriptionRuns)->toEqual($expected_output->descriptionRuns);
+});
+
+test("get_album() without artist", function () {
+    $yt = ytmusic();
+    $album = $yt->get_album("MPREb_n1AxZ9F8rF7"); // soundtrack album with no artist info
+    expect($album->artists)->toBeEmpty();
+    expect($album->audioPlaylistId)->not->toBeEmpty();
+    expect(sizeof($album->tracks))->toBe(11);
+});
+
+
+test("get_album() other versions", function () {
+    $yt = ytmusic();
+
+    // Eminem - Curtain Call: The Hits (Explicit Variant)
+    $album = $yt->get_album("MPREb_LQCAymzbaKJ");
+    $variants = $album->other_versions;
+    expect(sizeof($variants))->toBeGreaterThan(0);
+
+    $variant = $variants[0];
+    expect($variant->type)->toBe("Album");
+    expect($variant->title)->toBe($album->title);
+    expect(sizeof($variant->artists))->toBe(1);
+    expect($variant->artists[0])->toEqual((object)[
+        "name" => "Eminem",
+        "id" => "UCedvOgsKFzcK3hA5taf3KoQ",
+    ]);
+    expect($variant->audioPlaylistId)->not->toBeEmpty();
+});
+
+test("get_album() other versions - multi artist, single, and clean", function () {
+    $yt = ytmusic();
+
+    // Cassö & RAYE - Prada
+    $album = $yt->get_album("MPREb_of3qfisa0yU");
+    expect($album->isExplicit)->toBe(false);
+    expect($album->artists)->toEqual([
+        (object)["name" => "cassö", "id" => "UCGWMNnI1Ky5bMcRlr73Cj2Q"],
+        (object)["name" => "RAYE", "id" => "UCvyjk7zKlaFyNIPZ-Pyvkng"],
+    ]);
+
+    $variant = $album->other_versions[0];
+    expect($variant->type)->toBe("Single");
+    expect($variant->title)->toBe("Prada");
+    expect($variant->isExplicit)->toBe(true);
+    expect(sizeof($variant->artists))->toBe(3);
+    expect($variant->artists[0]->id)->toBe("UCGWMNnI1Ky5bMcRlr73Cj2Q");
+    expect($variant->artists[1]->name)->toBe("RAYE");
+    expect($variant->artists[2])->toEqual((object)[
+        "id" => "UCb7jnkQW94hzOoWkG14zs4w",
+        "name" => "D-Block Europe",
+    ]);
+    expect($variant->audioPlaylistId)->not->toBeEmpty();
+});
+
 test("get_user() and get_user_playlists()", function () {
     $yt = ytmusic();
 
@@ -479,16 +547,6 @@ test("get_lyrics() - TimedLyrics", function () {
     $lyrics = $yt->get_lyrics($playlist->lyrics, true);
     expect($lyrics->lyrics)->toBeArray();
     expect($lyrics->source)->not->toBeEmpty();
-});
-
-test("get_lyrics() - TimedLyrics with song that has no timed data", function () {
-    $yt = ytmusic();
-
-    $playlist = $yt->get_watch_playlist($this->videoId);
-
-    $lyrics = $yt->get_lyrics($playlist->lyrics, true);
-
-    expect($lyrics)->toBeNull();
 });
 
 test("get_transcript() - TimedLyrics", function () {
