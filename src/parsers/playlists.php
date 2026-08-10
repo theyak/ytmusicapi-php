@@ -145,8 +145,8 @@ function parse_audio_playlist($response, ?int $limit, callable $request_func): a
     $playlist["id"] = nav($content_data, "targetId");
     $playlist["tracks"] = [];
 
-    if (isset($content_data["contents"])) {
-        $playlist["tracks"] = parse_playlist_items($content_data["contents"]);
+    if (isset($content_data->contents)) {
+        $playlist["tracks"] = parse_playlist_items($content_data->contents);
 
         $parse_func = function($contents) {
             return parse_playlist_items($contents);
@@ -170,12 +170,12 @@ function parse_audio_playlist($response, ?int $limit, callable $request_func): a
  *   - Returns play count for album playlists
  *
  * @param mixed $results
- * @param mixed $menu_entries
+ * @param bool $is_album
+ * @param bool $is_collaborative
  * @return Track[]|AlbumTrack[]
  */
 function parse_playlist_items(
     $results,
-    $menu_entries = null,
     $is_album = false,
     $is_collaborative = false,
 ) {
@@ -258,7 +258,7 @@ function parse_playlist_item($data, $is_album = false, $is_collaborative = false
     $unrecognized_index = null;
 
     $flex_columns = $data->flexColumns;
-    foreach ($data->flexColumns as $index => $flexColumn) {
+    foreach ($flex_columns as $index => $flexColumn) {
         $flex_column_item = get_flex_column_item($data, $index);
         $navigation_endpoint = nav($flex_column_item, join(TEXT_RUN, "navigationEndpoint"), true);
 
@@ -325,8 +325,6 @@ function parse_playlist_item($data, $is_album = false, $is_collaborative = false
         return null;
     }
 
-    $flex_column_count = count($data->flexColumns);
-
     $artists = $artist_index !== null ? parse_song_artists($data, $artist_index) : null;
 
     $album = $album_index !== null ? parse_song_album($data, $album_index) : null;
@@ -354,7 +352,7 @@ function parse_playlist_item($data, $is_album = false, $is_collaborative = false
         $videoType = nav($data, join(PLAY_BUTTON, "playNavigationEndpoint", NAVIGATION_VIDEO_TYPE), true);
     }
 
-
+    // This is only for logged in users. Logged out users can still see vote count from playlistItemData
     $voting_status = nav($data, ENGAGEMENT_BAR, true);
     $community_vote_status = null;
     if ($voting_status) {

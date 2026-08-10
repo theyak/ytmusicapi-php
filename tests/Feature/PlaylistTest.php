@@ -74,6 +74,23 @@ test("get_playlist() - large playlist", function () {
     }
 });
 
+test("get_playlist() Audio book", function($playlist_id) {
+    $yt = ytmusic();
+
+    $playlist = $yt->get_playlist($playlist_id);
+
+
+    foreach ($playlist->tracks as $track) {
+        expect($track->album->id)->not->toBeEmpty();
+        expect($track->album->name)->toBe($playlist->title);
+    }
+})->with(
+    [
+        "OLAK5uy_nT1mL8aZvxqfIRFN9L8FgIzfvk6HUkd0I",  // Show
+        "OLAK5uy_ksLYkcnrOSKYl62uxB3ga2zfBZfCuvnJ4",  // Audiobook
+    ]
+);
+
 test("get_playlist() - skip continuations", function () {
     $yt = ytmusic();
     $playlist = $yt->get_playlist($this->playlistId, limit: 1, get_continuations: false);
@@ -91,7 +108,7 @@ test("get_playlist() - skip continuations", function () {
     expect($playlist->duration)->not->toBeEmpty();
 
     $track_count = sizeof($playlist->tracks);
-    
+
     expect($track_count)->toBeGreaterThan(0);
     expect($track_count)->toBeLessThanOrEqual(100);
 
@@ -189,6 +206,50 @@ test("Get liked music", function () {
         }
     }
 });
+
+test("get_playlist() with votes", function($playlist_id, $has_vote) {
+    $yt = ytbrowser();
+
+    $playlist = $yt->get_playlist($playlist_id);
+    $tracks = $playlist->tracks;
+    expect(sizeof($tracks))->toBeGreaterThan(0);
+
+    if (!$has_vote) {
+        foreach ($tracks as $track) {
+            expect($track->communityVoteStatus)->toBe(null);
+        }
+
+        return;
+    }
+
+    foreach ($tracks as $track) {
+        $vote_status = $track->communityVoteStatus;
+        expect($vote_status)->not->toBeEmpty();
+        expect((int)$vote_status->netVoteValue)->toBeGreaterThan(0);
+        expect($vote_status->status)->toBeInstanceOf(\Ytmusicapi\VoteStatus::class);
+    }
+})->only()->with(
+    [
+        // Settings:
+        // Title: "Playlist with votes"
+        // Description: ""
+        // Privacy: unlisted
+        // Voting: Everyone
+        // Collaboration: On
+        // Allow new collaborators: Off
+        // 2 videos with id: HDTvoFuHtN0, QD3vEctbWGg
+        ["PLa90Y86mjW3fKMrV_EPZ2-WZH8a50ss-b", true],
+        // Settings:
+        // Title: "Playlist without votes"
+        // Description: ""
+        // Privacy: unlisted
+        // Voting: Voting off
+        // Collaboration: On
+        // Allow new collaborators: Off
+        // 2 videos with id: HDTvoFuHtN0, QD3vEctbWGg
+        ["PLa90Y86mjW3d57WTbI8aBp6Cgx9MHOuHD", false],
+    ]
+);
 
 test("Edit playlist", function () {
     $yt = ytbrowser();
@@ -302,7 +363,7 @@ test("Big create, add to, and delete test of library", function () {
 
 test("create_playlist() - Using video ids", function () {
     $yt = ytbrowser();
-    
+
     $playlistId = $yt->create_playlist("test", "test description", "PRIVATE", [$this->videoId]);
 
     sleep(2);
@@ -370,7 +431,7 @@ test("remove_playlist_items() - Invalid status response", function () {
     $credentials = new YtmusicApi\OAuthCredentials(
         "abc",
         "123"
-    );    
+    );
     $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
 
     $yt->shouldReceive("_send_request")->andReturn((object)["context" => "test"]);

@@ -296,7 +296,7 @@ trait Browse
         $results = nav($response, join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION_LIST_ITEM, MUSIC_SHELF), true);
 
         $album->id = $browseId;
-        $album->tracks = parse_playlist_items($results->contents, null, true);
+        $album->tracks = parse_playlist_items($results->contents, is_album: true);
 
         $secondary_carousels = nav($response, join(TWO_COLUMN_RENDERER, "secondaryContents", SECTION_LIST), true) ?? [];
 

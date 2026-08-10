@@ -49,3 +49,8 @@ enum PlaylistVoteEditOptions: string
         };
     }
 }
+
+enum ResponseStatus: string
+{
+	case SUCCEEDED = "STATUS_SUCCEEDED";
+}

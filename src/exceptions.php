@@ -27,3 +27,6 @@ class YTMusicUserError extends YTMusicError
 class YTMusicServerError extends YTMusicError {
 }
 
+
+class YTMusicGatedError extends YTMusicError {
+}
