@@ -35,7 +35,7 @@ class Playlist
     public $track_count;
 
     /**
-     * @var Ref
+     * @var ?Ref
      */
     public $author;
 

@@ -80,6 +80,9 @@ function parse_playlist_header_meta($header): array {
 
         $tag = nav($avatar_command, "showEngagementPanelEndpoint.identifier.tag", true);
 
+        $playlist_meta["collaborators"] = null;
+        $playlist_meta["author"] = null;
+
         if ($tag) {
             $avatars = nav($header, "facepile.avatarStackViewModel.avatars");
             $list = [];

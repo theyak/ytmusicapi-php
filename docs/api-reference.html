@@ -63,7 +63,7 @@
                         <li><a href="#podcasts">Podcasts</a></li>
                     </ul>
                 </aside>
-                
+
                 <div class="content">
                     <h2 id="search">Search</h2>
                     <p>Search for content on YouTube Music including songs, albums, artists, playlists, and more.</p>
@@ -77,7 +77,7 @@
                             <div class="indent-param">$ignore_spelling = false</div>
                         )</h3>
                         <p class="method-description">Search YouTube Music and return results within the provided category.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -125,7 +125,7 @@ $library_songs = $yt->search("Wonderwall", scope: "library");</code></pre>
                     <div class="method-card">
                         <h3 class="method-title">get_search_suggestions($query, $detailed_runs = false)</h3>
                         <p class="method-description">Get search suggestions for a query.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -152,7 +152,7 @@ $detailed = $yt->get_search_suggestions("faded", detailed_runs: true);</code></p
                     <div class="method-card">
                         <h3 class="method-title">get_home()</h3>
                         <p class="method-description">Get the home page with music suggestions and recommendations.</p>
-                        
+
                         <h4>Returns</h4>
                         <p><span class="inline-code">array</span> - Home page content with titled rows of music suggestions</p>
 
@@ -164,7 +164,7 @@ $detailed = $yt->get_search_suggestions("faded", detailed_runs: true);</code></p
                     <div class="method-card">
                         <h3 class="method-title">get_artist($channelId)</h3>
                         <p class="method-description">Get information about an artist including albums, songs, and related content.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -182,7 +182,7 @@ $detailed = $yt->get_search_suggestions("faded", detailed_runs: true);</code></p
                     <div class="method-card">
                         <h3 class="method-title">get_album($browseId)</h3>
                         <p class="method-description">Get information about an album including tracks and metadata.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -230,7 +230,7 @@ foreach ($credits["performed_by"]["data"] as $artist) {
                     <div class="method-card">
                         <h3 class="method-title">get_song($videoId, $signatureTimestamp = null)</h3>
                         <p class="method-description">Returns metadata and streaming information about a song or video.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -253,7 +253,7 @@ foreach ($credits["performed_by"]["data"] as $artist) {
                     <div class="method-card">
                         <h3 class="method-title">get_song_info($videoId)</h3>
                         <p class="method-description">Get basic information about a track, including whether it's a music video or not. <em>(PHP-specific method)</em></p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -277,7 +277,7 @@ if ($info->music) {
                     <div class="method-card">
                         <h3 class="method-title">get_lyrics($browseId)</h3>
                         <p class="method-description">Get lyrics for a song.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -295,7 +295,7 @@ if ($info->music) {
                     <div class="method-card">
                         <h3 class="method-title">get_user($channelId)</h3>
                         <p class="method-description">Get information about a user and their public content.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -316,7 +316,7 @@ if ($info->music) {
                     <div class="method-card">
                         <h3 class="method-title">get_library_playlists($limit = 25)</h3>
                         <p class="method-description">Retrieve playlists from your library.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -337,7 +337,7 @@ if ($info->music) {
                     <div class="method-card">
                         <h3 class="method-title">get_library_songs($limit = 25, $validate_responses = false, $order = null)</h3>
                         <p class="method-description">Get songs from your library (liked videos are not included).</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -368,7 +368,7 @@ if ($info->music) {
                     <div class="method-card">
                         <h3 class="method-title">get_library_albums($limit = 25, $order = null)</h3>
                         <p class="method-description">Get albums from your library.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -395,7 +395,7 @@ if ($info->music) {
                     <div class="method-card">
                         <h3 class="method-title">get_history()</h3>
                         <p class="method-description">Get your music history.</p>
-                        
+
                         <h4>Returns</h4>
                         <p><span class="inline-code">Track[]</span> - List of recently played tracks</p>
                     </div>
@@ -421,7 +421,7 @@ if ($info->music) {
                     <div class="method-card">
                         <h3 class="method-title">rate_song($videoId, $rating = "INDIFFERENT")</h3>
                         <p class="method-description">Rate a song (like, dislike, or indifferent).</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -448,12 +448,12 @@ if ($info->music) {
                         <h3 class="method-title">get_playlist(
                             <div class="indent-param">$playlistId,</div>
                             <div class="indent-param">$limit = 100,</div>
-                            <div class="indent-param">$related = false,</div> 
+                            <div class="indent-param">$related = false,</div>
                             <div class="indent-param">$suggestions_limit = 0,</div>
                             <div class="indent-param">$get_continuations = true</div>
                         )</h3>
                         <p class="method-description">Returns information and tracks of a playlist.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -494,7 +494,7 @@ if ($info->music) {
                     <div class="method-card">
                         <h3 class="method-title">get_playlist_continuation($playlistId, $token)</h3>
                         <p class="method-description">Get continuation of playlist tracks for pagination. <em>(PHP-specific method)</em></p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -525,7 +525,7 @@ while ($playlist->continuation) {
                     <div class="method-card">
                         <h3 class="method-title">get_liked_songs($limit = 100)</h3>
                         <p class="method-description">Get your liked songs playlist.</p>
-                        
+
                         <div class="code-block">
                             <pre><code class="language-php">$liked = $yt->get_liked_songs();</code></pre>
                         </div>
@@ -540,7 +540,7 @@ while ($playlist->continuation) {
                             <div class="indent-param">$source_playlist = null</div>
                         )</h3>
                         <p class="method-description">Create a new playlist.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -572,7 +572,7 @@ while ($playlist->continuation) {
 
                         <div class="code-block">
                             <pre><code class="language-php">$playlist_id = $yt->create_playlist(
-    "My Favorite Songs", 
+    "My Favorite Songs",
     "Collection of my favorite tracks",
     "PRIVATE",
     ["kJQP7kiw5Fk", "dQw4w9WgXcQ"]
@@ -705,7 +705,7 @@ $yt2->join_collaborative_playlist($playlistId, $token);</code></pre>
                     <div class="method-card">
                         <h3 class="method-title">delete_playlist($playlistId)</h3>
                         <p class="method-description">Delete a playlist.</p>
-                        
+
                         <div class="code-block">
                             <pre><code class="language-php">$yt->delete_playlist("PLfY7JYgRs-QJZP7zqsKPFMqKJ5qghLqm_");</code></pre>
                         </div>
@@ -719,7 +719,7 @@ $yt2->join_collaborative_playlist($playlistId, $token);</code></pre>
                             <div class="indent-param">$duplicates = false</div>
                         )</h3>
                         <p class="method-description">Add songs to an existing playlist.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -755,7 +755,7 @@ $yt2->join_collaborative_playlist($playlistId, $token);</code></pre>
                     <div class="method-card">
                         <h3 class="method-title">remove_playlist_items($playlistId, $videos)</h3>
                         <p class="method-description">Remove songs from a playlist.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -783,7 +783,7 @@ $yt2->join_collaborative_playlist($playlistId, $token);</code></pre>
                             <div class="indent-param">$shuffle = false</div>
                         )</h3>
                         <p class="method-description">Get a watch list of tracks for continuous playback.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -828,7 +828,7 @@ $radio = $yt->get_watch_playlist(videoId: "kJQP7kiw5Fk", radio: true);</code></p
                     <div class="method-card">
                         <h3 class="method-title">get_track($videoId)</h3>
                         <p class="method-description">Get track information including IDs to retrieve lyrics and related tracks. <em>(PHP-specific method)</em></p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -854,7 +854,7 @@ $related = $yt->get_song_related($track->related);</code></pre>
                     <div class="method-card">
                         <h3 class="method-title">get_charts($country = "ZZ")</h3>
                         <p class="method-description">Get latest charts data from YouTube Music including top videos, artists, and genres.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -891,7 +891,7 @@ $us_charts = $yt->get_charts("US");</code></pre>
                     <div class="method-card">
                         <h3 class="method-title">get_mood_playlists($params)</h3>
                         <p class="method-description">Get playlists for a specific mood category.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -908,7 +908,7 @@ $us_charts = $yt->get_charts("US");</code></pre>
                     <div class="method-card">
                         <h3 class="method-title">get_library_upload_songs($limit = 25, $order = null)</h3>
                         <p class="method-description">Get list of uploaded songs from your library.</p>
-                        
+
                         <h4>Returns</h4>
                         <p><span class="inline-code">UploadTrack[]</span> - List of uploaded songs</p>
 
@@ -925,7 +925,7 @@ $us_charts = $yt->get_charts("US");</code></pre>
                     <div class="method-card">
                         <h3 class="method-title">upload_song($filepath)</h3>
                         <p class="method-description">Upload a song to YouTube Music.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -947,7 +947,7 @@ $us_charts = $yt->get_charts("US");</code></pre>
                     <div class="method-card">
                         <h3 class="method-title">delete_upload_entity($entityId)</h3>
                         <p class="method-description">Delete a previously uploaded song or album.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -964,7 +964,7 @@ $us_charts = $yt->get_charts("US");</code></pre>
                     <div class="method-card">
                         <h3 class="method-title">get_podcast($playlistId, $limit = 100)</h3>
                         <p class="method-description">Get information about a podcast and its episodes.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -987,7 +987,7 @@ $us_charts = $yt->get_charts("US");</code></pre>
                     <div class="method-card">
                         <h3 class="method-title">get_episode($videoId)</h3>
                         <p class="method-description">Get information about a podcast episode.</p>
-                        
+
                         <div class="method-params">
                             <h4>Parameters</h4>
                             <div class="param">
@@ -1033,7 +1033,7 @@ $us_charts = $yt->get_charts("US");</code></pre>
                     <a href="https://github.com/sigma67/ytmusicapi-php" target="_blank">GitHub</a>
                 </div>
                 <p class="footer-text">
-                    Based on <a href="https://github.com/sigma67/ytmusicapi" target="_blank">sigma67's ytmusicapi</a> • 
+                    Based on <a href="https://github.com/sigma67/ytmusicapi" target="_blank">sigma67's ytmusicapi</a> •
                     MIT License
                 </p>
             </div>

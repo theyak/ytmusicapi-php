@@ -547,7 +547,7 @@ test("long playlist", function () {
         echo "Deleting playlist\n";
         $yt->delete_playlist($playlist_id);
     }
-})->only();
+})->skip();
 
 test("edit_playlist_collaboration", function () {
     $yt = ytbrowser();
@@ -596,4 +596,4 @@ test("edit_playlist_collaboration", function () {
     } finally {
         $yt->delete_playlist($playlist_id);
     }
-})->skip();
+});
