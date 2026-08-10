@@ -4,7 +4,6 @@
 
 namespace Ytmusicapi;
 
-use WpOrg\Requests\Response;
 use ytmusicapi\Playlist;
 
 trait Playlists
@@ -14,7 +13,7 @@ trait Playlists
      *
      * Known differences from Python version:
      *   - Returns an empty array instead of null for missing artists
-     *   - Additional $get_continuations parameter for pagnating results
+     *   - Additional $get_continuations parameter for paginating results
      *   - Liked music playlist is PRIVATE instead of PUBLIC
      *
      * @param string $playlistId Playlist ID
@@ -63,15 +62,15 @@ trait Playlists
         }
 
         // [PHP Only] Attempt at getting author
-        $author = nav($header_data, join(RESPONSIVE_HEADER, "facepile.avatarStackViewModel.rendererContext"), true);
-        if ($author) {
-            $playlist["author"] = (object)[
-                "name" => nav($author, "accessibilityContext.label", true),
-                "id" => nav($author, "commandContext.onTap.innertubeCommand.browseEndpoint.browseId", true),
-            ];
-        } else {
-            $playlist["author"] = null;
-        }
+        // $author = nav($header_data, join(RESPONSIVE_HEADER, "facepile.avatarStackViewModel.rendererContext"), true);
+        // if ($author) {
+        //     $playlist["author"] = (object)[
+        //         "name" => nav($author, "accessibilityContext.label", true),
+        //         "id" => nav($author, "commandContext.onTap.innertubeCommand.browseEndpoint.browseId", true),
+        //     ];
+        // } else {
+        //     $playlist["author"] = null;
+        // }
 
         $description_shelf = nav($header, join("description", DESCRIPTION_SHELF), true);
         $playlist["description"] = $description_shelf
@@ -137,15 +136,10 @@ trait Playlists
 
             $parse_func = fn ($contents) => parse_playlist_items($contents, is_collaborative: $is_collaborative);
 
-            if ($get_continuations) {
-                $playlist["tracks"] = array_merge(
-                    $playlist["tracks"],
-                    get_continuations_2025($content_data, $limit, $request_func_continuations, $parse_func)
-                );
-            } else {
-                $continuation_token = get_continuation_token($content_data->contents);
-                $playlist["continuation"] = $continuation_token;
-            }
+            $playlist["tracks"] = array_merge(
+                $playlist["tracks"],
+                get_continuations_2025($content_data, $limit, $request_func_continuations, $parse_func)
+            );
         }
 
         if ($playlistId === "LM") {
@@ -290,9 +284,8 @@ trait Playlists
 
         $endpoint = "browse/edit_playlist";
         $response = $this->_send_request($endpoint, $body);
-        $result = $response->status ?? $response;
 
-        return $result;
+        return empty($response->status) ? $response : $response->status;
     }
 
     /**
@@ -319,7 +312,7 @@ trait Playlists
      * @param PlaylistVoteEditOptions Optional. Change who can participate in community voting in this playlist.
      *     Note that a bad request will be thrown if voteOption is PlaylistVoteEditOptions.COLLABORATORS_ONLY
      *     but the playlist is not enabled for collaboration prior to the edit.
-     * @return string Status String `collaboration` dict described below, or full response
+     * @return object|string Status String, `collaboration` dict described below, or full response
      *
      * Object returned when `collaboration` is true and the request is successful:
      *     {
@@ -420,17 +413,17 @@ trait Playlists
         if ($collaboration && nav($response, "status", true) === ResponseStatus::SUCCEEDED) {
             $invite_link = nav($response, "collaborationInviteLink", true);
 
-            print_r($invite_link);
+            parse_str(parse_url($invite_link, PHP_URL_QUERY), $params);
+            $jct = $params['jct'] ?? null;
 
-            // This is wrong
             return (object)[
                 "status" => $response->status,
-                "joinCollaborationToken" => nav($invite_link, "jst.0"),
+                "joinCollaborationToken" => $jct,
             ];
         }
 
-        $result = nav($response, "status", true);
-        return $result;
+        // Why allow returning a string or an object?!?!
+        return empty($response->status) ? $response : $response->status;
     }
 
     /**
@@ -505,8 +498,7 @@ trait Playlists
             return (object)["status" => $response->status, "playlistEditResults" => $result_dict];
         }
 
-        $result = nav($response, "status", true);
-        return $result;
+        return empty($response->status) ? $response : $response->status;
     }
 
     /**
@@ -544,10 +536,6 @@ trait Playlists
         $endpoint = 'browse/edit_playlist';
         $response = $this->_send_request($endpoint, $body);
 
-        if (!empty($response->status)) {
-            return $response->status;
-        }
-
-        return $response;
+        return empty($response->status) ? $response : $response->status;
     }
 }

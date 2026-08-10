@@ -2,11 +2,36 @@
 
 namespace Ytmusicapi;
 
-
+/**
+ * @param object $results;
+ */
 function get_continuation_token($results): ?string
 {
-    $CONTINUATION_TOKENS = "continuationItemRenderer.continuationEndpoint.continuationCommand.token";
-    return nav(end($results), $CONTINUATION_TOKENS, true);   
+    $CONTINUATION_TOKEN = "continuationItemRenderer.continuationEndpoint.continuationCommand.token";
+    $COMMAND_EXECUTOR_COMMANDS = join(
+        "continuationItemRenderer",
+        "continuationEndpoint",
+        "commandExecutorCommand",
+        "commands",
+    );
+
+    $last_result = end($results);
+
+    $token = nav($last_result, $CONTINUATION_TOKEN, true);
+    if ($token) {
+        return $token;
+    }
+
+    // continuation tokens may be nested in a commandExecutorCommand list
+    // (alongside playlistVotingRefreshPopupCommand, for example)
+    $commands = nav($last_result, $COMMAND_EXECUTOR_COMMANDS, true) ?? [];
+    foreach ($commands as $command) {
+        if (nav($command, "continuationCommand.request", true) === "CONTINUATION_REQUEST_TYPE_BROWSE") {
+            return nav($command, "continuationCommand.token");
+        }
+    }
+
+    return null;
 }
 
 /**
@@ -22,7 +47,7 @@ function get_continuations_2025($results, $limit, $request_func, $parse_func)
 
     $items = [];
     $continuation_token = get_continuation_token($results->contents);
-    
+
     while ($continuation_token && ($limit === null || count($items) < $limit)) {
         $response = $request_func(["continuation" => $continuation_token]);
         $continuation_items = nav($response, $CONTINUATION_ITEMS, true);
@@ -43,7 +68,7 @@ function get_continuations_2025($results, $limit, $request_func, $parse_func)
 
 /**
  * Reloadable continuations are a special case that only exists on the playlists page (suggestions).
- * 
+ *
  * @param object $results
  * @param string $continuation_type
  * @param int|null $limit

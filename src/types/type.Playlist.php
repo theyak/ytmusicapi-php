@@ -78,4 +78,9 @@ class Playlist
      * @var string
      */
     public $continuation;
+
+    /**
+     * @var Collaborators
+     */
+    public $collaborators;
 }

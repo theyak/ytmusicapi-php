@@ -358,7 +358,7 @@ function parse_playlist_item($data, $is_album = false, $is_collaborative = false
     if ($voting_status) {
         $community_vote_status = (object)[
             "netVoteValue" => $voting_status->votes,
-            "status" => VoteStatus::tryFrom($voting_status->status),
+            "status" => $voting_status->status,
         ];
     }
 
@@ -406,6 +406,9 @@ function parse_playlist_item($data, $is_album = false, $is_collaborative = false
     return $track;
 }
 
+/**
+ * @param string $playlistId;
+ */
 function validate_playlist_id($playlistId)
 {
     if (!str_starts_with($playlistId, "VL")) {
@@ -415,10 +418,3 @@ function validate_playlist_id($playlistId)
     return substr($playlistId, 2);
 }
 
-
-
-
-
-        // song[menu_entry[-1]] = next(
-        //     filter(lambda x: x is not None, (nav(itm, menu_entry, True) for itm in items)), None
-        // )

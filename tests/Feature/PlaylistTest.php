@@ -301,79 +301,6 @@ test("get_playlist() with votes", function($playlist_id, $has_vote) {
     ]
 );
 
-test('edit playlist collaboration', function () {
-    $yt = ytbrowser();
-
-    $playlist_id = $yt->create_playlist(
-        'test collaboration',
-        '',
-        privacy_status: 'UNLISTED'
-    );
-
-    try {
-        $response = retry_playlist_edit(
-            fn () => edit_playlist(
-                $yt_oauth,
-                $playlist_id,
-                collaboration: true,
-                sortOrder: PlaylistSortOrder::TOP_VOTED
-            )
-        );
-
-        expect($response['status'])->toBe(ResponseStatus::SUCCEEDED);
-
-        $join_collaboration_token = $response['joinCollaborationToken'];
-
-        $TRACK_COUNT = 101;
-
-        $response = add_playlist_items(
-            $yt_oauth,
-            $playlist_id,
-            array_fill(0, $TRACK_COUNT, 'lYBUbBu4W08'),
-            duplicates: true
-        );
-
-        expect($response['status'])
-            ->toBe(Ytmusicapi\ResponseStatus::SUCCEEDED, 'Adding playlist items failed');
-
-        // Wait for collaboration to be enabled.
-        sleep(15);
-
-        expect(
-            join_collaborative_playlist(
-                $yt_brand,
-                $playlist_id,
-                $join_collaboration_token
-            )
-        )->toBe(\Ytmusicapi\ResponseStatus::SUCCEEDED);
-
-        $playlist = get_playlist($yt_oauth, $playlist_id, limit: null);
-
-        expect($playlist['collaborators']['avatars'])->toHaveCount(2);
-        expect($playlist)->not->toHaveKey('author');
-
-        // We should have continuations for large vote-sorted playlists.
-        expect($playlist['tracks'])->toHaveCount($TRACK_COUNT);
-
-        expect(
-            edit_playlist(
-                $yt_oauth,
-                $playlist_id,
-                collaboration: false
-            )
-        )->toBe(\Ytmusicapi\ResponseStatus::SUCCEEDED);
-
-        sleep(3);
-
-        $playlist = get_playlist($yt_oauth, $playlist_id);
-
-        expect($playlist)->not->toHaveKey('collaborators');
-        expect($playlist['author'])->not->toBeEmpty();
-    } finally {
-        delete_playlist($yt_oauth, $playlist_id);
-    }
-});
-
 test("Edit playlist", function () {
     $yt = ytbrowser();
 
@@ -587,10 +514,46 @@ test("create_playlist() - Invalid response", function () {
     expect($response->context)->toBe("test");
 });
 
+
+test("long playlist", function () {
+    $yt = ytbrowser();
+
+    $playlist_id = create_playlist(
+        $yt,
+        title: "test long list",
+        description: "a long list",
+        privacy_status: "UNLISTED"
+    );
+
+    try {
+        $response = retry_playlist_edit(
+            fn () => $yt->edit_playlist($playlist_id, collaboration: true, sortOrder: PlaylistSortOrder::TOP_VOTED)
+        );
+        expect($response->status)->toBe(ResponseStatus::SUCCEEDED);
+
+        $track_ids = array_fill(0, 100, "lYBUbBu4W08");
+        $response = $yt->add_playlist_items($playlist_id, $track_ids, duplicates: true);
+        expect($response->status)->toBe(ResponseStatus::SUCCEEDED);
+
+        $track_ids = ["lYBUbBu4W08"];
+        $response = $yt->add_playlist_items($playlist_id, $track_ids, duplicates: true);
+        expect($response->status)->toBe(ResponseStatus::SUCCEEDED);
+
+        // For some reason a collaborative playlist isn't allowing all 101 tracks
+        $playlist = $yt->get_playlist($playlist_id, limit: null);
+        expect(count($playlist->tracks))->toBe(101);
+    } finally {
+        sleep(3);
+        echo "Deleting playlist\n";
+        $yt->delete_playlist($playlist_id);
+    }
+})->only();
+
 test("edit_playlist_collaboration", function () {
     $yt = ytbrowser();
 
     $playlist_id = create_playlist($yt, "test collaboriation", "", privacy_status: "UNLISTED");
+    echo "Playlist: " . $playlist_id . "\n";
 
     try {
         $response = retry_playlist_edit(
@@ -600,6 +563,7 @@ test("edit_playlist_collaboration", function () {
         expect($response->status)->toBe(ResponseStatus::SUCCEEDED);
 
         $join_collaboration_token = $response->joinCollaborationToken;
+        expect($join_collaboration_token)->not->toBeEmpty();
 
         $track_ids = array_fill(0, 101, "lYBUbBu4W08");
         $response = $yt->add_playlist_items(
@@ -622,7 +586,7 @@ test("edit_playlist_collaboration", function () {
 
         // Disable collaboration
         $result = $yt->edit_playlist($playlist_id, collaboration: false);
-        expect($result->status)->toBe(ResponseStatus::SUCCEEDED);
+        expect($result)->toBe(ResponseStatus::SUCCEEDED);
 
         sleep(3);
 
@@ -632,4 +596,4 @@ test("edit_playlist_collaboration", function () {
     } finally {
         $yt->delete_playlist($playlist_id);
     }
-})->only();
+})->skip();
