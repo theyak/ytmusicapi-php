@@ -198,6 +198,36 @@ $detailed = $yt->get_search_suggestions("faded", detailed_runs: true);</code></p
                     </div>
 
                     <div class="method-card">
+                        <h3 class="method-title">get_song_credits($browseId)</h3>
+                        <p class="method-description">Get credits for a song, including performers, writers, producers, and metadata providers.</p>
+
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$browseId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Credits browse ID for the song, must start with <span class="inline-code">MPTC</span>. Available as <span class="inline-code">creditsBrowseId</span> on tracks returned by <span class="inline-code">get_album()</span>.</p>
+                            </div>
+                        </div>
+
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">array</span> — Credit sections with keys <span class="inline-code">performed_by</span>, <span class="inline-code">written_by</span>, <span class="inline-code">produced_by</span>, <span class="inline-code">music_metadata_provided_by</span>, and <span class="inline-code">other_sections</span> for any additional credit types.</p>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$album = $yt->get_album("MPREb_BQZvl0P6ern");
+$track = $album->tracks[0];
+
+// creditsBrowseId is available on AlbumTrack objects
+$credits = $yt->get_song_credits($track->creditsBrowseId);
+
+echo $credits["performed_by"]["localized_title"]; // "Performed by"
+foreach ($credits["performed_by"]["data"] as $artist) {
+    echo $artist;
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
                         <h3 class="method-title">get_song($videoId, $signatureTimestamp = null)</h3>
                         <p class="method-description">Returns metadata and streaming information about a song or video.</p>
                         
@@ -371,6 +401,24 @@ if ($info->music) {
                     </div>
 
                     <div class="method-card">
+                        <h3 class="method-title">subscribe_artist($channelId)</h3>
+                        <p class="method-description">Subscribe to an artist. Adds the artist to your library. <strong>Requires authentication.</strong></p>
+
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$channelId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Artist channel ID</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">$yt->subscribe_artist("UCR28YDxjDE3ogQROaNdnRbQ");</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
                         <h3 class="method-title">rate_song($videoId, $rating = "INDIFFERENT")</h3>
                         <p class="method-description">Rate a song (like, dislike, or indifferent).</p>
                         
@@ -540,9 +588,118 @@ while ($playlist->continuation) {
                             <div class="indent-param">$privacyStatus = null,</div>
                             <div class="indent-param">$moveItem = null,</div>
                             <div class="indent-param">$addPlaylistId = null,</div>
-                            <div class="indent-param">$addToTop = null</div>
+                            <div class="indent-param">$addToTop = null,</div>
+                            <div class="indent-param">$collaboration = null,</div>
+                            <div class="indent-param">$sortOrder = null,</div>
+                            <div class="indent-param">$voteOption = null</div>
                         )</h3>
-                        <p class="method-description">Edit playlist properties or add content from another playlist.</p>
+                        <p class="method-description">Edit playlist properties or add content from another playlist. Supports collaboration and voting settings.</p>
+
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$playlistId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Playlist ID</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$title</span>
+                                <span class="param-type">string|null</span>
+                                <p class="param-description">New title for the playlist</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$description</span>
+                                <span class="param-type">string|null</span>
+                                <p class="param-description">New description for the playlist</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$privacyStatus</span>
+                                <span class="param-type">string|null</span>
+                                <p class="param-description">Privacy status: "PUBLIC", "PRIVATE", or "UNLISTED"</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$moveItem</span>
+                                <span class="param-type">array|null</span>
+                                <p class="param-description">Move a track: <span class="inline-code">[$setVideoId, $successorSetVideoId]</span></p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$addPlaylistId</span>
+                                <span class="param-type">string|null</span>
+                                <p class="param-description">ID of another playlist to append to this one</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$addToTop</span>
+                                <span class="param-type">bool|null</span>
+                                <p class="param-description">Add new items to top (<span class="inline-code">true</span>) or bottom (<span class="inline-code">false</span>) of the playlist</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$collaboration</span>
+                                <span class="param-type">bool|null</span>
+                                <p class="param-description">Enable (<span class="inline-code">true</span>) or disable (<span class="inline-code">false</span>) collaborative editing on the playlist</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$sortOrder</span>
+                                <span class="param-type">PlaylistSortOrder|null</span>
+                                <p class="param-description">Sort order for playlist tracks. Values: <span class="inline-code">PlaylistSortOrder::MANUAL</span>, <span class="inline-code">::NEWEST_FIRST</span>, <span class="inline-code">::NEWEST_LAST</span>, <span class="inline-code">::TOP_VOTED</span></p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$voteOption</span>
+                                <span class="param-type">PlaylistVoteEditOptions|null</span>
+                                <p class="param-description">Who can vote on tracks. Values: <span class="inline-code">PlaylistVoteEditOptions::EVERYONE_CAN_VOTE</span>, <span class="inline-code">::COLLABORATORS_ONLY</span>, <span class="inline-code">::OFF</span></p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">use Ytmusicapi\PlaylistSortOrder;
+use Ytmusicapi\PlaylistVoteEditOptions;
+
+// Enable collaboration with voting
+$yt->edit_playlist(
+    $playlistId,
+    collaboration: true,
+    sortOrder: PlaylistSortOrder::TOP_VOTED,
+    voteOption: PlaylistVoteEditOptions::EVERYONE_CAN_VOTE
+);
+
+// Basic edits
+$yt->edit_playlist(
+    $playlistId,
+    title: "Updated Title",
+    privacyStatus: "PUBLIC",
+    addToTop: true
+);</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">join_collaborative_playlist($playlistId, $joinCollaborationToken)</h3>
+                        <p class="method-description">Join a collaborative playlist using an invite token. <strong>Requires authentication.</strong></p>
+
+                        <div class="method-params">
+                            <h4>Parameters</h4>
+                            <div class="param">
+                                <span class="param-name">$playlistId</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Playlist ID</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">$joinCollaborationToken</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Join token returned in the response of <span class="inline-code">edit_playlist()</span> when enabling collaboration (<span class="inline-code">joinCollaborationToken</span>)</p>
+                            </div>
+                        </div>
+
+                        <h4>Returns</h4>
+                        <p><span class="inline-code">string|array</span> — Status string or full response</p>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">// Enable collaboration and get the join token
+$response = $yt->edit_playlist($playlistId, collaboration: true);
+$token = $response->joinCollaborationToken;
+
+// Another authenticated user joins the playlist
+$yt2->join_collaborative_playlist($playlistId, $token);</code></pre>
+                        </div>
                     </div>
 
                     <div class="method-card">

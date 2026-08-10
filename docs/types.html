@@ -52,6 +52,8 @@
             <div class="content-grid">
                 <aside class="sidebar">
                     <ul>
+                        <li><a href="#overview">Overview</a></li>
+                        <li><a href="#enums">Enums</a></li>
                     </ul>
                 </aside>
 
@@ -658,6 +660,114 @@ if ($track->album) {
                         <strong>IDE Support:</strong> All types include PHPDoc annotations for better IDE support and autocomplete functionality.
                     </div>
 
+                    <h2 id="enums">Enums</h2>
+                    <p>PHP-backed enums used as typed parameters for playlist and library methods.</p>
+
+                    <div class="method-card">
+                        <h3 class="method-title">PlaylistSortOrder</h3>
+                        <p class="method-description">Sort order for collaborative playlists. Used with <span class="inline-code">edit_playlist($sortOrder)</span>.</p>
+
+                        <div class="method-params">
+                            <h4>Cases</h4>
+                            <div class="param">
+                                <span class="param-name">MANUAL</span>
+                                <span class="param-type">int 0</span>
+                                <p class="param-description">Manual ordering (default)</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">NEWEST_FIRST</span>
+                                <span class="param-type">int 1</span>
+                                <p class="param-description">Newest tracks first</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">NEWEST_LAST</span>
+                                <span class="param-type">int 2</span>
+                                <p class="param-description">Newest tracks last</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">TOP_VOTED</span>
+                                <span class="param-type">int 6</span>
+                                <p class="param-description">Highest-voted tracks first</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">use Ytmusicapi\PlaylistSortOrder;
+$yt->edit_playlist($playlistId, sortOrder: PlaylistSortOrder::TOP_VOTED);</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">PlaylistVoteEditOptions</h3>
+                        <p class="method-description">Controls who can vote on tracks in a collaborative playlist. Used with <span class="inline-code">edit_playlist($voteOption)</span>.</p>
+
+                        <div class="method-params">
+                            <h4>Cases</h4>
+                            <div class="param">
+                                <span class="param-name">EVERYONE_CAN_VOTE</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">All viewers can vote on tracks</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">COLLABORATORS_ONLY</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Only playlist collaborators can vote</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">OFF</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Voting disabled</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">VoteStatus</h3>
+                        <p class="method-description">A user's current vote on a track in a collaborative playlist. Available on <span class="inline-code">Track::$communityVoteStatus->status</span>.</p>
+
+                        <div class="method-params">
+                            <h4>Cases</h4>
+                            <div class="param">
+                                <span class="param-name">UPVOTED</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Track has been upvoted</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">DOWNVOTED</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Track has been downvoted</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">UPSPECIFIED</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">No vote cast</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="method-card">
+                        <h3 class="method-title">ResponseStatus</h3>
+                        <p class="method-description">Status of a write operation returned by playlist mutation methods.</p>
+
+                        <div class="method-params">
+                            <h4>Cases</h4>
+                            <div class="param">
+                                <span class="param-name">SUCCEEDED</span>
+                                <span class="param-type">string "STATUS_SUCCEEDED"</span>
+                                <p class="param-description">The operation completed successfully</p>
+                            </div>
+                        </div>
+
+                        <div class="code-block">
+                            <pre><code class="language-php">use Ytmusicapi\ResponseStatus;
+
+$response = $yt->edit_playlist($playlistId, collaboration: true);
+if ($response->status === ResponseStatus::SUCCEEDED) {
+    $token = $response->joinCollaborationToken;
+}</code></pre>
+                        </div>
+                    </div>
+
                     <div class="alert alert-warning">
                         <strong>Optional Properties:</strong> Many properties may be null or undefined depending on the content type and availability. Always check for null values before accessing nested properties.
                     </div>
@@ -749,6 +859,31 @@ if ($track->album) {
                                     <td>Ref</td>
                                     <td>Reference with ID and name</td>
                                     <td>Artists, albums, authors</td>
+                                </tr>
+                                <tr>
+                                    <td>AlbumTrack</td>
+                                    <td>Track within an album (extends Track)</td>
+                                    <td>get_album() tracks</td>
+                                </tr>
+                                <tr>
+                                    <td>PlaylistSortOrder</td>
+                                    <td>Enum: sort order for collaborative playlists</td>
+                                    <td>edit_playlist()</td>
+                                </tr>
+                                <tr>
+                                    <td>PlaylistVoteEditOptions</td>
+                                    <td>Enum: who can vote on playlist tracks</td>
+                                    <td>edit_playlist()</td>
+                                </tr>
+                                <tr>
+                                    <td>VoteStatus</td>
+                                    <td>Enum: user's vote on a track</td>
+                                    <td>Track.communityVoteStatus</td>
+                                </tr>
+                                <tr>
+                                    <td>ResponseStatus</td>
+                                    <td>Enum: result of a write operation</td>
+                                    <td>Playlist write methods</td>
                                 </tr>
                             </tbody>
                         </table>

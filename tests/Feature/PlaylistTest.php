@@ -1,8 +1,58 @@
 <?php
 
 use Ytmusicapi\YTMusic;
+use Pest\Exceptions\SkipException;
+
+use Ytmusicapi\ResponseStatus;
+use Ytmusicapi\PlaylistSortOrder;
 
 //   public function get_playlist($playlistId, $limit = 100, $related = false, $suggestions_limit = 0, $get_continuations = true)
+
+/**
+ * Create a playlist, skipping the test while YTM gates creation for the account.
+ *
+ * @param YTMusic $yt;
+ * @param array ...$args
+ */
+function create_playlist($yt, ...$args) {
+    $playlist_id = "";
+    try {
+        $playlist_id = $yt->create_playlist(...$args);
+    } catch (\Ytmusicapi\YTMusicGatedError $e) {
+        test()->markTestSkipped($e->getMessage());
+    } catch (\Ytmusicapi\YTMusicUserError $e) {
+        test()->markTestSkipped($e->getMessage());
+    }
+
+    expect($playlist_id)->toBeString();
+    expect($playlist_id)->toStartWith("PL");
+
+    return $playlist_id;
+}
+
+
+/**
+ * Run the first edit of a freshly created playlist.
+ * YTM rejects these (409 Conflict, or 400 Precondition for collaboration) for up to ~20s
+ * after creation, until the new playlist has settled server-side.
+ *
+ * @param callable $edit
+ * @param int $attempts
+ * @param int $delay
+ */
+function retry_playlist_edit($edit, $attempts = 8, $delay = 5) {
+    while ($attempts--) {
+        try {
+            return $edit();
+        } catch (\Ytmusicapi\YTMusicServerError $e) {
+            if ($attempts <= 0) {
+                throw $e;
+            }
+        }
+
+        sleep($delay);
+    }
+}
 
 test("get_playlist() - Playlist only", function () {
     $yt = ytmusic();
@@ -228,7 +278,7 @@ test("get_playlist() with votes", function($playlist_id, $has_vote) {
         expect((int)$vote_status->netVoteValue)->toBeGreaterThan(0);
         expect($vote_status->status)->toBeInstanceOf(\Ytmusicapi\VoteStatus::class);
     }
-})->only()->with(
+})->with(
     [
         // Settings:
         // Title: "Playlist with votes"
@@ -250,6 +300,79 @@ test("get_playlist() with votes", function($playlist_id, $has_vote) {
         ["PLa90Y86mjW3d57WTbI8aBp6Cgx9MHOuHD", false],
     ]
 );
+
+test('edit playlist collaboration', function () {
+    $yt = ytbrowser();
+
+    $playlist_id = $yt->create_playlist(
+        'test collaboration',
+        '',
+        privacy_status: 'UNLISTED'
+    );
+
+    try {
+        $response = retry_playlist_edit(
+            fn () => edit_playlist(
+                $yt_oauth,
+                $playlist_id,
+                collaboration: true,
+                sortOrder: PlaylistSortOrder::TOP_VOTED
+            )
+        );
+
+        expect($response['status'])->toBe(ResponseStatus::SUCCEEDED);
+
+        $join_collaboration_token = $response['joinCollaborationToken'];
+
+        $TRACK_COUNT = 101;
+
+        $response = add_playlist_items(
+            $yt_oauth,
+            $playlist_id,
+            array_fill(0, $TRACK_COUNT, 'lYBUbBu4W08'),
+            duplicates: true
+        );
+
+        expect($response['status'])
+            ->toBe(Ytmusicapi\ResponseStatus::SUCCEEDED, 'Adding playlist items failed');
+
+        // Wait for collaboration to be enabled.
+        sleep(15);
+
+        expect(
+            join_collaborative_playlist(
+                $yt_brand,
+                $playlist_id,
+                $join_collaboration_token
+            )
+        )->toBe(\Ytmusicapi\ResponseStatus::SUCCEEDED);
+
+        $playlist = get_playlist($yt_oauth, $playlist_id, limit: null);
+
+        expect($playlist['collaborators']['avatars'])->toHaveCount(2);
+        expect($playlist)->not->toHaveKey('author');
+
+        // We should have continuations for large vote-sorted playlists.
+        expect($playlist['tracks'])->toHaveCount($TRACK_COUNT);
+
+        expect(
+            edit_playlist(
+                $yt_oauth,
+                $playlist_id,
+                collaboration: false
+            )
+        )->toBe(\Ytmusicapi\ResponseStatus::SUCCEEDED);
+
+        sleep(3);
+
+        $playlist = get_playlist($yt_oauth, $playlist_id);
+
+        expect($playlist)->not->toHaveKey('collaborators');
+        expect($playlist['author'])->not->toBeEmpty();
+    } finally {
+        delete_playlist($yt_oauth, $playlist_id);
+    }
+});
 
 test("Edit playlist", function () {
     $yt = ytbrowser();
@@ -463,3 +586,50 @@ test("create_playlist() - Invalid response", function () {
     $response = $yt->create_playlist("test", "", "PRIVATE", [$this->videoId]);
     expect($response->context)->toBe("test");
 });
+
+test("edit_playlist_collaboration", function () {
+    $yt = ytbrowser();
+
+    $playlist_id = create_playlist($yt, "test collaboriation", "", privacy_status: "UNLISTED");
+
+    try {
+        $response = retry_playlist_edit(
+            fn () => $yt->edit_playlist($playlist_id, collaboration: true, sortOrder: PlaylistSortOrder::TOP_VOTED)
+        );
+
+        expect($response->status)->toBe(ResponseStatus::SUCCEEDED);
+
+        $join_collaboration_token = $response->joinCollaborationToken;
+
+        $track_ids = array_fill(0, 101, "lYBUbBu4W08");
+        $response = $yt->add_playlist_items(
+            $playlist_id, $track_ids, duplicates: true
+        );
+
+        expect($response->status)->toBe(ResponseStatus::SUCCEEDED);
+
+        sleep(15); // wait for collaboration to be enabled
+
+        // TODO: Join another account with join_collaborative_playlist
+
+        $playlist = $yt->get_playlist($playlist_id, limit: null);
+        expect(count($playlist->collaborators->avatars))->toBe(1);
+
+        expect($playlist->author)->toBeEmpty();
+
+        // we should have continuations for large vote-sorted playlists
+        expect(count($playlist->tracks))->toBe(101);
+
+        // Disable collaboration
+        $result = $yt->edit_playlist($playlist_id, collaboration: false);
+        expect($result->status)->toBe(ResponseStatus::SUCCEEDED);
+
+        sleep(3);
+
+        $playlist = $yt->get_playlist($playlist_id);
+        expect($playlist->collaborators)->toBeEmpty();
+        expect($playlist->author)->not->toBeEmpty();
+    } finally {
+        $yt->delete_playlist($playlist_id);
+    }
+})->only();

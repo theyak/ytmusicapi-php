@@ -1,8 +1,5 @@
 # ytmusicapi-php
 
-Needed to convert: mixins/playlists
-https://github.com/sigma67/ytmusicapi/compare/1.11.1...1.12.2#diff-2b65ccdfa97bc2726da99c9dbb554caf427da101860c40c2040510f6bfe2a332R29
-
 Please see https://theyak.github.io/ytmusicapi-php/ for latest documentation.
 Note that the documentation is a work in progress.
 
