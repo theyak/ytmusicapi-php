@@ -1,5 +1,8 @@
 # ytmusicapi-php
 
+Needed to convert: mixins/playlists, mixins/search
+https://github.com/sigma67/ytmusicapi/compare/1.11.1...1.12.2#diff-2b65ccdfa97bc2726da99c9dbb554caf427da101860c40c2040510f6bfe2a332R29
+
 Please see https://theyak.github.io/ytmusicapi-php/ for latest documentation.
 Note that the documentation is a work in progress.
 
@@ -18,7 +21,7 @@ possible. All API function names, parameter names, and public methods have
 been kept the same as in their original Python library. Keeping everything
 the same should make it easy to reference their
 [documentation](https://ytmusicapi.readthedocs.io/en/stable/index.html).
-This package is currently feature compatable with YtMusicAPI v1.11.1.
+This package is currently feature compatable with YtMusicAPI v1.12.2.
 
 The source Python repository gets far more love than this repository.
 For production work, it is recommended you use the Python library
