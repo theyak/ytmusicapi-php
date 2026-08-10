@@ -269,8 +269,7 @@ trait Library
                 $error = nav($content, join('musicNotifierShelfRenderer', TITLE), true);
                 throw new YTMusicServerError($error ?? "Error reading history");
             }
-            $menu_entries = [join(MENU_SERVICE, FEEDBACK_TOKEN)];
-            $songlist = parse_playlist_items($data, $menu_entries);
+            $songlist = parse_playlist_items($data);
             foreach ($songlist as &$song) {
                 $song->played = nav($content->musicShelfRenderer, TITLE_TEXT);
             }
@@ -406,6 +405,11 @@ trait Library
 
     /**
      * Adds or removes a song from your library depending on the token provided.
+     * Depending on the provided tokens:
+     *   - Adds or removes songs from your library
+     *   - Pins or unpins content from the "Listen Again" carousel
+     *
+     * warning:: Due to a YouTube Music bug, content might not be unpinned from "Listen Again".
      *
      * Known differences from Python version:
      *   - Can pass in a single feedback token in addition to an array of tokens.
@@ -448,24 +452,44 @@ trait Library
     }
 
     /**
+     * Subscribe to an artist. Adds the artist to your library
+     *
+     * @param string $channelId Artist channel id
+     * @return object Full response from YouTube Music
+     */
+    public function subscribe_artist($channelId)
+    {
+        $this->_check_auth();
+        $body = ['channelIds' => [$channelId]];
+        $endpoint = 'subscription/subscribe';
+        return $this->_send_request($endpoint, $body);
+
+    }
+
+    /**
      * Subscribe to artists. Adds the artists to your library
+     *
+     * Deprecated::
+     * Use `subscribe_artist` instead. YouTube Music only supports
+     *    subscribing to one artist at a time.
      *
      * Known differences from Python version:
      *   - Can pass in a single feedback token in addition to an array of tokens.
      *
      * @param string[]|string $channelIds Artist channel ids
-     * @return obect Full response from YouTube Music
+     * @return object Full response from YouTube Music
      */
     public function subscribe_artists($channelIds)
     {
         if (is_string($channelIds)) {
-            $channelIds = [$channelIds];
+            return $this->subscribe_artist($channelIds);
         }
 
-        $this->_check_auth();
-        $body = ['channelIds' => $channelIds];
-        $endpoint = 'subscription/subscribe';
-        return $this->_send_request($endpoint, $body);
+        if (sizeof($channelIds) > 1) {
+            throw new YTMusicUserError("YouTube Music only supports subscribing to one artist at a time. Use subscribe_artist instead.");
+        }
+
+        return $this->subscribe_artist($channelIds[0]);
     }
 
     /**
@@ -475,7 +499,7 @@ trait Library
      *   - Can pass in a single channel ID addition to an array of channel IDs.
      *
      * @param string[]|string $channelIds Artist channel ids
-     * @return obect Full response from YouTube Music
+     * @return object Full response from YouTube Music
      */
     public function unsubscribe_artists($channelIds)
     {

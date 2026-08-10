@@ -3,11 +3,12 @@
 use Ytmusicapi\YTMusic;
 
 it("should have library playlists w/browser authentication", function () {
-    $yt = new YTMusic("browser.json");
+    $yt = ytbrowser();
     $library_playlists = $yt->get_library_playlists(30);
     expect($library_playlists)->toBeArray();
     expect(count($library_playlists))->toBeGreaterThan(0);
     foreach ($library_playlists as $playlist) {
+        if (!$playlist->thumbnails) print_r($playlist);
         expect($playlist::class)->toBe("Ytmusicapi\\PlaylistInfo");
         expect($playlist->title)->not->toBeEmpty();
         expect($playlist->playlistId)->not->toBeEmpty();
@@ -42,7 +43,7 @@ it("should have liked songs w/cookie authentication", function () {
         expect($track->inLibrary)->toBeBool();
         expect($track->duration)->not->toBeEmpty();
         expect($track->duration_seconds)->toBeInt();
-        expect($track->videoType)->toBeIn(["MUSIC_VIDEO_TYPE_ATV", "MUSIC_VIDEO_TYPE_OMV", "MUSIC_VIDEO_TYPE_UGC"]);
+        expect($track->videoType)->toBeIn(["MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK", "MUSIC_VIDEO_TYPE_ATV", "MUSIC_VIDEO_TYPE_OMV", "MUSIC_VIDEO_TYPE_UGC"]);
         expect($track->artists)->toBeArray();
         expect($track->thumbnails)->toBeArray();
         expect($track)->toHaveProperty('album');
@@ -289,8 +290,15 @@ test("add_history_item() and get_history()", function () {
         if ($track->duration) {
             expect($track->duration_seconds)->toBeInt();
         }
-        expect($track->videoType)->toBeIn(["MUSIC_VIDEO_TYPE_PODCAST_EPISODE", "MUSIC_VIDEO_TYPE_ATV", "MUSIC_VIDEO_TYPE_OMV", "MUSIC_VIDEO_TYPE_UGC"]);
-        expect($track->feedbackToken)->not->toBeEmpty(); 
+        expect($track->videoType)->toBeIn([
+            "MUSIC_VIDEO_TYPE_PODCAST_EPISODE",
+            "MUSIC_VIDEO_TYPE_ATV",
+            "MUSIC_VIDEO_TYPE_OMV",
+            "MUSIC_VIDEO_TYPE_UGC",
+            "MUSIC_VIDEO_TYPE_OFFICIAL_SOURCE_MUSIC",
+            "MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK",
+        ]);
+        expect($track->feedbackToken)->not->toBeEmpty();
         if ($track->feedbackTokens) {
             expect($track->feedbackTokens)->toHaveProperty("add");
             expect($track->feedbackTokens)->toHaveProperty("remove");
@@ -367,26 +375,20 @@ test("rate_playlist()", function () {
     expect($text)->toBe("Removed from library");
 });
 
-test("subscribe_artists() - pass in array", function () {
+test("subscribe_artist()", function () {
     $yt = ytbrowser();
-    $response = $yt->subscribe_artists([$this->artistId]);
-    $text = Ytmusicapi\nav($response, "actions.0.addToToastAction.item.notificationTextRenderer.successResponseText.runs.0.text", null);
-    expect($text)->toBe("Subscribed to ");
+    $response = $yt->subscribe_artist($this->artistId);
+    $result = Ytmusicapi\nav($response, "actions.2.updateSubscribeButtonAction", true);
+    expect($result->subscribed)->toBe(true);
+    expect($result->channelId)->not->toBeEmpty();
+    $channelId = $result->channelId;
 
-    $response = $yt->unsubscribe_artists([$this->artistId]);
-    $text = Ytmusicapi\nav($response, "actions.0.addToToastAction.item.notificationTextRenderer.successResponseText.runs.0.text", null);
-    expect($text)->toBe("Unsubscribed from ");
-});
-
-test("subscribe_artists() - pass in string", function () {
-    $yt = ytbrowser();
-    $response = $yt->subscribe_artists($this->artistId);
-    $text = Ytmusicapi\nav($response, "actions.0.addToToastAction.item.notificationTextRenderer.successResponseText.runs.0.text", null);
-    expect($text)->toBe("Subscribed to ");
+    sleep(5);
 
     $response = $yt->unsubscribe_artists($this->artistId);
-    $text = Ytmusicapi\nav($response, "actions.0.addToToastAction.item.notificationTextRenderer.successResponseText.runs.0.text", null);
-    expect($text)->toBe("Unsubscribed from ");
+    $result = Ytmusicapi\nav($response, "actions.0.updateSubscribeButtonAction", true);
+    expect($result->subscribed)->toBe(false);
+    expect($result->channelId)->toBe($channelId);
 });
 
 test("get_history() throws exception with bad data", function () {
@@ -396,6 +398,8 @@ test("get_history() throws exception with bad data", function () {
 
     $yt = Mockery::mock(YTMusic::class, ["oauth.json"])->makePartial();
     $yt->shouldReceive("_send_request")->andReturn($return);
+
+    /** @var YTMusic $yt */
     $yt->get_history();
 })->throws(\Exception::class);
 

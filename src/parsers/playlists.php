@@ -56,6 +56,9 @@ function parse_playlist_header($response)
     return $playlist;
 }
 
+/**
+ * @param object $header
+ */
 function parse_playlist_header_meta($header): array {
     $playlist_meta = [
         "views" => null,
@@ -68,34 +71,62 @@ function parse_playlist_header_meta($header): array {
     ];
 
     if (!empty($header->facepile)) {
-        $playlist_meta["author"] = (object)[
-            "name" => nav($header, join("facepile", "avatarStackViewModel", "text", "content")),
-            "id" => nav(
-                $header,
-                join("facepile", "avatarStackViewModel", "rendererContext", "commandContext", "onTap", "innertubeCommand", "browseEndpoint", "browseId"), 
-                true
-            ),
-        ];
+        $avatar_renderer = nav($header, "facepile.avatarStackViewModel.rendererContext", true);
+        $avatar_command = nav(
+            $avatar_renderer,
+            "commandContext.onTap.innertubeCommand",
+            true,
+        );
+
+        $tag = nav($avatar_command, "showEngagementPanelEndpoint.identifier.tag", true);
+
+        if ($tag) {
+            $avatars = nav($header, "facepile.avatarStackViewModel.avatars");
+            $list = [];
+            foreach ($avatars as $avatar) {
+                $list[] = $avatar->avatarViewModel->image->sources[0];
+            }
+
+            $playlist_meta["collaborators"] = (object)[
+                "text" => nav($avatar_renderer, "accessibilityContext.label"),
+                "avatars" => $list,
+            ];
+        } else {
+            $playlist_meta["author"] = (object)[
+                "name" => nav($header, "facepile.avatarStackViewModel.text.content"),
+                "id" => nav(
+                    $avatar_command,
+                    "browseEndpoint.browseId",
+                    true,
+                ),
+            ];
+        }
     }
-    
+
     if (isset($header->secondSubtitle->runs)) {
         $second_subtitle_runs = $header->secondSubtitle->runs;
         $has_views = (count($second_subtitle_runs) > 3) ? 2 : 0;
         $playlist_meta["views"] = !$has_views ? null : (int)($second_subtitle_runs[0]->text);
         $has_duration = (count($second_subtitle_runs) > 1) ? 2 : 0;
         $playlist_meta["duration"] = !$has_duration ? null : $second_subtitle_runs[$has_views + $has_duration]->text;
-        
+
         $song_count_text = $second_subtitle_runs[$has_views + 0]->text;
         preg_match_all('/\d+/', $song_count_text, $matches);
         $song_count_search = $matches[0];
-        
+
         // extract the digits from the text, return null if no match
         $playlist_meta["trackCount"] = !empty($song_count_search) ? intval(implode("", $song_count_search)) : null;
     }
-    
+
     return $playlist_meta;
 }
 
+/**
+ * @param object $response;
+ * @param int $limit
+ * @param callable $request_func
+ * @return array
+ */
 function parse_audio_playlist($response, ?int $limit, callable $request_func): array {
     $playlist = [
         "owned" => false,
@@ -107,32 +138,29 @@ function parse_audio_playlist($response, ?int $limit, callable $request_func): a
         "thumbnails" => [],
         "related" => [],
     ];
-    
+
     $section_list = nav($response, join(TWO_COLUMN_RENDERER, ["secondaryContents"], SECTION));
     $content_data = nav($section_list, join(CONTENT, ["musicPlaylistShelfRenderer"]));
-    
-    $playlist["id"] = nav(
-        $content_data, 
-        join(CONTENT, MRLIR, PLAY_BUTTON, "playNavigationEndpoint", WATCH_PLAYLIST_ID)
-    );
-    
-    $playlist["trackCount"] = nav($content_data, "collapsedItemCount");
+
+    $playlist["id"] = nav($content_data, "targetId");
     $playlist["tracks"] = [];
-    
+
     if (isset($content_data["contents"])) {
         $playlist["tracks"] = parse_playlist_items($content_data["contents"]);
-        
+
         $parse_func = function($contents) {
             return parse_playlist_items($contents);
         };
-        
+
         $continuation_tracks = get_continuations_2025($content_data, $limit, $request_func, $parse_func);
         $playlist["tracks"] = array_merge($playlist["tracks"], $continuation_tracks);
     }
-    
+
+    $playlist["trackCount"] = count($playlist["tracks"]);
+
     $playlist["title"] = $playlist["tracks"][0]->album->name;
     $playlist["duration_seconds"] = sum_total_duration($playlist);
-    
+
     return $playlist;
 }
 
@@ -145,8 +173,12 @@ function parse_audio_playlist($response, ?int $limit, callable $request_func): a
  * @param mixed $menu_entries
  * @return Track[]|AlbumTrack[]
  */
-function parse_playlist_items($results, $menu_entries = null, $is_album = false)
-{
+function parse_playlist_items(
+    $results,
+    $menu_entries = null,
+    $is_album = false,
+    $is_collaborative = false,
+) {
     $songs = [];
 
     foreach ($results as $result) {
@@ -155,7 +187,7 @@ function parse_playlist_items($results, $menu_entries = null, $is_album = false)
         }
         $data = $result->musicResponsiveListItemRenderer;
 
-        $song = parse_playlist_item($data, $menu_entries, $is_album);
+        $song = parse_playlist_item($data, $is_album, $is_collaborative);
         if ($song) {
             $songs[] = $song;
         }
@@ -165,13 +197,17 @@ function parse_playlist_items($results, $menu_entries = null, $is_album = false)
     return $songs;
 }
 
-function parse_playlist_item($data, $menu_entries = null, $is_album = false)
+/**
+ * @param object $data
+ * @param bool $is_album
+ * @param bool $is_collaborative
+ */
+function parse_playlist_item($data, $is_album = false, $is_collaborative = false)
 {
     $videoId = null;
     $setVideoId = null;
+    $creditsBrowseId = null;
     $like = null;
-    $feedback_tokens = null;
-    $library_status = false;
 
     // if the item has a menu, find its setVideoId
     if (isset($data->menu)) {
@@ -182,14 +218,16 @@ function parse_playlist_item($data, $menu_entries = null, $is_album = false)
                     $setVideoId = $menu_service->playlistEditEndpoint->actions[0]->setVideoId ?? null;
                     $videoId = $menu_service->playlistEditEndpoint->actions[0]->removedVideoId ?? null;
                 }
-            }
-
-            if (isset($item->toggleMenuServiceItemRenderer)) {
-                $feedback_tokens = parse_song_menu_tokens($item);
-                $library_status = parse_song_library_status($item);
+            } else if (isset($item->menuNavigationItemRenderer)) {
+                $maybe_credits_browse_id = nav($item, join(MNIR, NAVIGATION_BROWSE_ID), true);
+                if ($maybe_credits_browse_id && str_starts_with($maybe_credits_browse_id, "MPTC")) {
+                    $creditsBrowseId = $maybe_credits_browse_id;
+                }
             }
         }
     }
+
+    $song_menu_data = array_merge(["inLibrary" => null, "pinnedToListenAgain" => null], parse_song_menu_data($data));
 
     // if item is not playable, the videoId was retrieved above
     if (nav($data, PLAY_BUTTON, true)) {
@@ -213,7 +251,9 @@ function parse_playlist_item($data, $menu_entries = null, $is_album = false)
 
     $title_index = $use_preset_columns ? 0 : null;
     $artist_index = $use_preset_columns ? 1 : null;
-    $album_index = $use_preset_columns ? 2 : null;
+    $duration_index = null;
+    // collaborative playlists have duration in flexColumns (between artist and album)
+    $album_index = $is_collaborative ? 3 : ($use_preset_columns ? 2 : null);
     $user_channel_indexes = [];
     $unrecognized_index = null;
 
@@ -223,9 +263,18 @@ function parse_playlist_item($data, $menu_entries = null, $is_album = false)
         $navigation_endpoint = nav($flex_column_item, join(TEXT_RUN, "navigationEndpoint"), true);
 
         if (!$navigation_endpoint) {
-            if (nav($flex_column_item, TEXT_RUN_TEXT, true) !== null) {
-                $unrecognized_index = $unrecognized_index ?? $index;
+            $run = nav($flex_column_item, TEXT_RUN, true);
+            if ($run && isset($run->text)) {
+                $parsed = parse_song_run($run);
+                if ($parsed["type"] === "duration") {
+                    $duration_index = $index;
+                } else {
+                    if (!$unrecognized_index) {
+                        $unrecognized_index = $index;
+                    }
+                }
             }
+
             continue;
         }
 
@@ -245,7 +294,7 @@ function parse_playlist_item($data, $menu_entries = null, $is_album = false)
             // MUSIC_PAGE_TYPE_ARTIST for regular songs, MUSIC_PAGE_TYPE_UNKNOWN for uploads
             if ($page_type === "MUSIC_PAGE_TYPE_ARTIST" || $page_type === "MUSIC_PAGE_TYPE_UNKNOWN") {
                 $artist_index = $index;
-            } elseif ($page_type === "MUSIC_PAGE_TYPE_ALBUM") {
+            } elseif ($page_type === "MUSIC_PAGE_TYPE_ALBUM" || $page_type === "MUSIC_PAGE_TYPE_AUDIOBOOK") {
                 $album_index = $index;
             } elseif ($page_type === "MUSIC_PAGE_TYPE_USER_CHANNEL") {
                 $user_channel_indexes[] = $index;
@@ -284,7 +333,8 @@ function parse_playlist_item($data, $menu_entries = null, $is_album = false)
 
     $views = $is_album ? get_item_text($data, 2) : null;
 
-    $duration = null;
+    $duration = $duration_index ? get_item_text($data, $duration_index) : null;
+
     if (isset($data->fixedColumns)) {
         $text = get_fixed_column_item($data, 0)->text;
         if (isset($text->simpleText)) {
@@ -304,13 +354,22 @@ function parse_playlist_item($data, $menu_entries = null, $is_album = false)
         $videoType = nav($data, join(PLAY_BUTTON, "playNavigationEndpoint", NAVIGATION_VIDEO_TYPE), true);
     }
 
+
+    $voting_status = nav($data, ENGAGEMENT_BAR, true);
+    $community_vote_status = null;
+    if ($voting_status) {
+        $community_vote_status = (object)[
+            "netVoteValue" => $voting_status->votes,
+            "status" => VoteStatus::tryFrom($voting_status->status),
+        ];
+    }
+
     $track = $is_album ? new AlbumTrack() : new Track();
     $track->videoId = $videoId;
     $track->title = $title;
     $track->artists = $artists;
     $track->album = $album;
     $track->likeStatus = $like;
-    $track->inLibrary = $library_status;
     $track->thumbnails = $thumbnails;
     $track->isAvailable = $isAvailable;
     $track->isExplicit = $isExplicit;
@@ -320,6 +379,11 @@ function parse_playlist_item($data, $menu_entries = null, $is_album = false)
     $track->setVideoId = '';
     $track->feedbackTokens = [];
     $track->views = $views;
+    $track->communityVoteStatus = $community_vote_status;
+
+    foreach ($song_menu_data as $k => $v) {
+        $track->$k = $v;
+    }
 
     if ($is_album) {
         $track->trackNumber = null;
@@ -337,27 +401,8 @@ function parse_playlist_item($data, $menu_entries = null, $is_album = false)
         $track->setVideoId = $setVideoId;
     }
 
-    if ($feedback_tokens) {
-        $track->feedbackTokens = $feedback_tokens;
-    }
-
-    // Custom: Completly rewritten to work with PHP's syntax
-    if ($menu_entries) {
-        $menu_items = nav($data, MENU_ITEMS);
-        foreach ($menu_entries as $menu_entry) {
-            $menu_entry = explode('.', $menu_entry);
-            $items = find_objects_by_key($menu_items, $menu_entry[0]);
-            
-            if ($items) {
-                foreach ($items as $itm) {
-                    $x = nav($itm, $menu_entry, true);
-                    if ($x) {
-                        $track->feedbackToken = $x;
-                        break;
-                    }
-                }
-            }
-        }
+    if ($creditsBrowseId) {
+        $track->creditsBrowseId = $creditsBrowseId;
     }
 
     return $track;

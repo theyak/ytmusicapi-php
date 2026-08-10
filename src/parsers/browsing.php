@@ -335,7 +335,7 @@ function parse_playlist($data)
 
         if (count($runs) === 3 && preg_match('/^\d{1,3}(,\d{3})*(\.\d+)?([KMB])? /', $runs[2]->text)) {
             $playlist->count = (int)explode(' ', $runs[2]->text)[0];
-            $playlist->author = parse_song_artists_runs([$runs[0]]);
+            $playlist->author = parse_artists_runs([$runs[0]]);
         }
     }
 

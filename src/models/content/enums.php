@@ -34,7 +34,6 @@ enum VoteStatus: string {
 	case UPSPECIFIED = "VOTE_STATUS_UNSPECIFIED";
 }
 
-
 enum PlaylistVoteEditOptions: string
 {
     case EVERYONE_CAN_VOTE = 'EVERYONE_CAN_VOTE';
