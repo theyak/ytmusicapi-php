@@ -10,7 +10,7 @@ trait Browse
      * @return Account
      *
      * Known differences from Python version:
-     *   - This is very similar to the Python versions get_account_info() function.
+     *   - This is very similar to the Python version's get_account_info() function.
      *     This exists because this was written before the Python version has a similar function.
      *     It has all thumbnails and also has an is_premium flag.
      */
@@ -20,7 +20,6 @@ trait Browse
 
         $endpoint = "account/account_menu";
         $response = $this->_send_request($endpoint, []);
-
 
         $renderer = nav($response, "actions.0.openPopupAction.popup.multiPageMenuRenderer.header.activeAccountHeaderRenderer", true);
         $sections = nav($response, "actions.0.openPopupAction.popup.multiPageMenuRenderer.sections", true);
