@@ -483,9 +483,7 @@ test("remove_playlist_items() - Invalid status response", function () {
 test("add_playlist_items() - Invalid response", function () {
     $yt = ytbrowser();
     $yt->send_request = fn () => (object)["context" => "test"];
-
-    $response = $yt->create_playlist("test", "", "PRIVATE", [$this->videoId]);
-    $response = $yt->add_playlist_items($this->playlistId, [$this->videoId]);
+    $response = $yt->add_playlist_items("playlistId", [$this->videoId]);
     expect($response->context)->toBe("test");
 });
 

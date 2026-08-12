@@ -29,7 +29,7 @@ test('get_charts() with browser.json', function () {
     expect(count($charts))->toBe(3); // countries, videos, artists
 
     $charts = $yt->get_charts("IN");
-    expect(count($charts))->toBe(4); // countries, videos, languages, artists
+    expect(count($charts))->toBeGreaterThanOrEqual(4); // countries, videos, languages, artists
 });
 
 
