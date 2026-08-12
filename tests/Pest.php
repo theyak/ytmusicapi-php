@@ -74,11 +74,11 @@ function ytmusic()
     return $yt;
 }
 
-function ytbrowser()
+function ytbrowser($new = false)
 {
     static $yt;
 
-    if ($yt) {
+    if ($yt && !$new) {
         return $yt;
     }
 

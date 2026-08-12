@@ -472,7 +472,7 @@ test("remove_playlist_items() - Invalid status response", function () {
         (object)["videoId" => "aaaaaaaaaaa", "setVideoId" => "aaaaaaaaaaa"],
     ];
 
-    $yt = ytbrowser();
+    $yt = ytbrowser(true);
     $yt->send_request = fn () => (object)["context" => "test"];
 
     $response = $yt->remove_playlist_items($this->playlistId, $videos);
@@ -481,16 +481,15 @@ test("remove_playlist_items() - Invalid status response", function () {
 });
 
 test("add_playlist_items() - Invalid response", function () {
-    $yt = ytbrowser();
+    $yt = ytbrowser(true);
     $yt->send_request = fn () => (object)["context" => "test"];
     $response = $yt->add_playlist_items("playlistId", [$this->videoId]);
     expect($response->context)->toBe("test");
 });
 
 test("create_playlist() - Invalid response", function () {
-    $yt = ytbrowser();
+    $yt = ytbrowser(true);
     $yt->send_request = fn () => (object)["context" => "test"];
-
     $response = $yt->create_playlist("test", "", "PRIVATE", [$this->videoId]);
     expect($response->context)->toBe("test");
 });
