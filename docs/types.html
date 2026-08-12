@@ -260,6 +260,11 @@ echo "Playable: " . ($song->playabilityStatus->status === "OK" ? "Yes" : "No") .
                                 <p class="param-description">Playlist description</p>
                             </div>
                             <div class="param">
+                                <span class="param-name">thumbnails</span>
+                                <span class="param-type">Thumbnail[]</span>
+                                <p class="param-description">Thumbnails</p>
+                            </div>
+                            <div class="param">
                                 <span class="param-name">privacy</span>
                                 <span class="param-type">string</span>
                                 <p class="param-description">Privacy status: "PUBLIC", "PRIVATE", or "UNLISTED"</p>
@@ -288,6 +293,16 @@ echo "Playable: " . ($song->playabilityStatus->status === "OK" ? "Yes" : "No") .
                                 <span class="param-name">continuation</span>
                                 <span class="param-type">string</span>
                                 <p class="param-description">Continuation token for loading more tracks</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">year</span>
+                                <span class="param-type">string</span>
+                                <p class="param-description">Year playlist was created</p>
+                            </div>
+                            <div class="param">
+                                <span class="param-name">collaborators</span>
+                                <span class="param-type">Collaborators</span>
+                                <p class="param-description">List of those collaborating on playlist</p>
                             </div>
                         </div>
 

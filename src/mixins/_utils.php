@@ -76,12 +76,12 @@ function html_to_txt($html_text)
  * A gated request returns HTTP 200 with only a `showEngagementPanelEndpoint` action carrying the
  * original request, for the web client to replay once the user has dealt with the dialog.
  *
- * @param array $response
+ * @param object $response
  * @return void
  *
  * @throws YTMusicGatedError if the request was not performed
  */
-function validate_write_response(array $response): void
+function validate_write_response($response): void
 {
     $panel = nav($response, ["actions", 0, "showEngagementPanelEndpoint"], true);
     if ($panel === null) {

@@ -62,6 +62,13 @@ class YTMusic
     public $sapisid;
     public $lang = [];
 
+    /**
+     * Override the _send_request() method.
+     * Generally used in test environments.
+     *
+     * @var ?callable
+     */
+    public $send_request;
 
     /**
      * Create a new instance to interact with YouTube Music.
@@ -258,13 +265,26 @@ class YTMusic
      * Sends a POST request to YouTube Music.
      *
      * @param string $endpoint The main YouTube Music endpoint to use
-     * @param array $additional Additional query parameters to send with the request
+     * @param array|object $body
+     * @param string $additionalParams Additional query parameters to send with the request
      * @return object Result from YouTube Music.
      */
     public function _send_request($endpoint, $body, $additionalParams = "")
     {
         static $count = 1;
         $count++;
+
+        if (is_callable($this->send_request)) {
+            $fn = $this->send_request;
+            $this->send_request = null;
+            $result = $fn($endpoint, $body, $additionalParams);
+            if ($result) {
+                if (is_array($result)) {
+                    return (object) $result;
+                }
+                return $result;
+            }
+        }
 
         // $response_text = file_get_contents("response-{$count}.json");
         // return json_decode($response_text);

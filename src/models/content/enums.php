@@ -28,11 +28,11 @@ class PlaylistSortOrder {
 	const TOP_VOTED = 6;
 }
 
-class VoteStatus
+enum VoteStatus: string
 {
-	const UPVOTED = "VOTE_STATUS_UPVOTED";
-	const DOWNVOTED = "VOTE_STATUS_DOWNVOTED";
-	const UPSPECIFIED = "VOTE_STATUS_UNSPECIFIED";
+	case UPVOTED = "VOTE_STATUS_UPVOTED";
+	case DOWNVOTED = "VOTE_STATUS_DOWNVOTED";
+	case UPSPECIFIED = "VOTE_STATUS_UNSPECIFIED";
 }
 
 enum PlaylistVoteEditOptions: string

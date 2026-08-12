@@ -8,7 +8,6 @@ it("should have library playlists w/browser authentication", function () {
     expect($library_playlists)->toBeArray();
     expect(count($library_playlists))->toBeGreaterThan(0);
     foreach ($library_playlists as $playlist) {
-        if (!$playlist->thumbnails) print_r($playlist);
         expect($playlist::class)->toBe("Ytmusicapi\\PlaylistInfo");
         expect($playlist->title)->not->toBeEmpty();
         expect($playlist->playlistId)->not->toBeEmpty();

@@ -26,8 +26,13 @@ trait Playlists
      *   tracks if you want to provide some sort of progress indicator, otherwise, leave it as true.)
      * @return Playlist
      */
-    public function get_playlist($playlistId, $limit = 100, $related = false, $suggestions_limit = 0, $get_continuations = true)
-    {
+    public function get_playlist(
+        $playlistId,
+        $limit = 100,
+        $related = false,
+        $suggestions_limit = 0,
+        $get_continuations = true
+    ) {
         $browseId = str_starts_with($playlistId, "VL") ? $playlistId : "VL" . $playlistId;
         $body = ["browseId" => $browseId, "params" => "wgYCCAE%3D"];
         $endpoint = "browse";
@@ -60,17 +65,6 @@ trait Playlists
             $header = nav($header_data, join(EDITABLE_PLAYLIST_DETAIL_HEADER, HEADER, RESPONSIVE_HEADER));
             $playlist["privacy"] = nav($header_data, join(EDITABLE_PLAYLIST_DETAIL_HEADER, "editHeader", "musicPlaylistEditHeaderRenderer", "privacy"), true);
         }
-
-        // [PHP Only] Attempt at getting author
-        // $author = nav($header_data, join(RESPONSIVE_HEADER, "facepile.avatarStackViewModel.rendererContext"), true);
-        // if ($author) {
-        //     $playlist["author"] = (object)[
-        //         "name" => nav($author, "accessibilityContext.label", true),
-        //         "id" => nav($author, "commandContext.onTap.innertubeCommand.browseEndpoint.browseId", true),
-        //     ];
-        // } else {
-        //     $playlist["author"] = null;
-        // }
 
         $description_shelf = nav($header, join("description", DESCRIPTION_SHELF), true);
         $playlist["description"] = $description_shelf
@@ -134,12 +128,16 @@ trait Playlists
                 $content_data->contents, is_collaborative: $is_collaborative
             );
 
-            $parse_func = fn ($contents) => parse_playlist_items($contents, is_collaborative: $is_collaborative);
+            if ($get_continuations) {
+                $parse_func = fn ($contents) => parse_playlist_items($contents, is_collaborative: $is_collaborative);
 
-            $playlist["tracks"] = array_merge(
-                $playlist["tracks"],
-                get_continuations_2025($content_data, $limit, $request_func_continuations, $parse_func)
-            );
+                $playlist["tracks"] = array_merge(
+                    $playlist["tracks"],
+                    get_continuations_2025($content_data, $limit, $request_func_continuations, $parse_func)
+                );
+            } else {
+                $playlist['continuation'] = get_continuation_token($content_data->contents);
+            }
         }
 
         if ($playlistId === "LM") {
@@ -360,7 +358,7 @@ trait Playlists
 
         if ($collaboration) {
             $actions[] = ["action" => "ACTION_CREATE_COLLABORATION_INVITE_LINK"];
-        } else {
+        } else if ($collaboration === false) {
             $actions[] = [
                 "action" => "ACTION_SET_CLOSED_TO_CONTRIBUTIONS",
                 "closedToContributions" => true

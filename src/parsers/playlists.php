@@ -361,7 +361,7 @@ function parse_playlist_item($data, $is_album = false, $is_collaborative = false
     if ($voting_status) {
         $community_vote_status = (object)[
             "netVoteValue" => $voting_status->votes,
-            "status" => $voting_status->status,
+            "status" => VoteStatus::tryFrom($voting_status->status), // VoteStatus
         ];
     }
 

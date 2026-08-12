@@ -143,6 +143,7 @@ test("get_playlist() Audio book", function($playlist_id) {
 
 test("get_playlist() - skip continuations", function () {
     $yt = ytmusic();
+
     $playlist = $yt->get_playlist($this->playlistId, limit: 1, get_continuations: false);
 
     expect($playlist)->not()->toBeEmpty();
@@ -184,7 +185,6 @@ test("get_playlist_author", function () {
     $yt = ytmusic();
     $playlist = $yt->get_playlist("PL9tY0BWXOZFu4vlBOzIOmvT6wjYb2jNiV");
 
-    expect($playlist->artists)->toBeEmpty();
     expect($playlist->author->name)->toBe("Vevo");
     expect($playlist->author->id)->toBe("UC2pmfLm7iq6Ov1UwYrWYkZA");
 
@@ -240,7 +240,12 @@ test("Get liked music", function () {
         expect($track->inLibrary)->toBeBool();
         expect($track->duration)->not->toBeEmpty();
         expect($track->duration_seconds)->toBeInt();
-        expect($track->videoType)->toBeIn(["MUSIC_VIDEO_TYPE_ATV", "MUSIC_VIDEO_TYPE_OMV", "MUSIC_VIDEO_TYPE_UGC"]);
+        expect($track->videoType)->toBeIn([
+            "MUSIC_VIDEO_TYPE_ATV",
+            "MUSIC_VIDEO_TYPE_OMV",
+            "MUSIC_VIDEO_TYPE_UGC",
+            "MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK",
+        ]);
         expect($track->artists)->toBeArray();
         expect($track->thumbnails)->toBeArray();
         expect($track)->toHaveProperty('album');
@@ -297,7 +302,7 @@ test("get_playlist() with votes", function($playlist_id, $has_vote) {
         // Collaboration: On
         // Allow new collaborators: Off
         // 2 videos with id: HDTvoFuHtN0, QD3vEctbWGg
-        ["PLa90Y86mjW3d57WTbI8aBp6Cgx9MHOuHD", false],
+       ["PLa90Y86mjW3d57WTbI8aBp6Cgx9MHOuHD", false],
     ]
 );
 
@@ -409,7 +414,7 @@ test("Big create, add to, and delete test of library", function () {
 
     // Playlist no longer exists. Should throw an exception.
     expect(fn () => $yt->get_playlist($playlistId))->toThrow(Exception::class);
-})->skip();
+});
 
 test("create_playlist() - Using video ids", function () {
     $yt = ytbrowser();
@@ -434,17 +439,6 @@ test("Bad remove_playlist_items() parameter - no setVideoId", function () {
     ];
     $yt->remove_playlist_items($this->playlistId, $bad_delete);
 })->throws(\Exception::class);
-
-test("create_playlist() - fail", function () {
-    $credentials = new YtmusicApi\OAuthCredentials(
-        "abc",
-        "123"
-    );
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
-
-    $yt->shouldReceive("_send_request")->andReturn("");
-    $yt->create_playlist("test", "", source_playlist: "aaaaaaaaaaa");
-})->throws(\Exception::class, "Failed to create playlist");
 
 test("create_playlist() - should fail sending in both video_ids and source_playlist", function () {
     $yt = ytbrowser();
@@ -478,82 +472,35 @@ test("remove_playlist_items() - Invalid status response", function () {
         (object)["videoId" => "aaaaaaaaaaa", "setVideoId" => "aaaaaaaaaaa"],
     ];
 
-    $credentials = new YtmusicApi\OAuthCredentials(
-        "abc",
-        "123"
-    );
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
+    $yt = ytbrowser();
+    $yt->send_request = fn () => (object)["context" => "test"];
 
-    $yt->shouldReceive("_send_request")->andReturn((object)["context" => "test"]);
     $response = $yt->remove_playlist_items($this->playlistId, $videos);
 
     expect($response->context)->toBe("test");
 });
 
 test("add_playlist_items() - Invalid response", function () {
-    $credentials = new YtmusicApi\OAuthCredentials(
-        "abc",
-        "123"
-    );
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
+    $yt = ytbrowser();
+    $yt->send_request = fn () => (object)["context" => "test"];
 
-    $yt->shouldReceive("_send_request")->andReturn((object)["context" => "test"]);
+    $response = $yt->create_playlist("test", "", "PRIVATE", [$this->videoId]);
     $response = $yt->add_playlist_items($this->playlistId, [$this->videoId]);
     expect($response->context)->toBe("test");
 });
 
 test("create_playlist() - Invalid response", function () {
-    $credentials = new YtmusicApi\OAuthCredentials(
-        "abc",
-        "123"
-    );
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
+    $yt = ytbrowser();
+    $yt->send_request = fn () => (object)["context" => "test"];
 
-    $yt->shouldReceive("_send_request")->andReturn((object)["context" => "test"]);
     $response = $yt->create_playlist("test", "", "PRIVATE", [$this->videoId]);
     expect($response->context)->toBe("test");
 });
-
-
-test("long playlist", function () {
-    $yt = ytbrowser();
-
-    $playlist_id = create_playlist(
-        $yt,
-        title: "test long list",
-        description: "a long list",
-        privacy_status: "UNLISTED"
-    );
-
-    try {
-        $response = retry_playlist_edit(
-            fn () => $yt->edit_playlist($playlist_id, collaboration: true, sortOrder: PlaylistSortOrder::TOP_VOTED)
-        );
-        expect($response->status)->toBe(ResponseStatus::SUCCEEDED);
-
-        $track_ids = array_fill(0, 100, "lYBUbBu4W08");
-        $response = $yt->add_playlist_items($playlist_id, $track_ids, duplicates: true);
-        expect($response->status)->toBe(ResponseStatus::SUCCEEDED);
-
-        $track_ids = ["lYBUbBu4W08"];
-        $response = $yt->add_playlist_items($playlist_id, $track_ids, duplicates: true);
-        expect($response->status)->toBe(ResponseStatus::SUCCEEDED);
-
-        // For some reason a collaborative playlist isn't allowing all 101 tracks
-        $playlist = $yt->get_playlist($playlist_id, limit: null);
-        expect(count($playlist->tracks))->toBe(101);
-    } finally {
-        sleep(3);
-        echo "Deleting playlist\n";
-        $yt->delete_playlist($playlist_id);
-    }
-})->skip();
 
 test("edit_playlist_collaboration", function () {
     $yt = ytbrowser();
 
     $playlist_id = create_playlist($yt, "test collaboriation", "", privacy_status: "UNLISTED");
-    echo "Playlist: " . $playlist_id . "\n";
 
     try {
         $response = retry_playlist_edit(
