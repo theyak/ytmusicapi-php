@@ -400,7 +400,7 @@ trait Playlists
         if ($voteOption) {
             $actions[] = [
                 "action" => "ACTION_SET_ALLOW_ITEM_VOTE",
-                "itemVotePermission" => $voteOption->getArgumentForRequest(),
+                "itemVotePermission" => PlaylistVoteEditOptions::getArgumentForRequest($voteOption),
             ];
         }
 
@@ -408,6 +408,7 @@ trait Playlists
         $endpoint = 'browse/edit_playlist';
 
         $response = $this->_send_request($endpoint, $body);
+
         if ($collaboration && nav($response, "status", true) === ResponseStatus::SUCCEEDED) {
             $invite_link = nav($response, "collaborationInviteLink", true);
 
@@ -419,6 +420,10 @@ trait Playlists
                 "joinCollaborationToken" => $jct,
             ];
         }
+
+        global $debug;
+        $debug && print_r($response->status);
+
 
         // Why allow returning a string or an object?!?!
         return empty($response->status) ? $response : $response->status;

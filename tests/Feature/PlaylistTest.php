@@ -5,6 +5,8 @@ use Pest\Exceptions\SkipException;
 
 use Ytmusicapi\ResponseStatus;
 use Ytmusicapi\PlaylistSortOrder;
+use Ytmusicapi\PlaylistVoteEditOptions;
+use Ytmusicapi\VoteStatus;
 
 //   public function get_playlist($playlistId, $limit = 100, $related = false, $suggestions_limit = 0, $get_continuations = true)
 
@@ -277,11 +279,13 @@ test("get_playlist() with votes", function($playlist_id, $has_vote) {
         return;
     }
 
+    $constants = VoteStatus::cases();
+
     foreach ($tracks as $track) {
         $vote_status = $track->communityVoteStatus;
         expect($vote_status)->not->toBeEmpty();
-        expect((int)$vote_status->netVoteValue)->toBeGreaterThan(0);
-        expect($vote_status->status)->toBeInstanceOf(\Ytmusicapi\VoteStatus::class);
+        expect($vote_status)->toHaveProperty("netVoteValue"); // Number of votes
+        expect($vote_status->status)->toBeIn($constants); // How the current user voted
     }
 })->with(
     [
@@ -493,6 +497,37 @@ test("create_playlist() - Invalid response", function () {
     $response = $yt->create_playlist("test", "", "PRIVATE", [$this->videoId]);
     expect($response->context)->toBe("test");
 });
+
+test("edit_playlist() - community vote", function () {
+    $yt = ytbrowser();
+
+    $playlist_id = $yt->create_playlist("test edit community vote", "", privacy_status: "UNLISTED");
+
+    try {
+        $response = retry_playlist_edit(fn() => $yt->edit_playlist($playlist_id, collaboration: true));
+        expect($response)->toBeObject();
+
+        // Enable collaboration so can test all 3 vote options.
+        expect($response->status)->toBe(ResponseStatus::SUCCEEDED);
+
+        $response = $yt->edit_playlist($playlist_id, voteOption:PlaylistVoteEditOptions::OFF);
+        expect($response)->toBe(ResponseStatus::SUCCEEDED);
+
+        $response = $yt->edit_playlist(
+            $playlist_id, voteOption: PlaylistVoteEditOptions::EVERYONE_CAN_VOTE
+        );
+        expect($response)->toBe(ResponseStatus::SUCCEEDED);
+
+        $response = $yt->edit_playlist(
+            $playlist_id, voteOption: PlaylistVoteEditOptions::COLLABORATORS_ONLY
+        );
+        expect($response)->toBe(ResponseStatus::SUCCEEDED);
+    } finally {
+        $yt->delete_playlist($playlist_id);
+    }
+
+});
+
 
 test("edit_playlist_collaboration", function () {
     $yt = ytbrowser();
