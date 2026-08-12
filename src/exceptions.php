@@ -27,6 +27,8 @@ class YTMusicUserError extends YTMusicError
 class YTMusicServerError extends YTMusicError {
 }
 
-
-class YTMusicGatedError extends YTMusicError {
+/**
+ * the YouTube Music backend did not perform a request and asked for interaction with a dialog
+ */
+class YTMusicGatedError extends YTMusicServerError {
 }

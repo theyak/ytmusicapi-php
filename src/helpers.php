@@ -226,3 +226,33 @@ function get_authorization($sapisid): string
     $authorization = "SAPISIDHASH {$timestamp}_{$sha1}";
     return $authorization;
 }
+
+function parse_description_runs(?array $description_runs_list): array
+{
+    if (!is_array($description_runs_list)) {
+        return ["", []];
+    }
+
+    $description_runs = [];
+    $description = "";
+
+    foreach ($description_runs_list as $run) {
+        $description .= $run["text"];
+
+        // hashtag runs carry a searchEndpoint instead of a urlEndpoint - treat them as plain text
+        $link = nav($run, ["navigationEndpoint", "urlEndpoint", "url"], true);
+
+        if ($link !== null) {
+            $description_runs[] = [
+                "text" => $run["text"],
+                "url" => $link,
+            ];
+        } else {
+            $description_runs[] = [
+                "text" => $run["text"],
+            ];
+        }
+    }
+
+    return [$description, $description_runs];
+}

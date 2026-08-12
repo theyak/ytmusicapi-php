@@ -2,24 +2,24 @@
 
 namespace Ytmusicapi;
 
+
 /**
- * @param object $results;
+ * @param array $results
  */
 function get_continuation_token($results): ?string
 {
-    $CONTINUATION_TOKEN = "continuationItemRenderer.continuationEndpoint.continuationCommand.token";
-    $COMMAND_EXECUTOR_COMMANDS = join(
-        "continuationItemRenderer",
-        "continuationEndpoint",
-        "commandExecutorCommand",
-        "commands",
-    );
+    $CONTINUATION_TOKENS = "continuationItemRenderer.continuationEndpoint.continuationCommand.token";
+    $COMMAND_EXECUTOR_COMMANDS = "continuationItemRenderer.continuationEndpoint.commandExecutorCommand.commands";
 
-    $last_result = end($results);
+    if (count($results) <= 0) {
+        return null;
+    }
 
-    $token = nav($last_result, $CONTINUATION_TOKEN, true);
-    if ($token) {
-        return $token;
+    $last_result = $results[count($results) - 1];
+
+    $token = nav($last_result, $CONTINUATION_TOKENS, true);
+    if ($token !== null) {
+        return (string) $token;
     }
 
     // continuation tokens may be nested in a commandExecutorCommand list
