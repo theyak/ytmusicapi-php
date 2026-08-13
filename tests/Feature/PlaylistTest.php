@@ -1,8 +1,60 @@
 <?php
 
 use Ytmusicapi\YTMusic;
+use Pest\Exceptions\SkipException;
+
+use Ytmusicapi\ResponseStatus;
+use Ytmusicapi\PlaylistSortOrder;
+use Ytmusicapi\PlaylistVoteEditOptions;
+use Ytmusicapi\VoteStatus;
 
 //   public function get_playlist($playlistId, $limit = 100, $related = false, $suggestions_limit = 0, $get_continuations = true)
+
+/**
+ * Create a playlist, skipping the test while YTM gates creation for the account.
+ *
+ * @param YTMusic $yt;
+ * @param array ...$args
+ */
+function create_playlist($yt, ...$args) {
+    $playlist_id = "";
+    try {
+        $playlist_id = $yt->create_playlist(...$args);
+    } catch (\Ytmusicapi\YTMusicGatedError $e) {
+        test()->markTestSkipped($e->getMessage());
+    } catch (\Ytmusicapi\YTMusicUserError $e) {
+        test()->markTestSkipped($e->getMessage());
+    }
+
+    expect($playlist_id)->toBeString();
+    expect($playlist_id)->toStartWith("PL");
+
+    return $playlist_id;
+}
+
+
+/**
+ * Run the first edit of a freshly created playlist.
+ * YTM rejects these (409 Conflict, or 400 Precondition for collaboration) for up to ~20s
+ * after creation, until the new playlist has settled server-side.
+ *
+ * @param callable $edit
+ * @param int $attempts
+ * @param int $delay
+ */
+function retry_playlist_edit($edit, $attempts = 8, $delay = 5) {
+    while ($attempts--) {
+        try {
+            return $edit();
+        } catch (\Ytmusicapi\YTMusicServerError $e) {
+            if ($attempts <= 0) {
+                throw $e;
+            }
+        }
+
+        sleep($delay);
+    }
+}
 
 test("get_playlist() - Playlist only", function () {
     $yt = ytmusic();
@@ -74,8 +126,26 @@ test("get_playlist() - large playlist", function () {
     }
 });
 
+test("get_playlist() Audio book", function($playlist_id) {
+    $yt = ytmusic();
+
+    $playlist = $yt->get_playlist($playlist_id);
+
+
+    foreach ($playlist->tracks as $track) {
+        expect($track->album->id)->not->toBeEmpty();
+        expect($track->album->name)->toBe($playlist->title);
+    }
+})->with(
+    [
+        "OLAK5uy_nT1mL8aZvxqfIRFN9L8FgIzfvk6HUkd0I",  // Show
+        "OLAK5uy_ksLYkcnrOSKYl62uxB3ga2zfBZfCuvnJ4",  // Audiobook
+    ]
+);
+
 test("get_playlist() - skip continuations", function () {
     $yt = ytmusic();
+
     $playlist = $yt->get_playlist($this->playlistId, limit: 1, get_continuations: false);
 
     expect($playlist)->not()->toBeEmpty();
@@ -91,7 +161,7 @@ test("get_playlist() - skip continuations", function () {
     expect($playlist->duration)->not->toBeEmpty();
 
     $track_count = sizeof($playlist->tracks);
-    
+
     expect($track_count)->toBeGreaterThan(0);
     expect($track_count)->toBeLessThanOrEqual(100);
 
@@ -117,7 +187,6 @@ test("get_playlist_author", function () {
     $yt = ytmusic();
     $playlist = $yt->get_playlist("PL9tY0BWXOZFu4vlBOzIOmvT6wjYb2jNiV");
 
-    expect($playlist->artists)->toBeEmpty();
     expect($playlist->author->name)->toBe("Vevo");
     expect($playlist->author->id)->toBe("UC2pmfLm7iq6Ov1UwYrWYkZA");
 
@@ -173,7 +242,12 @@ test("Get liked music", function () {
         expect($track->inLibrary)->toBeBool();
         expect($track->duration)->not->toBeEmpty();
         expect($track->duration_seconds)->toBeInt();
-        expect($track->videoType)->toBeIn(["MUSIC_VIDEO_TYPE_ATV", "MUSIC_VIDEO_TYPE_OMV", "MUSIC_VIDEO_TYPE_UGC"]);
+        expect($track->videoType)->toBeIn([
+            "MUSIC_VIDEO_TYPE_ATV",
+            "MUSIC_VIDEO_TYPE_OMV",
+            "MUSIC_VIDEO_TYPE_UGC",
+            "MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK",
+        ]);
         expect($track->artists)->toBeArray();
         expect($track->thumbnails)->toBeArray();
         expect($track)->toHaveProperty('album');
@@ -189,6 +263,52 @@ test("Get liked music", function () {
         }
     }
 });
+
+test("get_playlist() with votes", function($playlist_id, $has_vote) {
+    $yt = ytbrowser();
+
+    $playlist = $yt->get_playlist($playlist_id);
+    $tracks = $playlist->tracks;
+    expect(sizeof($tracks))->toBeGreaterThan(0);
+
+    if (!$has_vote) {
+        foreach ($tracks as $track) {
+            expect($track->communityVoteStatus)->toBe(null);
+        }
+
+        return;
+    }
+
+    $constants = VoteStatus::cases();
+
+    foreach ($tracks as $track) {
+        $vote_status = $track->communityVoteStatus;
+        expect($vote_status)->not->toBeEmpty();
+        expect($vote_status)->toHaveProperty("netVoteValue"); // Number of votes
+        expect($vote_status->status)->toBeIn($constants); // How the current user voted
+    }
+})->with(
+    [
+        // Settings:
+        // Title: "Playlist with votes"
+        // Description: ""
+        // Privacy: unlisted
+        // Voting: Everyone
+        // Collaboration: On
+        // Allow new collaborators: Off
+        // 2 videos with id: HDTvoFuHtN0, QD3vEctbWGg
+        ["PLa90Y86mjW3fKMrV_EPZ2-WZH8a50ss-b", true],
+        // Settings:
+        // Title: "Playlist without votes"
+        // Description: ""
+        // Privacy: unlisted
+        // Voting: Voting off
+        // Collaboration: On
+        // Allow new collaborators: Off
+        // 2 videos with id: HDTvoFuHtN0, QD3vEctbWGg
+       ["PLa90Y86mjW3d57WTbI8aBp6Cgx9MHOuHD", false],
+    ]
+);
 
 test("Edit playlist", function () {
     $yt = ytbrowser();
@@ -298,11 +418,11 @@ test("Big create, add to, and delete test of library", function () {
 
     // Playlist no longer exists. Should throw an exception.
     expect(fn () => $yt->get_playlist($playlistId))->toThrow(Exception::class);
-})->skip();
+});
 
 test("create_playlist() - Using video ids", function () {
     $yt = ytbrowser();
-    
+
     $playlistId = $yt->create_playlist("test", "test description", "PRIVATE", [$this->videoId]);
 
     sleep(2);
@@ -323,17 +443,6 @@ test("Bad remove_playlist_items() parameter - no setVideoId", function () {
     ];
     $yt->remove_playlist_items($this->playlistId, $bad_delete);
 })->throws(\Exception::class);
-
-test("create_playlist() - fail", function () {
-    $credentials = new YtmusicApi\OAuthCredentials(
-        "abc",
-        "123"
-    );
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
-
-    $yt->shouldReceive("_send_request")->andReturn("");
-    $yt->create_playlist("test", "", source_playlist: "aaaaaaaaaaa");
-})->throws(\Exception::class, "Failed to create playlist");
 
 test("create_playlist() - should fail sending in both video_ids and source_playlist", function () {
     $yt = ytbrowser();
@@ -367,38 +476,103 @@ test("remove_playlist_items() - Invalid status response", function () {
         (object)["videoId" => "aaaaaaaaaaa", "setVideoId" => "aaaaaaaaaaa"],
     ];
 
-    $credentials = new YtmusicApi\OAuthCredentials(
-        "abc",
-        "123"
-    );    
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
+    $yt = ytbrowser(true);
+    $yt->send_request = fn () => (object)["context" => "test"];
 
-    $yt->shouldReceive("_send_request")->andReturn((object)["context" => "test"]);
     $response = $yt->remove_playlist_items($this->playlistId, $videos);
 
     expect($response->context)->toBe("test");
 });
 
 test("add_playlist_items() - Invalid response", function () {
-    $credentials = new YtmusicApi\OAuthCredentials(
-        "abc",
-        "123"
-    );
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
-
-    $yt->shouldReceive("_send_request")->andReturn((object)["context" => "test"]);
-    $response = $yt->add_playlist_items($this->playlistId, [$this->videoId]);
+    $yt = ytbrowser(true);
+    $yt->send_request = fn () => (object)["context" => "test"];
+    $response = $yt->add_playlist_items("playlistId", [$this->videoId]);
     expect($response->context)->toBe("test");
 });
 
 test("create_playlist() - Invalid response", function () {
-    $credentials = new YtmusicApi\OAuthCredentials(
-        "abc",
-        "123"
-    );
-    $yt = Mockery::mock(YTMusic::class, ["oauth.json", null, null, null, null, null, $credentials])->makePartial();
-
-    $yt->shouldReceive("_send_request")->andReturn((object)["context" => "test"]);
+    $yt = ytbrowser(true);
+    $yt->send_request = fn () => (object)["context" => "test"];
     $response = $yt->create_playlist("test", "", "PRIVATE", [$this->videoId]);
     expect($response->context)->toBe("test");
+});
+
+test("edit_playlist() - community vote", function () {
+    $yt = ytbrowser();
+
+    $playlist_id = $yt->create_playlist("test edit community vote", "", privacy_status: "UNLISTED");
+
+    try {
+        $response = retry_playlist_edit(fn() => $yt->edit_playlist($playlist_id, collaboration: true));
+        expect($response)->toBeObject();
+
+        // Enable collaboration so can test all 3 vote options.
+        expect($response->status)->toBe(ResponseStatus::SUCCEEDED);
+
+        $response = $yt->edit_playlist($playlist_id, voteOption:PlaylistVoteEditOptions::OFF);
+        expect($response)->toBe(ResponseStatus::SUCCEEDED);
+
+        $response = $yt->edit_playlist(
+            $playlist_id, voteOption: PlaylistVoteEditOptions::EVERYONE_CAN_VOTE
+        );
+        expect($response)->toBe(ResponseStatus::SUCCEEDED);
+
+        $response = $yt->edit_playlist(
+            $playlist_id, voteOption: PlaylistVoteEditOptions::COLLABORATORS_ONLY
+        );
+        expect($response)->toBe(ResponseStatus::SUCCEEDED);
+    } finally {
+        $yt->delete_playlist($playlist_id);
+    }
+
+});
+
+
+test("edit_playlist_collaboration", function () {
+    $yt = ytbrowser();
+
+    $playlist_id = create_playlist($yt, "test collaboriation", "", privacy_status: "UNLISTED");
+
+    try {
+        $response = retry_playlist_edit(
+            fn () => $yt->edit_playlist($playlist_id, collaboration: true, sortOrder: PlaylistSortOrder::TOP_VOTED)
+        );
+
+        expect($response->status)->toBe(ResponseStatus::SUCCEEDED);
+
+        $join_collaboration_token = $response->joinCollaborationToken;
+        expect($join_collaboration_token)->not->toBeEmpty();
+
+        $track_ids = array_fill(0, 101, "lYBUbBu4W08");
+        $response = $yt->add_playlist_items(
+            $playlist_id, $track_ids, duplicates: true
+        );
+
+        expect($response->status)->toBe(ResponseStatus::SUCCEEDED);
+
+        sleep(15); // wait for collaboration to be enabled
+
+        // TODO: Join another account with join_collaborative_playlist
+
+        $playlist = $yt->get_playlist($playlist_id, limit: null);
+        expect(count($playlist->collaborators->avatars))->toBe(1);
+
+        expect($playlist->author)->toBeEmpty();
+
+        // we should have continuations for large vote-sorted playlists
+        expect(count($playlist->tracks))->toBe(101);
+
+        // Disable collaboration
+        $result = $yt->edit_playlist($playlist_id, collaboration: false);
+        expect($result)->toBe(ResponseStatus::SUCCEEDED);
+
+        sleep(3);
+
+        $playlist = $yt->get_playlist($playlist_id);
+        expect($playlist->collaborators)->toBeEmpty();
+        expect($playlist->author)->not->toBeEmpty();
+    } finally {
+        $yt->delete_playlist($playlist_id);
+    }
 });

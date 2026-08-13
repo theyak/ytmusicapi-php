@@ -2,12 +2,18 @@
 
 namespace Ytmusicapi;
 
+/** @phpstan-import-type TextRun */
 class Artist
 {
     /**
      * @var string
      */
     public $description;
+
+    /**
+     * @var TextRun[]
+     */
+    public $descriptionRuns;
 
     /**
      * @var string
@@ -40,17 +46,22 @@ class Artist
     public $subscribers;
 
     /**
+     * @var string
+     */
+    public $monthlyListeners;
+
+    /**
      * @var bool
      */
     public $subscribed;
 
     /**
-     * @var Thumbnails[]
+     * @var Thumbnail[]
      */
     public $thumbnails;
 
     /**
-     * @var SongList
+     * @var ArtistSongList[]
      */
     public $songs;
 

@@ -49,6 +49,8 @@ function parse_album_header($response)
 
 /**
  * Note: Schema for artist has changed as of 1.11.0
+ *
+ * @param object $response
  */
 function parse_album_header_2024($response) {
     $header = nav($response, join(TWO_COLUMN_RENDERER, TAB_CONTENT, SECTION_LIST_ITEM, RESPONSIVE_HEADER));
@@ -58,10 +60,14 @@ function parse_album_header_2024($response) {
     $album->thumbnails = nav($header, THUMBNAILS);
     $album->isExplicit = !!nav($header, SUBTITLE_BADGE_LABEL, true);
 
-    $album->description = nav($header, join("description", DESCRIPTION_SHELF, DESCRIPTION), true);
+    $runs = nav($header, join("description", DESCRIPTION_SHELF, DESCRIPTION_RUN_LIST), true);
+    [$description, $description_runs] = parse_description_runs($runs);
+    $album->description = $description;
+    $album->descriptionRuns = $description_runs;
 
     $album_info = parse_song_runs(array_slice($header->subtitle->runs, 2));
-    $album_info['artists'] = [parse_base_header($header)->author ?? null];
+    $strapline_runs = nav($header, "straplineTextOne.runs", true);
+    $album_info['artists'] = $strapline_runs ? parse_artists_runs($strapline_runs) : null;
     object_merge($album, $album_info);
 
     if (count($header->secondSubtitle->runs) > 1) {

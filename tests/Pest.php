@@ -14,13 +14,21 @@
 include "TestCase.php";
 uses(TestCase::class)->in('Feature');
 
+require_once __DIR__ . '/Support/helpers.php';
+
 // Confirm environment variables are set
 $client_id = getenv("GOOGLE_CLIENT_ID");
 $client_secret = getenv("GOOGLE_SECRET_ID");
 
-
-// die(1);
-
+// Warnings trigger errors
+// set_error_handler(function (
+//     int $severity,
+//     string $message,
+//     string $file,
+//     int $line
+// ): never {
+//     throw new ErrorException($message, 0, $severity, $file, $line);
+// });
 
 /*
 |--------------------------------------------------------------------------
@@ -53,7 +61,7 @@ function something()
     // ..
 }
 
-function ytmusic() 
+function ytmusic()
 {
     static $yt;
 
@@ -62,15 +70,15 @@ function ytmusic()
     }
 
     $yt = new Ytmusicapi\YTMusic();
-    
+
     return $yt;
 }
 
-function ytbrowser()
+function ytbrowser($new = false)
 {
     static $yt;
 
-    if ($yt) {
+    if ($yt && !$new) {
         return $yt;
     }
 

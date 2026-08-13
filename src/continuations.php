@@ -25,13 +25,9 @@ function get_continuation_token($results): ?string
     // continuation tokens may be nested in a commandExecutorCommand list
     // (alongside playlistVotingRefreshPopupCommand, for example)
     $commands = nav($last_result, $COMMAND_EXECUTOR_COMMANDS, true) ?? [];
-
     foreach ($commands as $command) {
-        if (nav($command, ["continuationCommand", "request"], true) === "CONTINUATION_REQUEST_TYPE_BROWSE") {
-            return (string) nav(
-                $command,
-                ["continuationCommand", "token"]
-            );
+        if (nav($command, "continuationCommand.request", true) === "CONTINUATION_REQUEST_TYPE_BROWSE") {
+            return nav($command, "continuationCommand.token");
         }
     }
 

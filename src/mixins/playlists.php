@@ -13,7 +13,7 @@ trait Playlists
      *
      * Known differences from Python version:
      *   - Returns an empty array instead of null for missing artists
-     *   - Additional $get_continuations parameter for pagnating results
+     *   - Additional $get_continuations parameter for paginating results
      *   - Liked music playlist is PRIVATE instead of PUBLIC
      *
      * @param string $playlistId Playlist ID
@@ -26,8 +26,13 @@ trait Playlists
      *   tracks if you want to provide some sort of progress indicator, otherwise, leave it as true.)
      * @return Playlist
      */
-    public function get_playlist($playlistId, $limit = 100, $related = false, $suggestions_limit = 0, $get_continuations = true)
-    {
+    public function get_playlist(
+        $playlistId,
+        $limit = 100,
+        $related = false,
+        $suggestions_limit = 0,
+        $get_continuations = true
+    ) {
         $browseId = str_starts_with($playlistId, "VL") ? $playlistId : "VL" . $playlistId;
         $body = ["browseId" => $browseId, "params" => "wgYCCAE%3D"];
         $endpoint = "browse";
@@ -35,8 +40,10 @@ trait Playlists
         $response = $request_func("");
 
         $request_func_continuations = fn ($body) => $this->_send_request($endpoint, $body);
-        if (str_starts_with($playlistId, "OLA") || str_starts_with($playlistId, "VLOLA")) {
-            return parse_audio_playlist($response, $limit, $request_func_continuations);
+        $is_ola = str_starts_with($playlistId, "OLA") || str_starts_with($playlistId, "VLOLA");
+        $has_playlist_header = nav($response, join(TWO_COLUMN_RENDERER, TAB_CONTENT, SECTION_LIST_ITEM), true);
+        if ($is_ola && !$has_playlist_header) {
+            return (object)parse_audio_playlist($response, $limit, $request_func_continuations);
         }
 
         $header_data = nav($response, join(TWO_COLUMN_RENDERER, TAB_CONTENT, SECTION_LIST_ITEM));
@@ -59,23 +66,13 @@ trait Playlists
             $playlist["privacy"] = nav($header_data, join(EDITABLE_PLAYLIST_DETAIL_HEADER, "editHeader", "musicPlaylistEditHeaderRenderer", "privacy"), true);
         }
 
-        // [PHP Only] Attempt at getting author
-        $author = nav($header_data, join(RESPONSIVE_HEADER, "facepile.avatarStackViewModel.rendererContext"), true);
-        if ($author) {
-            $playlist["author"] = (object)[
-                "name" => nav($author, "accessibilityContext.label", true),
-                "id" => nav($author, "commandContext.onTap.innertubeCommand.browseEndpoint.browseId", true),
-            ];
-        } else {
-            $playlist["author"] = null;
-        }
-
         $description_shelf = nav($header, join("description", DESCRIPTION_SHELF), true);
         $playlist["description"] = $description_shelf
             ? implode("", array_column($description_shelf->description->runs, "text"))
             : null;
 
         $playlist = array_merge($playlist, parse_playlist_header_meta($header));
+        $is_collaborative = array_key_exists("collaborators", $playlist);
 
         $slice_index = 2 + (int)$playlist["owned"] * 2;
         $runs = array_slice(nav($header, SUBTITLE_RUNS), $slice_index);
@@ -127,18 +124,19 @@ trait Playlists
         $playlist["tracks"] = [];
         $content_data = nav($section_list, join(CONTENT, "musicPlaylistShelfRenderer"));
         if (isset($content_data->contents)) {
-            $playlist["tracks"] = parse_playlist_items($content_data->contents);
-
-            $parse_func = fn ($content) => parse_playlist_items($content_data->contents);
+            $playlist["tracks"] = parse_playlist_items(
+                $content_data->contents, is_collaborative: $is_collaborative
+            );
 
             if ($get_continuations) {
+                $parse_func = fn ($contents) => parse_playlist_items($contents, is_collaborative: $is_collaborative);
+
                 $playlist["tracks"] = array_merge(
                     $playlist["tracks"],
                     get_continuations_2025($content_data, $limit, $request_func_continuations, $parse_func)
                 );
             } else {
-                $continuation_token = get_continuation_token($content_data->contents);
-                $playlist["continuation"] = $continuation_token;
+                $playlist['continuation'] = get_continuation_token($content_data->contents);
             }
         }
 
@@ -186,6 +184,7 @@ trait Playlists
      */
     public function get_liked_songs($limit = 100)
     {
+        $this->_check_auth();
         return $this->get_playlist('LM', $limit);
     }
 
@@ -247,15 +246,44 @@ trait Playlists
 
         $response = $this->_send_request("playlist/create", $body);
 
-        if (!empty($response->playlistId)) {
-            return $response->playlistId;
+        if (isset($response->playlistId)) {
+            $playlist_id = $response->playlistId;
+            return $playlist_id;
         }
 
-        if (!$response) {
-            throw new \Exception("Failed to create playlist");
-        }
+        validate_write_response($response);
 
         return $response;
+    }
+
+    /**
+     * Given an invite token, join a collaborative playlist and add it to your library.
+     *
+     * @param string $playlistId ID of the playlist to join.
+     *     If you're already a collaborator, an Unauthorized server error is raised.
+     * @param string $joinCollaborationToken See validate_playlist_id(), or `jct` in YTM's invite URL.
+     * @return string|array Status String or full response
+     */
+    public function join_collaborative_playlist(
+        string $playlistId,
+        string $joinCollaborationToken
+    ): string|array {
+        $this->_check_auth();
+
+        $body = [
+            "playlistId" => validate_playlist_id($playlistId),
+            "actions" => [
+                [
+                    "action" => "ACTION_JOIN_COLLABORATION",
+                    "joinCollaborationToken" => $joinCollaborationToken,
+                ],
+            ],
+        ];
+
+        $endpoint = "browse/edit_playlist";
+        $response = $this->_send_request($endpoint, $body);
+
+        return empty($response->status) ? $response : $response->status;
     }
 
     /**
@@ -274,10 +302,34 @@ trait Playlists
      * @param string $addPlaylistId Optional. Id of another playlist to add to this playlist
      * @param bool $addToTop Optional. Change the state of this playlist to add items to the top of the playlist (if true)
      *  or the bottom of the playlist (if false - this is also the default of a new playlist).
-     * @return string Status String or full response
+     * @param bool $collaboration. Optional. Enable or disable collaboration.
+     *     If false and collaboration is not enabled, a Forbidden server error is raised.
+     *     If true, a new `joinCollaborationToken` is returned.
+     *     Collaborators cannot interact with private playlists.
+     * @param string $sortOrder Optional. Change the order tracks are returned in. The default is `MANUAL`.
+     * @param PlaylistVoteEditOptions Optional. Change who can participate in community voting in this playlist.
+     *     Note that a bad request will be thrown if voteOption is PlaylistVoteEditOptions.COLLABORATORS_ONLY
+     *     but the playlist is not enabled for collaboration prior to the edit.
+     * @return object|string Status String, `collaboration` dict described below, or full response
+     *
+     * Object returned when `collaboration` is true and the request is successful:
+     *     {
+     *         "status": "STATUS_SUCCEEDED",
+     *         "joinCollaborationToken": "kM9wXdRj2p8v_qL3sHBkTz"
+     *     }
      */
-    public function edit_playlist($playlistId, $title = null, $description = null, $privacyStatus = null, $moveItem = null, $addPlaylistId = null, $addToTop = null)
-    {
+    public function edit_playlist(
+        $playlistId,
+        $title = null,
+        $description = null,
+        $privacyStatus = null,
+        $moveItem = null,
+        $addPlaylistId = null,
+        $addToTop = null,
+        $collaboration = null,
+        $sortOrder = null,
+        $voteOption = null,
+    ) {
         $this->_check_auth();
         $body = ['playlistId' => validate_playlist_id($playlistId)];
         $actions = [];
@@ -304,6 +356,15 @@ trait Playlists
             ];
         }
 
+        if ($collaboration) {
+            $actions[] = ["action" => "ACTION_CREATE_COLLABORATION_INVITE_LINK"];
+        } else if ($collaboration === false) {
+            $actions[] = [
+                "action" => "ACTION_SET_CLOSED_TO_CONTRIBUTIONS",
+                "closedToContributions" => true
+            ];
+        }
+
         if ($moveItem) {
             $action = (object)[
                 'action' => 'ACTION_MOVE_VIDEO_BEFORE',
@@ -323,17 +384,49 @@ trait Playlists
             ];
         }
 
+        if ($sortOrder) {
+            $actions[] = [
+                "action" => "ACTION_SET_PLAYLIST_VIDEO_ORDER",
+                "playlistVideoOrder" => $sortOrder,
+            ];
+        }
+
         if ($addToTop === false) {
             $actions[] = ['action' => 'ACTION_SET_ADD_TO_TOP', 'addToTop' => 'false'];
         } elseif ($addToTop === true) {
             $actions[] = ['action' => 'ACTION_SET_ADD_TO_TOP', 'addToTop' => 'true'];
         }
 
+        if ($voteOption) {
+            $actions[] = [
+                "action" => "ACTION_SET_ALLOW_ITEM_VOTE",
+                "itemVotePermission" => PlaylistVoteEditOptions::getArgumentForRequest($voteOption),
+            ];
+        }
+
         $body['actions'] = $actions;
         $endpoint = 'browse/edit_playlist';
 
         $response = $this->_send_request($endpoint, $body);
-        return $response->status ?? $response;
+
+        if ($collaboration && nav($response, "status", true) === ResponseStatus::SUCCEEDED) {
+            $invite_link = nav($response, "collaborationInviteLink", true);
+
+            parse_str(parse_url($invite_link, PHP_URL_QUERY), $params);
+            $jct = $params['jct'] ?? null;
+
+            return (object)[
+                "status" => $response->status,
+                "joinCollaborationToken" => $jct,
+            ];
+        }
+
+        global $debug;
+        $debug && print_r($response->status);
+
+
+        // Why allow returning a string or an object?!?!
+        return empty($response->status) ? $response : $response->status;
     }
 
     /**
@@ -408,7 +501,7 @@ trait Playlists
             return (object)["status" => $response->status, "playlistEditResults" => $result_dict];
         }
 
-        return $response;
+        return empty($response->status) ? $response : $response->status;
     }
 
     /**
@@ -446,10 +539,6 @@ trait Playlists
         $endpoint = 'browse/edit_playlist';
         $response = $this->_send_request($endpoint, $body);
 
-        if (!empty($response->status)) {
-            return $response->status;
-        }
-
-        return $response;
+        return empty($response->status) ? $response : $response->status;
     }
 }

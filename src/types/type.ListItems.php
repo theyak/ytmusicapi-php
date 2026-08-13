@@ -309,3 +309,31 @@ class ArtistInfo
      */
     public $type;
 }
+
+class ArtistSonglist
+{
+    /**
+     * @var string
+     */
+    public $title;
+
+    /**
+     * @var Thumbnail[]
+     */
+    public $thumbnails;
+
+    /**
+     * @var string
+     */
+    public $type;
+
+    /**
+     * @var string
+     */
+    public $year;
+
+    /**
+     * @var string
+     */
+    public $browseId;
+}

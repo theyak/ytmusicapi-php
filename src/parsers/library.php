@@ -205,13 +205,13 @@ function parse_albums($results)
 
 /**
  * Remove the random mix that conditionally appears at the start of library sons
+ *
+ * @param object $results
  */
 function pop_songs_random_mix($results)
 {
-    if ($results) {
-        if (count($results->contents) >= 2) {
-            array_shift($results->contents);
-        }
+    if ($results && count($results->contents) >= 2) {
+        array_shift($results->contents);
     }
 }
 

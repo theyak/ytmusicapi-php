@@ -2,15 +2,15 @@
 
 namespace Ytmusicapi;
 
-class TrackArtist
+class Collaborators
 {
     /**
      * @var string
      */
-    public $name;
+    public $text;
 
     /**
-     * @var string
+     * @var array
      */
-    public $id;
+    public $avatars = [];
 }

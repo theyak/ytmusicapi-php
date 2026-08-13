@@ -20,7 +20,7 @@ class Playlist
     public $title;
 
     /**
-     * @var ThumbnailCollection
+     * @var Thumbnail[]
      */
     public $thumbnails;
 
@@ -30,12 +30,7 @@ class Playlist
     public $description;
 
     /**
-     * @var int
-     */
-    public $track_count;
-
-    /**
-     * @var Ref
+     * @var ?Ref
      */
     public $author;
 
@@ -78,4 +73,9 @@ class Playlist
      * @var string
      */
     public $continuation;
+
+    /**
+     * @var Collaborators
+     */
+    public $collaborators;
 }

@@ -192,7 +192,7 @@ function parse_episode_header($header)
 /**
  * Parses a single episode under "Episodes" on a channel page or on a podcast page
  *
- * @param object $results
+ * @param object $data
  * @return Episode
  */
 function parse_episode($data)
@@ -220,6 +220,25 @@ function parse_episode($data)
     $episode->thumbnails = $thumbnails;
 
     return $episode;
+}
+
+
+/**
+ * @param object $data
+ * @return object
+ */
+function parse_episode_flat($data)
+{
+    return (object)[
+        "title" => nav(get_flex_column_item($data, 0), TEXT_RUN_TEXT),
+        "podcast" => parse_id_name(nav(get_flex_column_item($data, 1), TEXT_RUN)),
+        "videoId" => nav($data, "playlistItemData.videoId"),
+        "browseId" => nav(get_flex_column_item($data, 0), join(TEXT_RUN, NAVIGATION_BROWSE_ID)),
+        "playlistId" => nav($data, join(PLAY_BUTTON, "playNavigationEndpoint", WATCH_PLAYLIST_ID)),
+        "videoType" => nav($data, join(PLAY_BUTTON, "playNavigationEndpoint", NAVIGATION_VIDEO_TYPE)),
+        "date" => nav(get_flex_column_item($data, 2), TEXT_RUN_TEXT),
+        "thumbnails" => nav($data, THUMBNAILS),
+    ];
 }
 
 /**

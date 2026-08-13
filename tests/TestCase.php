@@ -45,6 +45,8 @@ class TestCase extends BaseTestCase
     // tracks can be loaded.
     public $ownPlaylistId;
 
+    public $sample_credits = "MPTCJpKLGcWBJ5Y"; // KANGTA - The Cure
+
     public function performThis(): void
     {
         $this->ownPlaylistId = getenv("OWN_PLAYLIST_ID");

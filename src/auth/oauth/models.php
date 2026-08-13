@@ -44,6 +44,12 @@ class RefreshableTokenDict extends BaseTokenDict
      * string used to obtain new access token upon expiration
      */
     public $refresh_token;
+
+    /**
+     * @var int
+     * seconds until refresh token expiration from request timestamp
+     */
+    public $refresh_token_expires_in;
 }
 
 /**

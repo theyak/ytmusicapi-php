@@ -2,6 +2,7 @@
 
 namespace Ytmusicapi;
 
+/** @phpstan-import-type TextRun */
 class Album extends Record
 {
     /**
@@ -35,7 +36,12 @@ class Album extends Record
     public $description;
 
     /**
-     * @var {name: string, id: string}[]
+     * @var TextRun[]
+     */
+    public $descriptionRuns;
+
+    /**
+     * @var array{name: string, id: string}
      */
     public $artists;
 

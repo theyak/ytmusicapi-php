@@ -32,7 +32,7 @@
 
     /**
      * @param object $data
-     * @param string[] $search_result_types 
+     * @param string[] $search_result_types
      * @return object
      */
     function parse_top_result($data, $search_result_types)
@@ -80,7 +80,7 @@
             $runs = nav($data, "subtitle.runs");
             $search_result['playlistId'] = nav($data, MENU_PLAYLIST_ID);
             $search_result['title'] = nav($data, TITLE_TEXT);
-            $search_result['author'] = parse_song_artists_runs(array_slice($runs, 2));
+            $search_result['author'] = parse_artists_runs(array_slice($runs, 2));
         }
 
         if ($result_type === 'episode') {
@@ -97,7 +97,7 @@
     }
 
     /**
-     * 
+     *
      * @param object $data
      * @param ?string $result_type
      * @param ?string $category
@@ -160,7 +160,14 @@
             $flex_item = nav(get_flex_column_item($data, 1), TEXT_RUNS);
 
             $has_author = count($flex_item) === $default_offset + 3;
-            $search_result['itemCount'] = explode(' ', get_item_text($data, 1, $default_offset + $has_author * 2) ?? "")[0];
+            $item_info_text = explode(" ", get_item_text($data, 1, $has_author * 2) ?? "");
+
+            if (count($item_info_text) >= 2 && $item_info_text[1] === "songs") {
+                $search_result["itemCount"] = $item_info_text[0];
+            } else {
+                $search_result["itemCount"] = null;
+            }
+
             if ($search_result["itemCount"] && is_numeric($search_result["itemCount"])) {
                 $search_result["itemCount"] = (int)$search_result["itemCount"];
             }
@@ -172,13 +179,7 @@
             $search_result['name'] = get_item_text($data, 1, 2, true);
         } elseif ($result_type === 'song') {
             $search_result['album'] = null;
-            if (isset($data->menu)) {
-                $toggle_menu = find_object_by_key(nav($data, MENU_ITEMS), TOGGLE_MENU);
-                if ($toggle_menu) {
-                    $search_result['inLibrary'] = parse_song_library_status($toggle_menu);
-                    $search_result['feedbackTokens'] = parse_song_menu_tokens($toggle_menu);
-                }
-            }
+            $search_result = array_merge($search_result, parse_song_menu_data($data));
         } elseif ($result_type === "upload") {
             $browse_id = nav($data, NAVIGATION_BROWSE_ID, true);
             if (!$browse_id) { // Song result
@@ -229,6 +230,9 @@
             $search_result['duration'] = null;
             $search_result['year'] = null;
             $flex_item = get_flex_column_item($data, 1);
+            if (!$flex_item) {
+                throw new \Exception("Expected flex column item at index 1");
+            }
             $runs = $flex_item->text->runs;
 
             $flex_item2 = get_flex_column_item($data, 2);
@@ -236,7 +240,7 @@
                 $runs[] = (object)["text" => ""];
                 $runs = array_merge($runs, $flex_item2->text->runs);
             }
-           
+
             $song_info = parse_song_runs($runs, true);
             $search_result = array_merge($search_result, $song_info);
         }
@@ -266,7 +270,7 @@
     }
 
     /**
-     * 
+     *
      * @param object[] $results
      * @param ?string $resultType
      * @param ?string $category
@@ -288,7 +292,7 @@
 
     /**
      * Get search params for search query string based on user input
-     * 
+     *
      * @param ?string $filter
      * @param ?string $scope
      * @param bool $ignore_spelling
