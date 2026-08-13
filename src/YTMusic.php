@@ -2,12 +2,12 @@
 
 namespace Ytmusicapi;
 
-include "constants.php";
-include "exceptions.php";
-include "polyfills.php";
-include "navigation.php";
-include "continuations.php";
-include "helpers.php";
+include_once "constants.php";
+include_once "exceptions.php";
+include_once "polyfills.php";
+include_once "navigation.php";
+include_once "continuations.php";
+include_once "helpers.php";
 
 // In an effort to stay as close as possible to sigma67's original code,
 // we have used filenames that don't always match class names, we don't
@@ -82,7 +82,7 @@ class YTMusic
      *   is used. You can retrieve the user ID by going to https://myaccount.google.com/brandaccounts
      *   and selecting your brand account. The user ID will be in the
      *   URL: https://myaccount.google.com/b/user_id/
-     * @param \WpOrg\Requests\Session $requests_session A Requests session object.
+     * @param \WpOrg\Requests\Session|bool $requests_session A Requests session object.
      *   Default sessions have a request timeout of 30s, which produces a requests.exceptions.ReadTimeout.
      *   The timeout can be changed by passing your own Session object:
      *   ```php
@@ -96,7 +96,7 @@ class YTMusic
      * @param string $location (Not implemented yet) Optional. Can be used to change the location of the user. No location
      *   will be set by default. This means it is determined by the server. Available languages can
      *   be checked in the FAQ.
-     * @param string $oauth_credentials Optional. Used to specify a different oauth client to be
+     * @param OAuthCredentials $oauth_credentials Optional. Used to specify a different oauth client to be
      *   used for authentication flow.
      *
      * Known differences from Python version:
@@ -406,4 +406,3 @@ class YTMusic
         return $this->_session;
     }
 }
-

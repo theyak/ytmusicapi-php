@@ -3,12 +3,18 @@
 Please see https://theyak.github.io/ytmusicapi-php/ for latest documentation.
 Note that the documentation is a work in progress.
 
-WARNING
+WARNING #1
 
 Google has taken a harder stance against bots. Endpoints that may have
 previously worked while not authenticated may now responsd with an error.
 This seems especially true if you are running the software on a common
 hosting provider such as AWS, Netlify, Vercel, Digital Ocean, or Linode.
+
+WARNING #2
+
+I've been unable to get OAuth working. I receive the same error in
+both this package and the Python package. Therefore OAuth will
+not be supported.
 
 ## About
 
@@ -74,7 +80,7 @@ print_r($song);
 // Since the liked music playlist is private, you need to be authenticated.
 // This example requires PHP 8.0+ due to usage of named parameters.
 
-$yt = new Ytmusicapi\YTMusic("oauth.json");
+$yt = new Ytmusicapi\YTMusic("browser.json");
 
 try {
     $playlist = $yt->get_playlist("LM", get_continuations: false);

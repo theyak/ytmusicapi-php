@@ -4,19 +4,23 @@ namespace Ytmusicapi;
 
 require_once "vendor/autoload.php";
 
-include "polyfills.php";
-include "helpers.php";
-include "constants.php";
-include "auth/exceptions.php";
-include "auth/oauth/models.php";
-include "auth/oauth/credentials.php";
-include "auth/oauth/token.php";
-include "auth/types.php";
-include "auth/browser.php";
-include "mixins/_utils.php";
+include_once "polyfills.php";
+include_once "helpers.php";
+include_once "constants.php";
+include_once "auth/exceptions.php";
+include_once "auth/oauth/models.php";
+include_once "auth/oauth/credentials.php";
+include_once "auth/oauth/token.php";
+include_once "auth/types.php";
+include_once "auth/browser.php";
+include_once "mixins/_utils.php";
 
 // php vendor/bin/setup-ytmusicapi oauth --file oauth.json
 // php vendor/bin/setup-ytmusicapi browser --file browser.json
+
+// Development
+// php src/setup-ytmusicapi oauth
+// php src/setup-ytmusicapi browser
 
 /**
  * Requests browser headers from the user via command line and returns a string that can be passed to YTMusic()
